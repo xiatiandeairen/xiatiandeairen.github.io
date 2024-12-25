@@ -1,0 +1,3 @@
+[submodule "themes/summer"]
+	path = themes/summer
+	url = git@github.com:xiatiandeairen/summer.git
