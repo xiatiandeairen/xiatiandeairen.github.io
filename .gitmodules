@@ -1,3 +1,6 @@
 [submodule "themes/summer"]
 	path = themes/summer
 	url = git@github.com:xiatiandeairen/summer.git
+[submodule "themes/hexo-theme-yuzu"]
+	path = themes/hexo-theme-yuzu
+	url = https://github.com/Cerallin/hexo-theme-yuzu.git
