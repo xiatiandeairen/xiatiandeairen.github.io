@@ -1,0 +1,18 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import type { SEOData } from '../utils/seo';
+
+interface Props {
+  note: any;
+  seo?: SEOData;
+  mode?: 'public' | 'audit';
+}
+
+const { note, seo, mode = 'public' } = Astro.props;
+---
+
+<BaseLayout seo={seo}>
+  <article>
+    <slot />
+  </article>
+</BaseLayout>

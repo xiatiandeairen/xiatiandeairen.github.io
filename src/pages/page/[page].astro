@@ -1,0 +1,52 @@
+---
+import IndexLayout from '../IndexLayout.astro';
+import NoteCard from '../../components/NoteCard.astro';
+import Pagination from '../../components/Pagination.astro';
+import { getAllNotes, sortNotes, paginateNotes } from '../../utils/notes';
+import { generatePageMeta } from '../../utils/seo';
+
+export async function getStaticPaths() {
+  const allNotes = getAllNotes();
+  const sortedNotes = sortNotes(allNotes, 'date', 'desc');
+  const totalPages = Math.ceil(sortedNotes.length / 20);
+
+  const paths = [];
+  for (let page = 2; page <= totalPages; page++) {
+    paths.push({ params: { page: page.toString() } });
+  }
+
+  return paths.map(({ params }) => {
+    const page = parseInt(params.page);
+    const { notes, pagination } = paginateNotes(sortedNotes, page);
+    const seo = generatePageMeta({
+      title: `第 ${page} 页`,
+      description: '技术笔记集合',
+      path: `/page/${page}`
+    });
+
+    return {
+      params,
+      props: {
+        notes,
+        pagination,
+        seo
+      }
+    };
+  });
+}
+
+const { notes, pagination, seo } = Astro.props;
+---
+
+<IndexLayout title={`第 ${pagination.currentPage} 页`} seo={seo}>
+  <div class="space-y-4">
+    {notes.map((note) => (
+      <NoteCard note={note} showQuality={true} />
+    ))}
+  </div>
+  <Pagination
+    currentPage={pagination.currentPage}
+    totalPages={pagination.totalPages}
+    baseUrl="/"
+  />
+</IndexLayout>

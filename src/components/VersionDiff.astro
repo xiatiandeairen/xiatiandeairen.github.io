@@ -1,0 +1,38 @@
+---
+import type { Note } from '../utils/notes';
+import { formatDate } from '../utils/notes';
+
+interface Props {
+  note: Note;
+}
+
+const { note } = Astro.props;
+---
+
+{note.version?.history && note.version.history.length > 0 && (
+  <div class="space-y-6">
+    {note.version.history.map((historyItem) => (
+      <div class="pb-6 border-b border-border-light last:border-0">
+        <div class="flex items-center justify-between mb-4">
+          <span class="text-small font-semibold text-text-primary">版本 {historyItem.version}</span>
+          <span class="text-small text-text-muted">
+            {formatDate(historyItem.updatedAt)} · {historyItem.updatedBy}
+          </span>
+        </div>
+        {historyItem.changesSummary && (
+          <p class="text-small text-text-primary mb-3 leading-relaxed">{historyItem.changesSummary}</p>
+        )}
+        {historyItem.changes && historyItem.changes.length > 0 && (
+          <ul class="space-y-2 text-small">
+            {historyItem.changes.map((change) => (
+              <li class="text-text-secondary flex items-start">
+                <span class="text-text-tertiary mr-2">·</span>
+                <span>{change}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    ))}
+  </div>
+)}

@@ -1,0 +1,68 @@
+---
+import { getTagPath, getParentTag } from '../utils/tags';
+import type { Note } from '../utils/notes';
+
+interface Props {
+  tagName: string;
+  notes: Note[];
+  maxDepth?: number;
+}
+
+const { tagName, notes, maxDepth = 2 } = Astro.props;
+const tagPath = getTagPath(tagName, notes);
+const parentTag = getParentTag(tagName, notes);
+const pathParts = tagPath.split('/');
+---
+
+<nav class="mb-10 pb-8 border-b border-border-light" aria-label="标签层级导航">
+  <div class="flex flex-wrap items-center gap-2 text-small text-text-muted">
+    {pathParts.length > maxDepth ? (
+      <>
+        <a href="/tags" class="text-link hover:text-link-hover">标签</a>
+        <span>/</span>
+        <span>...</span>
+        <span>/</span>
+        {pathParts.slice(-maxDepth).map((part, index) => {
+          const isLast = index === pathParts.slice(-maxDepth).length - 1;
+          const partPath = pathParts.slice(0, pathParts.indexOf(part) + 1).join('/');
+          return (
+            <>
+              {!isLast ? (
+                <>
+                  <a href={`/tags/${partPath}`} class="text-link hover:text-link-hover">{part}</a>
+                  <span>/</span>
+                </>
+              ) : (
+                <span class="text-text-primary font-semibold">{part}</span>
+              )}
+            </>
+          );
+        })}
+      </>
+    ) : (
+      <>
+        <a href="/tags" class="text-link hover:text-link-hover">标签</a>
+        {pathParts.map((part, index) => {
+          const isLast = index === pathParts.length - 1;
+          const partPath = pathParts.slice(0, index + 1).join('/');
+          return (
+            <>
+              <span>/</span>
+              {!isLast ? (
+                <a href={`/tags/${partPath}`} class="text-link hover:text-link-hover">{part}</a>
+              ) : (
+                <span class="text-text-primary font-semibold">{part}</span>
+              )}
+            </>
+          );
+        })}
+      </>
+    )}
+  </div>
+  {parentTag && (
+    <div class="mt-4 text-small text-text-muted">
+      <span>父标签: </span>
+      <a href={`/tags/${parentTag}`} class="text-link hover:text-link-hover">{parentTag}</a>
+    </div>
+  )}
+</nav>

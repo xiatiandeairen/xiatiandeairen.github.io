@@ -1,0 +1,86 @@
+---
+interface Props {
+  currentPage: number;
+  totalPages: number;
+  baseUrl: string;
+}
+
+const { currentPage, totalPages, baseUrl } = Astro.props;
+
+function getPageUrl(page: number): string {
+  if (page === 1) return baseUrl;
+  return `${baseUrl}/page/${page}`;
+}
+
+function getVisiblePages(current: number, total: number): number[] {
+  const delta = 2;
+  const range: number[] = [];
+  const rangeWithDots: number[] = [];
+
+  for (let i = Math.max(2, current - delta); i <= Math.min(total - 1, current + delta); i++) {
+    range.push(i);
+  }
+
+  if (current - delta > 2) {
+    rangeWithDots.push(1, -1);
+  } else {
+    rangeWithDots.push(1);
+  }
+
+  rangeWithDots.push(...range);
+
+  if (current + delta < total - 1) {
+    rangeWithDots.push(-1, total);
+  } else if (total > 1) {
+    rangeWithDots.push(total);
+  }
+
+  return rangeWithDots;
+}
+
+const visiblePages = getVisiblePages(currentPage, totalPages);
+---
+
+{totalPages > 1 && (
+  <nav class="flex items-center justify-center gap-3 mt-16 pt-12 border-t border-border-light" aria-label="分页导航">
+    {currentPage > 1 && (
+      <a
+        href={getPageUrl(currentPage - 1)}
+        class="text-small text-link hover:text-link-hover transition-colors"
+      >
+        ← 上一页
+      </a>
+    )}
+    
+    <div class="flex items-center gap-2">
+      {visiblePages.map((page) => {
+        if (page === -1) {
+          return <span class="text-small text-text-tertiary px-2">...</span>;
+        }
+        const isCurrent = page === currentPage;
+        return (
+          <a
+            href={getPageUrl(page)}
+            class={`text-small transition-colors ${
+              isCurrent
+                ? 'text-text-primary font-semibold'
+                : 'text-link hover:text-link-hover'
+            }`}
+            aria-current={isCurrent ? 'page' : undefined}
+          >
+            {page}
+          </a>
+        );
+      })}
+    </div>
+
+    {currentPage < totalPages && (
+      <a
+        href={getPageUrl(currentPage + 1)}
+        class="text-small text-link hover:text-link-hover transition-colors"
+      >
+        下一页 →
+      </a>
+    )}
+  </nav>
+)}

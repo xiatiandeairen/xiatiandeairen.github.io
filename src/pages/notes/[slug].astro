@@ -1,0 +1,41 @@
+---
+import NoteLayout from '../../layouts/NoteLayout.astro';
+import MetaFields from '../../components/MetaFields.astro';
+import { getAllNotes } from '../../utils/notes';
+import { generateSEOMeta } from '../../utils/seo';
+import { marked } from 'marked';
+
+export async function getStaticPaths() {
+  const notes = getAllNotes();
+  return notes.map((note) => {
+    const seo = generateSEOMeta(note);
+    const mode = 'public';
+    const htmlContent = marked.parse(note.content);
+    
+    return {
+      params: { slug: note.slug },
+      props: {
+        note,
+        htmlContent,
+        seo,
+        mode
+      }
+    };
+  });
+}
+
+const { note, htmlContent, seo, mode } = Astro.props;
+const urlMode = Astro.url.searchParams.get('mode');
+const displayMode = urlMode === 'audit' ? 'audit' : mode;
+---
+
+<NoteLayout note={note} seo={seo} mode={displayMode}>
+  <header class="mb-12 pb-10 border-b border-border-light">
+    <h1 class="text-h1 text-text-primary mb-6">{note.title}</h1>
+    <MetaFields note={note} mode={displayMode} />
+  </header>
+  
+  <div class="prose prose-lg prose-slate max-w-reading prose-headings:text-text-primary prose-headings:font-semibold prose-p:text-text-primary prose-p:leading-relaxed prose-strong:text-text-primary prose-strong:font-semibold prose-a:text-link prose-a:no-underline hover:prose-a:underline prose-code:text-text-primary prose-code:bg-bg-subtle prose-code:font-mono prose-code:text-[0.9em] prose-pre:bg-bg-subtle prose-pre:border prose-pre:border-border-light prose-blockquote:text-text-secondary prose-blockquote:border-link/30 prose-blockquote:italic prose-li:text-text-primary prose-li:leading-relaxed">
+    <div set:html={htmlContent} />
+  </div>
+</NoteLayout>
