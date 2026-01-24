@@ -39,14 +39,20 @@ const { notes, pagination, seo } = Astro.props;
 ---
 
 <IndexLayout title={`第 ${pagination.currentPage} 页`} seo={seo}>
-  <div class="space-y-4">
-    {notes.map((note) => (
-      <NoteCard note={note} showQuality={true} />
-    ))}
-  </div>
-  <Pagination
-    currentPage={pagination.currentPage}
-    totalPages={pagination.totalPages}
-    baseUrl="/"
-  />
+  {notes.length === 0 ? (
+    <p class="text-text-muted text-center py-16">暂无笔记</p>
+  ) : (
+    <>
+      <div>
+        {notes.map((note) => (
+          <NoteCard note={note} showQuality={true} />
+        ))}
+      </div>
+      <Pagination
+        currentPage={pagination.currentPage}
+        totalPages={pagination.totalPages}
+        baseUrl="/"
+      />
+    </>
+  )}
 </IndexLayout>
