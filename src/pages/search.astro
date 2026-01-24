@@ -124,12 +124,13 @@ const query = Astro.url.searchParams.get('q') || '';
               </div>
             `;
           } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
             resultsContainer.innerHTML = `
               <p class="text-text-secondary text-center py-8">
                 搜索时发生错误，请稍后重试
               </p>
               <p class="text-small text-text-muted text-center mt-2">
-                错误信息: ${error.message}
+                错误信息: ${errorMessage}
               </p>
             `;
             console.error('Search error:', error);
