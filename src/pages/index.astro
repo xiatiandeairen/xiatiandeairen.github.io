@@ -1,0 +1,35 @@
+---
+import IndexLayout from '../layouts/IndexLayout.astro';
+import NoteCard from '../components/NoteCard.astro';
+import Pagination from '../components/Pagination.astro';
+import { getAllNotes, sortNotes, paginateNotes } from '../utils/notes';
+import { generatePageMeta } from '../utils/seo';
+
+const allNotes = getAllNotes();
+const sortedNotes = sortNotes(allNotes, 'date', 'desc');
+const { notes, pagination } = paginateNotes(sortedNotes, 1);
+const seo = generatePageMeta({
+  title: '技术笔记',
+  description: '技术笔记集合',
+  path: '/'
+});
+---
+
+<IndexLayout title="技术笔记" seo={seo}>
+  {notes.length === 0 ? (
+    <p class="text-text-muted text-center py-16">暂无笔记</p>
+  ) : (
+    <>
+      <div>
+        {notes.map((note) => (
+          <NoteCard note={note} showQuality={true} />
+        ))}
+      </div>
+      <Pagination
+        currentPage={pagination.currentPage}
+        totalPages={pagination.totalPages}
+        baseUrl="/"
+      />
+    </>
+  )}
+</IndexLayout>

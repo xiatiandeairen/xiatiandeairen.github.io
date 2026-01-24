@@ -129,5 +129,9 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
-public/
+dist/
+.astro/
 .deploy_git/
+
+public/*
+!public/search-index.json

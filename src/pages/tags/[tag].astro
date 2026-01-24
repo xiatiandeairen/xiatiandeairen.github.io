@@ -1,0 +1,90 @@
+---
+import IndexLayout from '../../layouts/IndexLayout.astro';
+import NoteCard from '../../components/NoteCard.astro';
+import Pagination from '../../components/Pagination.astro';
+import TagHierarchy from '../../components/TagHierarchy.astro';
+import { getAllNotes, getNotesByTag, sortNotes, paginateNotes } from '../../utils/notes';
+import { resolveTagAlias, getChildTags } from '../../utils/tags';
+import { generatePageMeta } from '../../utils/seo';
+
+export async function getStaticPaths() {
+  const allNotes = getAllNotes();
+  const tagSet = new Set<string>();
+
+  for (const note of allNotes) {
+    for (const tag of note.tags) {
+      tagSet.add(tag.name);
+      if (tag.alias) {
+        tag.alias.forEach(alias => tagSet.add(alias));
+      }
+    }
+  }
+
+  const paths = [];
+  for (const tagName of tagSet) {
+    const resolvedTag = resolveTagAlias(tagName, allNotes);
+    const notes = getNotesByTag(resolvedTag, allNotes);
+    const childTags = getChildTags(resolvedTag, allNotes);
+    const allTagNotes = [...new Set([...notes, ...childTags.flatMap(child => getNotesByTag(child, allNotes))])];
+    const totalPages = Math.ceil(allTagNotes.length / 20);
+
+    for (let page = 1; page <= totalPages; page++) {
+      paths.push({ params: { tag: tagName, page: page.toString() } });
+    }
+    if (totalPages === 0) {
+      paths.push({ params: { tag: tagName, page: '1' } });
+    }
+  }
+
+  return paths.map(({ params }) => {
+    const tagName = params.tag;
+    const page = parseInt(params.page || '1');
+    const resolvedTag = resolveTagAlias(tagName, allNotes);
+    const notes = getNotesByTag(resolvedTag, allNotes);
+    const childTags = getChildTags(resolvedTag, allNotes);
+    const allTagNotes = [...new Set([...notes, ...childTags.flatMap(child => getNotesByTag(child, allNotes))])];
+    const sortedNotes = sortNotes(allTagNotes, 'date', 'desc');
+    const { notes: paginatedNotes, pagination } = paginateNotes(sortedNotes, page);
+    
+    const seo = generatePageMeta({
+      title: `标签: ${tagName}`,
+      description: `标签 "${tagName}" 下的笔记`,
+      path: `/tags/${tagName}`
+    });
+
+    return {
+      params,
+      props: {
+        tagName: resolvedTag,
+        notes: paginatedNotes,
+        pagination,
+        seo
+      }
+    };
+  });
+}
+
+const { tagName, notes, pagination, seo } = Astro.props;
+const allNotesForHierarchy = getAllNotes();
+---
+
+<IndexLayout title={`标签: ${tagName}`} seo={seo}>
+  <TagHierarchy tagName={tagName} notes={allNotesForHierarchy} />
+  
+  {notes.length === 0 ? (
+    <p class="text-text-secondary">该标签下暂无笔记</p>
+  ) : (
+    <>
+      <div class="space-y-4">
+        {notes.map((note) => (
+          <NoteCard note={note} showQuality={true} />
+        ))}
+      </div>
+      <Pagination
+        currentPage={pagination.currentPage}
+        totalPages={pagination.totalPages}
+        baseUrl={`/tags/${tagName}`}
+      />
+    </>
+  )}
+</IndexLayout>

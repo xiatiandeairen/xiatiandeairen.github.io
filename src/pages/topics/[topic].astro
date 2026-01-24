@@ -1,0 +1,84 @@
+---
+import IndexLayout from '../../layouts/IndexLayout.astro';
+import NoteCard from '../../components/NoteCard.astro';
+import Pagination from '../../components/Pagination.astro';
+import { getAllNotes, getNotesByTopic, sortNotes, paginateNotes } from '../../utils/notes';
+import { resolveTopicAlias } from '../../utils/tags';
+import { generatePageMeta } from '../../utils/seo';
+
+export async function getStaticPaths() {
+  const allNotes = getAllNotes();
+  const topicSet = new Set<string>();
+
+  for (const note of allNotes) {
+    for (const topic of note.topics) {
+      topicSet.add(topic.name);
+      if (topic.alias) {
+        topic.alias.forEach(alias => topicSet.add(alias));
+      }
+    }
+  }
+
+  const paths = [];
+  for (const topicName of topicSet) {
+    const resolvedTopic = resolveTopicAlias(topicName, allNotes);
+    const notes = getNotesByTopic(resolvedTopic, allNotes);
+    const totalPages = Math.ceil(notes.length / 20);
+
+    for (let page = 1; page <= totalPages; page++) {
+      paths.push({
+        params: { topic: topicName, page: page.toString() }
+      });
+    }
+    if (totalPages === 0) {
+      paths.push({ params: { topic: topicName, page: '1' } });
+    }
+  }
+
+  return paths.map(({ params }) => {
+    const topicName = params.topic;
+    const page = parseInt(params.page || '1');
+    const resolvedTopic = resolveTopicAlias(topicName, allNotes);
+    const notes = getNotesByTopic(resolvedTopic, allNotes);
+    const sortedNotes = sortNotes(notes, 'date', 'desc');
+    const { notes: paginatedNotes, pagination } = paginateNotes(sortedNotes, page);
+    
+    const seo = generatePageMeta({
+      title: `主题: ${topicName}`,
+      description: `主题 "${topicName}" 下的笔记`,
+      path: `/topics/${topicName}`
+    });
+
+    return {
+      params,
+      props: {
+        topicName: resolvedTopic,
+        notes: paginatedNotes,
+        pagination,
+        seo
+      }
+    };
+  });
+}
+
+const { topicName, notes, pagination, seo } = Astro.props;
+---
+
+<IndexLayout title={`主题: ${topicName}`} seo={seo}>
+  {notes.length === 0 ? (
+    <p class="text-text-secondary">该主题下暂无笔记</p>
+  ) : (
+    <>
+      <div class="space-y-4">
+        {notes.map((note) => (
+          <NoteCard note={note} showQuality={true} />
+        ))}
+      </div>
+      <Pagination
+        currentPage={pagination.currentPage}
+        totalPages={pagination.totalPages}
+        baseUrl={`/topics/${topicName}`}
+      />
+    </>
+  )}
+</IndexLayout>

@@ -1,0 +1,248 @@
+---
+import type { Note } from '../utils/notes';
+import { formatDate } from '../utils/notes';
+import { QUALITY_COLORS, QUALITY_THRESHOLDS } from '../utils/constants';
+import VersionDiff from './VersionDiff.astro';
+
+interface Props {
+  note: Note;
+  mode?: 'public' | 'audit';
+}
+
+const { note, mode = 'public', showQuality = false } = Astro.props;
+const dateFormatted = formatDate(note.date);
+const updatedFormatted = formatDate(note.updatedAt);
+
+function getQualityColor(score: number): string {
+  if (score >= QUALITY_THRESHOLDS.high) return QUALITY_COLORS.high;
+  if (score >= QUALITY_THRESHOLDS.medium) return QUALITY_COLORS.medium;
+  return QUALITY_COLORS.low;
+}
+---
+
+<div class="space-y-8">
+  {mode === 'public' ? (
+    <div class="space-y-6 text-small text-text-muted">
+      <div class="flex flex-wrap items-center gap-3">
+        <time datetime={note.date}>{dateFormatted}</time>
+        <span>·</span>
+        <span>{note.question.type}</span>
+        {note.question.subType && (
+          <>
+            <span>·</span>
+            <span>{note.question.subType}</span>
+          </>
+        )}
+        {showQuality && (
+          <>
+            <span>·</span>
+            <span style={`color: ${getQualityColor(note.quality.overall)}`}>
+              {note.quality.overall}/10
+            </span>
+          </>
+        )}
+      </div>
+      {(note.tags.length > 0 || note.topics.length > 0) && (
+        <div class="flex flex-wrap gap-4 pt-4 border-t border-border-light">
+          {note.tags.length > 0 && (
+            <div>
+              <span class="text-text-tertiary mr-2">标签:</span>
+              {note.tags.map((tag, index) => (
+                <>
+                  <span>{tag.name}</span>
+                  {index < note.tags.length - 1 && <span class="text-text-tertiary mx-1">,</span>}
+                </>
+              ))}
+            </div>
+          )}
+          {note.topics.length > 0 && (
+            <div>
+              <span class="text-text-tertiary mr-2">主题:</span>
+              {note.topics.map((topic, index) => (
+                <>
+                  <span>{topic.name}</span>
+                  {index < note.topics.length - 1 && <span class="text-text-tertiary mx-1">,</span>}
+                </>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  ) : (
+    <div class="space-y-10">
+      <div>
+        <h3 class="text-h3 text-text-primary mb-6">元数据</h3>
+        <dl class="space-y-4 text-small">
+          <div class="flex items-start">
+            <dt class="w-28 text-text-muted flex-shrink-0">标题</dt>
+            <dd class="flex-1 text-text-primary">{note.title}</dd>
+          </div>
+          <div class="flex items-start">
+            <dt class="w-28 text-text-muted flex-shrink-0">Slug</dt>
+            <dd class="flex-1 text-text-primary font-mono text-small bg-bg-subtle px-2 py-1 rounded">{note.slug}</dd>
+          </div>
+          <div class="flex items-start">
+            <dt class="w-28 text-text-muted flex-shrink-0">创建时间</dt>
+            <dd class="flex-1 text-text-primary">{formatDate(note.createdAt)}</dd>
+          </div>
+          <div class="flex items-start">
+            <dt class="w-28 text-text-muted flex-shrink-0">更新时间</dt>
+            <dd class="flex-1 text-text-primary">{updatedFormatted}</dd>
+          </div>
+          <div class="flex items-start">
+            <dt class="w-28 text-text-muted flex-shrink-0">发布日期</dt>
+            <dd class="flex-1 text-text-primary">{dateFormatted}</dd>
+          </div>
+        </dl>
+      </div>
+
+      <div>
+        <h3 class="text-h3 text-text-primary mb-6">问题分类</h3>
+        <dl class="space-y-4 text-small">
+          <div class="flex items-start">
+            <dt class="w-28 text-text-muted flex-shrink-0">类型</dt>
+            <dd class="flex-1 text-text-primary">{note.question.type}</dd>
+          </div>
+          {note.question.subType && (
+            <div class="flex items-start">
+              <dt class="w-28 text-text-muted flex-shrink-0">子类型</dt>
+              <dd class="flex-1 text-text-primary">{note.question.subType}</dd>
+            </div>
+          )}
+        </dl>
+      </div>
+
+      <div>
+        <h3 class="text-h3 text-text-primary mb-6">质量评分</h3>
+        <dl class="space-y-4 text-small">
+          <div class="flex items-start">
+            <dt class="w-28 text-text-muted flex-shrink-0">总体</dt>
+            <dd class="flex-1 text-text-primary" style={`color: ${getQualityColor(note.quality.overall)}`}>
+              {note.quality.overall}/10
+            </dd>
+          </div>
+          <div class="flex items-start">
+            <dt class="w-28 text-text-muted flex-shrink-0">覆盖度</dt>
+            <dd class="flex-1 text-text-primary">{note.quality.coverage}/10</dd>
+          </div>
+          <div class="flex items-start">
+            <dt class="w-28 text-text-muted flex-shrink-0">深度</dt>
+            <dd class="flex-1 text-text-primary">{note.quality.depth}/10</dd>
+          </div>
+          <div class="flex items-start">
+            <dt class="w-28 text-text-muted flex-shrink-0">具体性</dt>
+            <dd class="flex-1 text-text-primary">{note.quality.specificity}/10</dd>
+          </div>
+          <div class="flex items-start">
+            <dt class="w-28 text-text-muted flex-shrink-0">评审者</dt>
+            <dd class="flex-1 text-text-primary">{note.quality.reviewer}</dd>
+          </div>
+        </dl>
+      </div>
+
+      <div>
+        <h3 class="text-h3 text-text-primary mb-6">分析</h3>
+        <dl class="space-y-4 text-small">
+          <div class="flex items-start">
+            <dt class="w-28 text-text-muted flex-shrink-0">事实比例</dt>
+            <dd class="flex-1 text-text-primary">{(note.analysis.objectivity.factRatio * 100).toFixed(1)}%</dd>
+          </div>
+          <div class="flex items-start">
+            <dt class="w-28 text-text-muted flex-shrink-0">推理比例</dt>
+            <dd class="flex-1 text-text-primary">{(note.analysis.objectivity.inferenceRatio * 100).toFixed(1)}%</dd>
+          </div>
+          <div class="flex items-start">
+            <dt class="w-28 text-text-muted flex-shrink-0">观点比例</dt>
+            <dd class="flex-1 text-text-primary">{(note.analysis.objectivity.opinionRatio * 100).toFixed(1)}%</dd>
+          </div>
+          {note.analysis.assumptions.length > 0 && (
+            <div>
+              <dt class="text-text-muted mb-3">假设</dt>
+              <dd class="text-text-primary">
+                <ul class="list-disc list-inside space-y-2 text-small">
+                  {note.analysis.assumptions.map((assumption) => (
+                    <li class="text-text-secondary">{assumption}</li>
+                  ))}
+                </ul>
+              </dd>
+            </div>
+          )}
+          {note.analysis.limitations.length > 0 && (
+            <div>
+              <dt class="text-text-muted mb-3">局限性</dt>
+              <dd class="text-text-primary">
+                <ul class="list-disc list-inside space-y-2 text-small">
+                  {note.analysis.limitations.map((limitation) => (
+                    <li class="text-text-secondary">{limitation}</li>
+                  ))}
+                </ul>
+              </dd>
+            </div>
+          )}
+        </dl>
+      </div>
+
+      <div>
+        <h3 class="text-h3 text-text-primary mb-6">审核状态</h3>
+        <dl class="space-y-4 text-small">
+          <div class="flex items-start">
+            <dt class="w-28 text-text-muted flex-shrink-0">状态</dt>
+            <dd class="flex-1 text-text-primary">{note.review.status}</dd>
+          </div>
+          {note.review.reviewedAt && (
+            <div class="flex items-start">
+              <dt class="w-28 text-text-muted flex-shrink-0">审核时间</dt>
+              <dd class="flex-1 text-text-primary">{formatDate(note.review.reviewedAt)}</dd>
+            </div>
+          )}
+        </dl>
+      </div>
+
+      {note.version && (
+        <div>
+          <h3 class="text-h3 text-text-primary mb-6">版本信息</h3>
+          <dl class="space-y-4 text-small">
+            <div class="flex items-start">
+              <dt class="w-28 text-text-muted flex-shrink-0">当前版本</dt>
+              <dd class="flex-1 text-text-primary">v{note.version.current}</dd>
+            </div>
+            {note.version.history && note.version.history.length > 0 && (
+              <div>
+                <dt class="text-text-muted mb-4">版本历史</dt>
+                <dd class="text-text-primary">
+                  <VersionDiff note={note} />
+                </dd>
+              </div>
+            )}
+          </dl>
+        </div>
+      )}
+
+      <div>
+        <h3 class="text-h3 text-text-primary mb-6">标签</h3>
+        <div class="flex flex-wrap gap-3 text-small">
+          {note.tags.map((tag, index) => (
+            <>
+              <span class="text-text-secondary">{tag.name}</span>
+              {tag.parent && <span class="text-text-tertiary">({tag.parent})</span>}
+              {index < note.tags.length - 1 && <span class="text-text-tertiary">,</span>}
+            </>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <h3 class="text-h3 text-text-primary mb-6">主题</h3>
+        <div class="flex flex-wrap gap-3 text-small">
+          {note.topics.map((topic, index) => (
+            <>
+              <span class="text-link">{topic.name}</span>
+              {index < note.topics.length - 1 && <span class="text-text-tertiary">,</span>}
+            </>
+          ))}
+        </div>
+      </div>
+    </div>
+  )}
+</div>

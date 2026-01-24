@@ -1,0 +1,58 @@
+---
+import type { Note } from '../utils/notes';
+import { formatDate } from '../utils/notes';
+import { QUALITY_COLORS, QUALITY_THRESHOLDS } from '../utils/constants';
+
+interface Props {
+  note: Note;
+  showQuality?: boolean;
+}
+
+const { note, showQuality = false } = Astro.props;
+const dateFormatted = formatDate(note.date);
+
+function getQualityColor(score: number): string {
+  if (score >= QUALITY_THRESHOLDS.high) return QUALITY_COLORS.high;
+  if (score >= QUALITY_THRESHOLDS.medium) return QUALITY_COLORS.medium;
+  return QUALITY_COLORS.low;
+}
+---
+
+<article class="mb-12 pb-12 border-b border-border-light last:border-0">
+  <a href={`/notes/${note.slug}`} class="block group">
+    <h2 class="text-h2 text-text-primary group-hover:text-link transition-colors mb-4">
+      {note.title}
+    </h2>
+    <div class="flex flex-wrap items-center gap-3 text-small text-text-muted mb-4">
+      <time datetime={note.date}>{dateFormatted}</time>
+      <span class="text-text-tertiary">·</span>
+      <span>{note.question.type}</span>
+      {note.question.subType && (
+        <>
+          <span class="text-text-tertiary">·</span>
+          <span>{note.question.subType}</span>
+        </>
+      )}
+      {showQuality && (
+        <>
+          <span class="text-text-tertiary">·</span>
+          <span style={`color: ${getQualityColor(note.quality.overall)}`}>
+            {note.quality.overall}/10
+          </span>
+        </>
+      )}
+    </div>
+    {note.tags.length > 0 && (
+      <div class="flex flex-wrap gap-2">
+        {note.tags.slice(0, 4).map((tag) => (
+          <span class="text-small text-text-muted">
+            {tag.name}
+          </span>
+        ))}
+        {note.tags.length > 4 && (
+          <span class="text-small text-text-tertiary">+{note.tags.length - 4}</span>
+        )}
+      </div>
+    )}
+  </a>
+</article>

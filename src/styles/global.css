@@ -1,0 +1,124 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    @apply bg-bg-page;
+  }
+
+  body {
+    @apply bg-bg-page text-text-primary antialiased;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    font-feature-settings: 'kern' 1, 'liga' 1;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply text-text-primary font-semibold;
+    margin-top: 0;
+  }
+
+  h1 {
+    @apply mb-6;
+  }
+
+  h2 {
+    @apply mb-4 mt-12;
+  }
+
+  h3 {
+    @apply mb-3 mt-8;
+  }
+
+  p {
+    @apply mb-6;
+    max-width: 65ch;
+  }
+
+  a {
+    @apply text-link no-underline;
+    transition: color 0.2s ease;
+  }
+
+  a:hover {
+    @apply text-link-hover underline;
+  }
+
+  code {
+    @apply text-small font-mono bg-bg-subtle px-1.5 py-0.5 rounded;
+    font-size: 0.9em;
+  }
+
+  pre {
+    @apply overflow-x-auto bg-bg-subtle p-6 rounded-lg border border-border-light mb-6;
+    font-size: 0.9em;
+    line-height: 1.6;
+  }
+
+  pre code {
+    @apply bg-transparent p-0;
+  }
+
+  blockquote {
+    @apply border-l-4 border-link/30 pl-6 italic text-text-secondary my-6;
+    max-width: 65ch;
+  }
+
+  hr {
+    @apply border-t border-border-light my-12;
+  }
+
+  ul, ol {
+    @apply mb-6;
+    max-width: 65ch;
+  }
+
+  li {
+    @apply mb-2;
+  }
+
+  img {
+    @apply max-w-full h-auto mb-6;
+  }
+
+  table {
+    @apply w-full mb-6 border-collapse;
+  }
+
+  th, td {
+    @apply border border-border-light px-4 py-2 text-left;
+  }
+
+  th {
+    @apply bg-bg-subtle font-semibold;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-white border border-border rounded-lg p-6 shadow-card transition-all duration-200;
+  }
+
+  .card-hover {
+    @apply hover:shadow-card-hover hover:border-link/30;
+  }
+
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .badge-primary {
+    @apply bg-link/10 text-link;
+  }
+
+  .badge-secondary {
+    @apply bg-text-secondary/10 text-text-secondary;
+  }
+}

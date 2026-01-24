@@ -1,0 +1,24 @@
+---
+import IndexLayout from '../layouts/IndexLayout.astro';
+import { generatePageMeta } from '../utils/seo';
+
+const seo = generatePageMeta({
+  title: '搜索',
+  description: '搜索技术笔记',
+  path: '/search'
+});
+---
+
+<IndexLayout title="搜索" seo={seo}>
+  <div class="space-y-4">
+    <p class="text-text-secondary">
+      搜索功能正在开发中。未来将支持全文搜索、标签搜索和主题搜索。
+    </p>
+    <div class="p-4 border border-border rounded-lg">
+      <p class="text-sm text-text-secondary">
+        搜索索引文件已生成在 <code class="px-1 py-0.5 bg-gray-100 rounded">public/search-index.json</code>，
+        可用于实现客户端搜索功能。
+      </p>
+    </div>
+  </div>
+</IndexLayout>
