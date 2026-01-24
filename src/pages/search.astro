@@ -56,79 +56,92 @@ const query = Astro.url.searchParams.get('q') || '';
   </div>
 
   {query && (
-    <script>
-      async function performSearch() {
-        const query = new URLSearchParams(window.location.search).get('q') || '';
-        if (!query.trim()) return;
-
-        try {
-          const response = await fetch('/search-index.json');
-          const index: SearchIndex = await response.json();
-          
-          const searchTerm = query.toLowerCase().trim();
-          const results = index.notes.filter(note => {
-            const titleMatch = note.title.toLowerCase().includes(searchTerm);
-            const contentMatch = note.content.toLowerCase().includes(searchTerm);
-            const tagMatch = note.tags.some(tag => tag.toLowerCase().includes(searchTerm));
-            const topicMatch = note.topics.some(topic => topic.toLowerCase().includes(searchTerm));
-            
-            return titleMatch || contentMatch || tagMatch || topicMatch;
-          });
+    <script is:inline>
+      (function() {
+        async function performSearch() {
+          const query = new URLSearchParams(window.location.search).get('q') || '';
+          if (!query.trim()) return;
 
           const resultsContainer = document.getElementById('search-results');
           if (!resultsContainer) return;
 
-          if (results.length === 0) {
-            resultsContainer.innerHTML = `
-              <p class="text-text-secondary text-center py-8">
-                未找到匹配的笔记
-              </p>
-            `;
-            return;
-          }
+          try {
+            const response = await fetch('/search-index.json');
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const index = await response.json();
+            
+            const searchTerm = query.toLowerCase().trim();
+            const results = index.notes.filter(note => {
+              const titleMatch = note.title.toLowerCase().includes(searchTerm);
+              const contentMatch = note.content.toLowerCase().includes(searchTerm);
+              const tagMatch = note.tags.some(tag => tag.toLowerCase().includes(searchTerm));
+              const topicMatch = note.topics.some(topic => topic.toLowerCase().includes(searchTerm));
+              
+              return titleMatch || contentMatch || tagMatch || topicMatch;
+            });
 
-          resultsContainer.innerHTML = `
-            <p class="text-text-secondary mb-4">
-              找到 ${results.length} 条结果
-            </p>
-            <div class="space-y-4">
-              ${results.map(note => `
-                <article class="border-b border-border-light pb-4 last:border-b-0">
-                  <h3 class="text-h3 mb-2">
-                    <a href="/notes/${note.slug}" class="text-link hover:underline">
-                      ${note.title}
-                    </a>
-                  </h3>
-                  <p class="text-small text-text-secondary mb-2">
-                    ${note.content.substring(0, 150)}${note.content.length > 150 ? '...' : ''}
-                  </p>
-                  <div class="flex items-center gap-4 text-small text-text-muted">
-                    <span>${new Date(note.date).toLocaleDateString('zh-CN')}</span>
-                    ${note.tags.length > 0 ? `<span>标签: ${note.tags.join(', ')}</span>` : ''}
-                    ${note.topics.length > 0 ? `<span>主题: ${note.topics.join(', ')}</span>` : ''}
-                  </div>
-                </article>
-              `).join('')}
-            </div>
-          `;
-        } catch (error) {
-          const resultsContainer = document.getElementById('search-results');
-          if (resultsContainer) {
+            if (results.length === 0) {
+              resultsContainer.innerHTML = `
+                <p class="text-text-secondary text-center py-8">
+                  未找到匹配的笔记
+                </p>
+              `;
+              return;
+            }
+
+            resultsContainer.innerHTML = `
+              <p class="text-text-secondary mb-4">
+                找到 ${results.length} 条结果
+              </p>
+              <div class="space-y-4">
+                ${results.map(note => {
+                  const escapedTitle = note.title.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                  const escapedContent = note.content.substring(0, 150).replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                  const dateStr = new Date(note.date).toLocaleDateString('zh-CN');
+                  const tagsStr = note.tags.length > 0 ? note.tags.join(', ') : '';
+                  const topicsStr = note.topics.length > 0 ? note.topics.join(', ') : '';
+                  
+                  return `
+                    <article class="border-b border-border-light pb-4 last:border-b-0">
+                      <h3 class="text-h3 mb-2">
+                        <a href="/notes/${note.slug}" class="text-link hover:underline">
+                          ${escapedTitle}
+                        </a>
+                      </h3>
+                      <p class="text-small text-text-secondary mb-2">
+                        ${escapedContent}${note.content.length > 150 ? '...' : ''}
+                      </p>
+                      <div class="flex items-center gap-4 text-small text-text-muted">
+                        <span>${dateStr}</span>
+                        ${tagsStr ? `<span>标签: ${tagsStr}</span>` : ''}
+                        ${topicsStr ? `<span>主题: ${topicsStr}</span>` : ''}
+                      </div>
+                    </article>
+                  `;
+                }).join('')}
+              </div>
+            `;
+          } catch (error) {
             resultsContainer.innerHTML = `
               <p class="text-text-secondary text-center py-8">
                 搜索时发生错误，请稍后重试
               </p>
+              <p class="text-small text-text-muted text-center mt-2">
+                错误信息: ${error.message}
+              </p>
             `;
+            console.error('Search error:', error);
           }
-          console.error('Search error:', error);
         }
-      }
 
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', performSearch);
-      } else {
-        performSearch();
-      }
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', performSearch);
+        } else {
+          performSearch();
+        }
+      })();
     </script>
   )}
 </IndexLayout>
