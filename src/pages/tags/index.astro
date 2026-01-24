@@ -1,0 +1,72 @@
+---
+import IndexLayout from '../../layouts/IndexLayout.astro';
+import { getAllNotes } from '../../utils/notes';
+import { buildTagHierarchy } from '../../utils/tags';
+import { generatePageMeta } from '../../utils/seo';
+
+const allNotes = getAllNotes();
+const tagHierarchy = buildTagHierarchy(allNotes);
+const rootTags = Array.from(tagHierarchy.values())
+  .filter(tag => !tag.parent)
+  .sort((a, b) => a.name.localeCompare(b.name));
+
+const seo = generatePageMeta({
+  title: '标签索引',
+  description: '浏览所有标签',
+  path: '/tags'
+});
+---
+
+<IndexLayout title="标签索引" seo={seo}>
+  {rootTags.length === 0 ? (
+    <p class="text-text-secondary text-center py-16">暂无标签</p>
+  ) : (
+    <div class="space-y-8">
+      {rootTags.map((rootTag) => {
+        const noteCount = allNotes.filter(note => 
+          note.tags.some(tag => tag.name === rootTag.name || tag.parent === rootTag.name)
+        ).length;
+        
+        return (
+          <div class="border-b border-border-light pb-6 last:border-b-0">
+            <div class="flex items-center justify-between mb-3">
+              <a 
+                href={`/tags/${rootTag.name}`}
+                class="text-h3 text-link hover:underline font-semibold"
+              >
+                {rootTag.name}
+              </a>
+              <span class="text-small text-text-secondary">
+                {noteCount} 篇笔记
+              </span>
+            </div>
+            
+            {rootTag.children.length > 0 && (
+              <div class="ml-4 mt-2 space-y-2">
+                {rootTag.children.map((childTag) => {
+                  const childNoteCount = allNotes.filter(note => 
+                    note.tags.some(tag => tag.name === childTag.name)
+                  ).length;
+                  
+                  return (
+                    <div class="flex items-center justify-between">
+                      <a 
+                        href={`/tags/${childTag.name}`}
+                        class="text-body text-link hover:underline"
+                      >
+                        {childTag.name}
+                      </a>
+                      <span class="text-small text-text-secondary">
+                        {childNoteCount} 篇
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  )}
+</IndexLayout>

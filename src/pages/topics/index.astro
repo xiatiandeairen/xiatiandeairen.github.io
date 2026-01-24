@@ -1,0 +1,47 @@
+---
+import IndexLayout from '../../layouts/IndexLayout.astro';
+import { getAllNotes } from '../../utils/notes';
+import { generatePageMeta } from '../../utils/seo';
+
+const allNotes = getAllNotes();
+const topicMap = new Map<string, number>();
+
+for (const note of allNotes) {
+  for (const topic of note.topics) {
+    const count = topicMap.get(topic.name) || 0;
+    topicMap.set(topic.name, count + 1);
+  }
+}
+
+const topics = Array.from(topicMap.entries())
+  .map(([name, count]) => ({ name, count }))
+  .sort((a, b) => b.count - a.count);
+
+const seo = generatePageMeta({
+  title: '主题索引',
+  description: '浏览所有主题',
+  path: '/topics'
+});
+---
+
+<IndexLayout title="主题索引" seo={seo}>
+  {topics.length === 0 ? (
+    <p class="text-text-secondary text-center py-16">暂无主题</p>
+  ) : (
+    <div class="space-y-4">
+      {topics.map((topic) => (
+        <div class="flex items-center justify-between border-b border-border-light pb-4 last:border-b-0">
+          <a 
+            href={`/topics/${topic.name}`}
+            class="text-h3 text-link hover:underline font-semibold"
+          >
+            {topic.name}
+          </a>
+          <span class="text-small text-text-secondary">
+            {topic.count} 篇笔记
+          </span>
+        </div>
+      ))}
+    </div>
+  )}
+</IndexLayout>
