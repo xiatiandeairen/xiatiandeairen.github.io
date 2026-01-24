@@ -1,0 +1,229 @@
+{
+  "version": "1.0",
+  "notes": [
+    {
+      "slug": "astro-static-site-generator-basics",
+      "title": "Astro 静态网站生成器基础",
+      "content": "Astro 静态网站生成器基础 Astro 是一个现代化的静态网站生成器，专注于性能和开发体验。  核心特性  1. 零 JavaScript 运行时 Astro 默认情况下不会向客户端发送任何 JavaScript。这意味着更快的页面加载速度和更好的性能。  2. 组件岛架构 Astro 支持\"组件岛\"（Islands）架构，允许你只在需要的地方添加交互性。  3. 多框架支持 可以在同一个项目中使用 React、Vue、Svelte 等框架的组件。  使用场景 - 内容网站（博客、文档） - 营销网站 - 作品集网站 - 技术文档  总结 Astro 是一个优秀的静态网站生成器选择，特别适合内容驱动的网站。",
+      "tags": [
+        "frontend",
+        "astro"
+      ],
+      "topics": [
+        "静态网站生成"
+      ],
+      "questionType": "技术架构",
+      "date": "2026-01-20T10:00:00Z"
+    },
+    {
+      "slug": "react-hooks-best-practices-evolution",
+      "title": "React Hooks 最佳实践演进",
+      "content": "React Hooks 最佳实践演进 本文档记录了 React Hooks 最佳实践的演进过程，展示了从基础到高级的完整学习路径。  基础 Hooks  useState  是 React 中最基础的 Hook，用于管理组件状态。  useEffect  用于处理副作用，如数据获取、订阅等。  性能优化 Hooks  useMemo 用于缓存计算结果，避免不必要的重新计算。  useCallback 用于缓存函数引用，避免子组件不必要的重新渲染。  自定义 Hooks 自定义 Hooks 允许你提取组件逻辑到可复用的函数中。  错误处理 在 Hooks 中使用错误边界和 try-catch 来处理错误。  总结 React Hooks 提供了一种更简洁、更函数式的方式来管理组件状态和副作用。通过遵循最佳实践，可以编写出更易维护和测试的代码。",
+      "tags": [
+        "frontend",
+        "react",
+        "hooks"
+      ],
+      "topics": [
+        "前端开发",
+        "React 生态"
+      ],
+      "questionType": "前端开发",
+      "date": "2026-01-15T09:00:00Z"
+    },
+    {
+      "slug": "typescript-type-system-deep-dive",
+      "title": "TypeScript 类型系统深度解析",
+      "content": "TypeScript 类型系统深度解析 TypeScript 的类型系统是其最强大的特性之一，提供了静态类型检查和丰富的类型表达能力。  基础类型 TypeScript 支持 JavaScript 的所有基础类型，并添加了额外的类型。  联合类型和交叉类型  联合类型 联合类型允许一个值可以是多种类型之一。  交叉类型 交叉类型将多个类型合并为一个类型。  泛型 泛型提供了创建可重用组件的机制。  高级类型  条件类型 条件类型允许基于类型关系进行类型选择。  映射类型 映射类型允许基于旧类型创建新类型。  总结 TypeScript 的类型系统提供了强大的工具来构建类型安全的应用程序，通过类型检查可以在编译时捕获许多错误。",
+      "tags": [
+        "programming",
+        "typescript",
+        "type-system",
+        "generics"
+      ],
+      "topics": [
+        "编程语言",
+        "类型系统"
+      ],
+      "questionType": "编程语言",
+      "date": "2026-01-18T11:00:00Z"
+    },
+    {
+      "slug": "web-performance-optimization-complete-guide",
+      "title": "Web 性能优化完整指南",
+      "content": "Web 性能优化完整指南 性能优化是现代 Web 开发的关键环节，直接影响用户体验和业务指标。  核心指标  Core Web Vitals - LCP (Largest Contentful Paint): 最大内容绘制时间 - FID (First Input Delay): 首次输入延迟 - CLS (Cumulative Layout Shift): 累积布局偏移  优化策略  1. 资源加载优化 - 代码分割和懒加载 - 资源预加载和预连接 - 使用 CDN 加速  2. 渲染优化 - 关键 CSS 内联 - 避免渲染阻塞资源 - 使用虚拟滚动  3. 网络优化 - HTTP/2 和 HTTP/3 - 压缩和缓存策略 - 减少请求数量  工具和测量  性能分析工具 - Chrome DevTools Performance - Lighthouse - WebPageTest  监控方案 - Real User Monitoring (RUM) - Synthetic Monitoring - Performance API  最佳实践 1. 始终测量，不要猜测 2. 优化关键路径 3. 渐进式增强 4. 持续监控和迭代  总结 性能优化是一个持续的过程，需要结合测量、分析和优化来达到最佳效果。",
+      "tags": [
+        "frontend",
+        "performance",
+        "optimization"
+      ],
+      "topics": [
+        "性能优化",
+        "Web 开发"
+      ],
+      "questionType": "性能优化",
+      "date": "2026-01-10T08:00:00Z"
+    },
+    {
+      "slug": "complete-metadata-example-showcase",
+      "title": "完整元字段示例：展示所有功能特性",
+      "content": "完整元字段示例 本文档展示了技术笔记系统的所有元字段功能，包括版本管理、标签层级、质量评分等。  元字段结构  基础字段 - title: 笔记标题 - slug: 唯一标识符 - date: 发布日期 - createdAt/updatedAt: 创建和更新时间  问题分类  质量评分 质量评分系统包含多个维度： - overall: 总体评分 (0-10) - coverage: 覆盖度评分 - depth: 深度评分 - specificity: 具体性评分 - reviewer: 评审者类型 (ai/human/hybrid)  分析数据  客观性分析 客观性分析包含三个比例，总和必须为 1.0： - factRatio: 事实比例 - inferenceRatio: 推理比例 - opinionRatio: 观点比例  假设和局限性 - assumptions: 假设条件列表 - limitations: 局限性说明  审核状态  版本管理 版本系统支持： - current: 当前版本号 - history: 版本历史记录   - 版本号   - 更新时间   - 更新者   - 变更列表   - 变更摘要  标签系统 标签支持层级关系和别名：  主题系统 主题也支持别名：  使用场景  Public 模式 在 Public 模式下，只显示基本信息、标签、主题和质量评分。  Audit 模式 在 Audit 模式下，显示所有元字段，包括： - 完整的版本历史 - 详细的分析数据 - 所有假设和局限性 - 完整的审核信息  总结 这个示例展示了技术笔记系统的完整功能，包括元字段管理、版本控制、质量评估等特性。",
+      "tags": [
+        "documentation",
+        "example",
+        "metadata",
+        "showcase"
+      ],
+      "topics": [
+        "系统文档",
+        "功能展示"
+      ],
+      "questionType": "系统文档",
+      "date": "2026-01-12T10:00:00Z"
+    },
+    {
+      "slug": "ai-assisted-programming-pros-cons",
+      "title": "AI 辅助编程的利弊分析",
+      "content": "AI 辅助编程的利弊分析 AI 辅助编程工具正在改变软件开发的方式，本文分析其优势和局限性。  优势  1. 提高开发效率 AI 工具可以快速生成代码片段，减少重复性工作。  2. 学习辅助 对于新手开发者，AI 可以提供代码示例和解释。  3. 代码补全 智能代码补全可以加速开发过程。  局限性  1. 代码质量 AI 生成的代码可能不够优化或存在错误。  2. 依赖性 过度依赖 AI 可能削弱开发者的编程能力。  3. 上下文理解 AI 可能无法完全理解复杂的业务逻辑。  最佳实践 1. 将 AI 作为辅助工具，而非替代 2. 始终审查 AI 生成的代码 3. 保持学习和思考能力 4. 理解代码逻辑，不要盲目接受  总结 AI 辅助编程是一把双刃剑，需要合理使用才能发挥最大价值。",
+      "tags": [
+        "ai",
+        "programming",
+        "tools"
+      ],
+      "topics": [
+        "技术趋势",
+        "开发工具"
+      ],
+      "questionType": "技术趋势",
+      "date": "2026-01-16T14:00:00Z"
+    },
+    {
+      "slug": "deprecated-old-api-guide",
+      "title": "已废弃：旧版 API 使用指南",
+      "content": "⚠️ 已废弃：旧版 API 使用指南 注意：本文档已废弃，请参考新版 API 文档。  旧版 API 说明 本文档描述了旧版 API 的使用方法，该 API 已于 2026 年 1 月 1 日停止维护。  基本用法  迁移指南 请参考新版 API 文档进行迁移。  总结 请尽快迁移到新版 API，旧版 API 将在未来版本中完全移除。",
+      "tags": [
+        "api",
+        "deprecated"
+      ],
+      "topics": [
+        "API 文档"
+      ],
+      "questionType": "API 文档",
+      "date": "2025-12-01T10:00:00Z"
+    },
+    {
+      "slug": "draft-microservices-architecture-patterns",
+      "title": "草稿：微服务架构设计模式",
+      "content": "草稿：微服务架构设计模式 本文档正在编写中，内容尚未完成。  概述 微服务架构是一种将应用程序构建为一套小型服务的方法。  设计模式  服务发现 服务发现是微服务架构中的关键模式。  API 网关 API 网关作为所有客户端请求的单一入口点。  待补充内容 - 更多设计模式 - 实际案例 - 最佳实践 - 常见陷阱  总结 本文档仍在完善中，敬请期待。",
+      "tags": [
+        "backend",
+        "architecture",
+        "microservices"
+      ],
+      "topics": [
+        "系统架构"
+      ],
+      "questionType": "系统架构",
+      "date": "2026-01-23T09:00:00Z"
+    },
+    {
+      "slug": "graphql-vs-rest-api-comparison",
+      "title": "GraphQL vs REST API 全面对比",
+      "content": "GraphQL vs REST API 全面对比 本文档对比 GraphQL 和 REST API 两种 API 设计风格，帮助开发者做出合适的选择。  REST API  特点 - 基于 HTTP 方法（GET、POST、PUT、DELETE） - 资源导向 - 无状态 - 标准化  优势 - 简单直观 - 缓存友好 - 工具支持完善 - 学习曲线平缓  劣势 - 可能产生过度获取或获取不足 - 需要多个请求获取相关数据 - 版本管理复杂  GraphQL  特点 - 单一端点 - 查询语言 - 强类型系统 - 客户端指定所需字段  优势 - 精确获取数据 - 减少网络请求 - 类型安全 - 灵活的查询  劣势 - 学习曲线较陡 - 缓存更复杂 - 可能产生 N+1 查询问题 - 错误处理更复杂  使用场景  选择 REST 当： - 需要简单的 CRUD 操作 - 缓存性能至关重要 - 团队熟悉 REST 模式 - API 使用场景相对固定  选择 GraphQL 当： - 需要灵活的查询 - 移动端需要减少请求 - 多个客户端需要不同数据 - 需要强类型系统  总结 两种方案各有优劣，应根据具体项目需求选择。也可以考虑混合使用，在不同场景使用不同的 API 风格。",
+      "tags": [
+        "backend",
+        "api",
+        "graphql",
+        "rest"
+      ],
+      "topics": [
+        "API 设计",
+        "后端开发",
+        "技术选型"
+      ],
+      "questionType": "API 设计",
+      "date": "2026-01-19T13:00:00Z"
+    },
+    {
+      "slug": "quick-note-css-variables",
+      "title": "快速笔记：CSS 变量使用",
+      "content": "CSS 变量使用 CSS 变量（自定义属性）允许在 CSS 中定义可重用的值。  定义变量  使用变量  总结 CSS 变量提供了更灵活的样式管理方式。",
+      "tags": [
+        "frontend",
+        "css"
+      ],
+      "topics": [
+        "前端开发"
+      ],
+      "questionType": "前端开发",
+      "date": "2026-01-21T15:00:00Z"
+    },
+    {
+      "slug": "example-note",
+      "title": "示例笔记：Astro 技术笔记系统",
+      "content": "示例笔记 这是一个示例笔记，展示了完整的 Frontmatter 元字段结构。  功能特性 1. 完整的元字段支持    - 标题、slug、日期    - 问题分类    - 质量评分    - 分析数据    - 审核状态    - 标签和主题 2. 标签层级支持    - 支持父子标签关系    - 支持标签别名 3. 版本管理    - 版本历史记录    - 变更摘要  代码示例  总结 这个示例展示了技术笔记系统的完整功能，包括元字段、标签层级、版本管理等特性。",
+      "tags": [
+        "frontend",
+        "react",
+        "astro"
+      ],
+      "topics": [
+        "静态网站生成",
+        "技术笔记"
+      ],
+      "questionType": "技术架构",
+      "date": "2026-01-24T10:00:00Z"
+    }
+  ],
+  "tags": [
+    "ai",
+    "api",
+    "architecture",
+    "astro",
+    "astrojs",
+    "backend",
+    "css",
+    "deprecated",
+    "documentation",
+    "example",
+    "frontend",
+    "frontmatter",
+    "generics",
+    "graphql",
+    "hooks",
+    "metadata",
+    "microservices",
+    "optimization",
+    "performance",
+    "programming",
+    "react",
+    "rest",
+    "showcase",
+    "tools",
+    "type-system",
+    "typescript",
+    "元数据"
+  ],
+  "topics": [
+    "API 文档",
+    "API 设计",
+    "React 生态",
+    "Web 开发",
+    "docs",
+    "前端开发",
+    "功能展示",
+    "后端开发",
+    "开发工具",
+    "性能优化",
+    "技术笔记",
+    "技术趋势",
+    "技术选型",
+    "文档",
+    "笔记系统",
+    "类型系统",
+    "系统文档",
+    "系统架构",
+    "编程语言",
+    "静态网站生成"
+  ]
+}

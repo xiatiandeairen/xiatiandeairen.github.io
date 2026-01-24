@@ -10,6 +10,45 @@ export default function generateSearchIndexIntegration(): AstroIntegration {
   return {
     name: 'generate-search-index',
     hooks: {
+      'astro:server:setup': async ({ server }) => {
+        try {
+          const projectRoot = process.cwd();
+          const notesDir = join(projectRoot, 'src/content/notes');
+          let files: string[];
+          try {
+            files = readdirSync(notesDir);
+          } catch (error) {
+            return;
+          }
+
+          const notes = [];
+          for (const file of files) {
+            if (!file.endsWith('.md')) continue;
+            try {
+              const filePath = join(notesDir, file);
+              const fileContents = readFileSync(filePath, 'utf-8');
+              const { data, content } = matter(fileContents);
+              const frontmatter = validateNoteFrontmatter(data);
+              notes.push({
+                ...frontmatter,
+                content
+              });
+            } catch (error) {
+              console.error(`Error processing file ${file}:`, error);
+            }
+          }
+
+          if (notes.length > 0) {
+            validateSlugUniqueness(notes);
+            const index = generateSearchIndex(notes);
+            const outputPath = join(projectRoot, 'public/search-index.json');
+            writeFileSync(outputPath, JSON.stringify(index, null, 2), 'utf-8');
+            console.log(`✓ Dev search index generated: public/search-index.json (${notes.length} notes)`);
+          }
+        } catch (error) {
+          console.error('Error generating dev search index:', error);
+        }
+      },
       'astro:build:done': async ({ dir }) => {
         try {
           const projectRoot = process.cwd();
