@@ -49,8 +49,7 @@ const query = Astro.url.searchParams.get('q') || '';
           <li>标签和主题搜索</li>
         </ul>
         <p class="text-text-secondary mt-4 text-small">
-          搜索索引文件已生成在 <code class="px-1 py-0.5 bg-white rounded">public/search-index.json</code>，
-          可用于实现客户端搜索功能。
+          搜索索引文件在构建时自动生成，支持实时搜索功能。
         </p>
       </div>
     )}

@@ -1,17 +1,19 @@
 import type { AstroIntegration } from 'astro';
 import { readFileSync, readdirSync, writeFileSync } from 'fs';
 import { join } from 'path';
+import { fileURLToPath } from 'url';
 import matter from 'gray-matter';
 import { validateNoteFrontmatter, validateSlugUniqueness } from '../utils/schema';
 import { generateSearchIndex } from '../utils/search';
 
-export default function generateSearchIndex(): AstroIntegration {
+export default function generateSearchIndexIntegration(): AstroIntegration {
   return {
     name: 'generate-search-index',
     hooks: {
-      'build:done': async () => {
+      'astro:build:done': async ({ dir }) => {
         try {
-          const notesDir = join(process.cwd(), 'src/content/notes');
+          const projectRoot = process.cwd();
+          const notesDir = join(projectRoot, 'src/content/notes');
           let files: string[];
           try {
             files = readdirSync(notesDir);
@@ -40,11 +42,13 @@ export default function generateSearchIndex(): AstroIntegration {
 
           validateSlugUniqueness(notes);
           const index = generateSearchIndex(notes);
-          const outputPath = join(process.cwd(), 'public/search-index.json');
+          
+          const distDir = fileURLToPath(dir);
+          const outputPath = join(distDir, 'search-index.json');
           writeFileSync(outputPath, JSON.stringify(index, null, 2), 'utf-8');
           
           const sizeInMB = (JSON.stringify(index).length / 1024 / 1024).toFixed(2);
-          console.log(`✓ Search index generated: public/search-index.json (${notes.length} notes, ${sizeInMB}MB)`);
+          console.log(`✓ Search index generated: search-index.json (${notes.length} notes, ${sizeInMB}MB)`);
           
           if (parseFloat(sizeInMB) > 1) {
             console.warn(`Warning: Search index size is ${sizeInMB}MB. Consider splitting or compressing.`);
