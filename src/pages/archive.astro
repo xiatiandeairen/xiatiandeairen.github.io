@@ -2,10 +2,14 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { getAllNotes, sortNotes, formatDate } from '../utils/notes';
 import { generatePageMeta } from '../utils/seo';
+import { getLang, useT } from '../i18n';
+
+const lang = getLang(Astro.url.pathname);
+const t = useT(lang);
 
 const allNotes = getAllNotes();
 const sorted = sortNotes(allNotes, 'date', 'desc');
-const seo = generatePageMeta({ title: '归档', description: '所有文章，按时间排列。', path: '/archive' });
+const seo = generatePageMeta({ title: t('archive.title'), description: t('archive.subtitle', { count: allNotes.length }), path: '/archive' });
 
 type MonthGroup = { label: string; notes: typeof sorted };
 type YearGroup = { year: string; months: MonthGroup[] };
@@ -38,14 +42,14 @@ function readingTime(content: string): number {
 const types = [...new Set(sorted.map(n => n.question.type))].sort();
 ---
 
-<BaseLayout title="归档" seo={seo}>
+<BaseLayout title={t('archive.title')} seo={seo} lang={lang}>
   <header class="archive-header">
-    <h1 class="font-display text-h1 mb-1">归档</h1>
-    <p class="font-sans text-small archive-subtitle">共 {allNotes.length} 篇文章，按时间排列。</p>
+    <h1 class="font-display text-h1 mb-1">{t('archive.title')}</h1>
+    <p class="font-sans text-small archive-subtitle">{t('archive.subtitle', { count: allNotes.length })}</p>
   </header>
 
   <div class="filter-bar">
-    <button class="filter-btn active" data-filter="all">全部</button>
+    <button class="filter-btn active" data-filter="all">{t('archive.all')}</button>
     {types.map(type => (
       <button class="filter-btn" data-filter={type}>{type}</button>
     ))}
@@ -81,13 +85,13 @@ const types = [...new Set(sorted.map(n => n.question.type))].sort();
 
     <aside class="sticky top-8 self-start">
       <div class="mb-7">
-        <div class="section-label">统计</div>
+        <div class="section-label">{t('archive.stats')}</div>
         <div class="stat-row font-sans">
-          <span>文章总数</span><span class="stat-value">{allNotes.length}</span>
+          <span>{t('archive.total')}</span><span class="stat-value">{allNotes.length}</span>
         </div>
       </div>
       <div class="mb-7">
-        <div class="section-label">分类</div>
+        <div class="section-label">{t('archive.categories')}</div>
         {types.map(type => {
           const count = sorted.filter(n => n.question.type === type).length;
           return (

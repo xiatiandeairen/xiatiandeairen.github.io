@@ -159,6 +159,24 @@ html {
   font-size: var(--font-caption);
 }
 
+/* ═══════════ Language switch ═══════════ */
+.lang-switch {
+  font-family: Inter, sans-serif;
+  font-size: var(--font-caption);
+  font-weight: 600;
+  color: var(--ink-muted);
+  text-decoration: none;
+  padding: 1px 6px;
+  border: 1px solid var(--rule-light);
+  border-radius: 3px;
+  transition: all var(--transition-all);
+}
+
+.lang-switch:hover {
+  color: var(--ink);
+  border-color: var(--ink);
+}
+
 /* ═══════════ Theme toggle ═══════════ */
 .theme-toggle {
   background: none;

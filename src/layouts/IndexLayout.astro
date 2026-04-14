@@ -1,22 +1,24 @@
 ---
 import BaseLayout from './BaseLayout.astro';
 import type { SEOData } from '../utils/seo';
+import type { Lang } from '../i18n';
 
 interface Props {
   title: string;
   description?: string;
   seo?: SEOData;
   showHeader?: boolean;
+  lang?: Lang;
 }
 
-const { title, description, seo, showHeader = true } = Astro.props;
+const { title, description, seo, showHeader = true, lang } = Astro.props;
 ---
 
-<BaseLayout title={title} description={description} seo={seo}>
+<BaseLayout title={title} description={description} seo={seo} lang={lang}>
   {showHeader && (
     <header class="mb-8 pb-6 border-b border-rule-light">
       <h1 class="font-display text-h1 text-ink mb-2">{title}</h1>
-      {description && <p class="font-sans text-small text-ink-muted">{description}</p>}
+      {description && <p class="font-sans text-small archive-subtitle">{description}</p>}
     </header>
   )}
   <slot />

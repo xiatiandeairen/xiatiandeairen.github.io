@@ -1,0 +1,103 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getAllNotes, sortNotes, formatDate } from '../../utils/notes';
+import { generatePageMeta } from '../../utils/seo';
+import { useT } from '../../i18n';
+
+const lang = 'en' as const;
+const t = useT(lang);
+
+const allNotes = getAllNotes();
+const sorted = sortNotes(allNotes, 'date', 'desc');
+const seo = generatePageMeta({ title: t('archive.title'), description: t('archive.subtitle', { count: allNotes.length }), path: '/en/archive' });
+
+type MonthGroup = { label: string; notes: typeof sorted };
+type YearGroup = { year: string; months: MonthGroup[] };
+const yearGroups: YearGroup[] = [];
+let currentYear = '';
+let currentMonth = '';
+for (const note of sorted) {
+  const d = new Date(note.date);
+  const year = String(d.getFullYear());
+  const month = d.toLocaleDateString('en-US', { month: 'long' });
+  if (year !== currentYear) { yearGroups.push({ year, months: [] }); currentYear = year; currentMonth = ''; }
+  if (month !== currentMonth) { yearGroups[yearGroups.length - 1].months.push({ label: month, notes: [] }); currentMonth = month; }
+  yearGroups[yearGroups.length - 1].months[yearGroups[yearGroups.length - 1].months.length - 1].notes.push(note);
+}
+function readingTime(content: string): number { return Math.max(1, Math.round(content.replace(/\s+/g, ' ').trim().length / 400)); }
+const types = [...new Set(sorted.map(n => n.question.type))].sort();
+---
+
+<BaseLayout title={t('archive.title')} seo={seo} lang={lang}>
+  <header class="archive-header">
+    <h1 class="font-display text-h1 mb-1">{t('archive.title')}</h1>
+    <p class="font-sans text-small archive-subtitle">{t('archive.subtitle', { count: allNotes.length })}</p>
+  </header>
+  <div class="filter-bar">
+    <button class="filter-btn active" data-filter="all">{t('archive.all')}</button>
+    {types.map(type => (<button class="filter-btn" data-filter={type}>{type}</button>))}
+  </div>
+  <div class="layout-dual-archive">
+    <div>
+      {yearGroups.map(yg => (
+        <div class="year-group">
+          <div class="font-display font-black archive-year">{yg.year}</div>
+          {yg.months.map(mg => (
+            <div class="month-group">
+              <div class="month-label font-sans">{mg.label} · {mg.notes.length}</div>
+              {mg.notes.map(note => (
+                <a href={`/notes/${note.slug}`} class="archive-item" data-type={note.question.type}>
+                  <div>
+                    <div class="archive-item-title">{note.title}</div>
+                    <div class="cat-label">{note.question.type}</div>
+                  </div>
+                  <div class="archive-item-meta font-sans">
+                    <div>{formatDate(note.date, 'en-US').slice(5)}</div>
+                    <div class="archive-item-time">{t('series.readingTime', { min: readingTime(note.content) })}</div>
+                  </div>
+                </a>
+              ))}
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+    <aside class="sticky top-8 self-start">
+      <div class="mb-7">
+        <div class="section-label">{t('archive.stats')}</div>
+        <div class="stat-row font-sans"><span>{t('archive.total')}</span><span class="stat-value">{allNotes.length}</span></div>
+      </div>
+      <div class="mb-7">
+        <div class="section-label">{t('archive.categories')}</div>
+        {types.map(type => { const count = sorted.filter(n => n.question.type === type).length; return (<div class="stat-row font-sans"><span>{type}</span><span class="stat-value">{count}</span></div>); })}
+      </div>
+    </aside>
+  </div>
+  <script is:inline>
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const filter = btn.dataset.filter;
+        document.querySelectorAll('.archive-item').forEach(item => {
+          item.style.display = (filter === 'all' || item.dataset.type === filter) ? '' : 'none';
+        });
+      });
+    });
+  </script>
+</BaseLayout>
+
+<style>
+  .archive-header { margin-bottom: 1.5em; padding-bottom: 1em; border-bottom: 1px solid var(--rule-light); }
+  .archive-subtitle { color: var(--ink-muted); }
+  .filter-bar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 2em; padding-bottom: 1.5em; border-bottom: 1px solid var(--rule); }
+  .year-group { margin-bottom: 2.5em; }
+  .archive-year { font-size: 42px; color: var(--rule); opacity: 0.4; letter-spacing: -0.03em; line-height: 1; }
+  .month-group { margin-bottom: 1.25em; }
+  .month-label { font-size: var(--font-label); text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-ghost); margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid var(--rule-light); }
+  .archive-item-title { font-size: var(--font-body); font-weight: 600; line-height: 1.35; color: var(--ink); }
+  .archive-item-meta { font-size: var(--font-caption); color: var(--ink-ghost); white-space: nowrap; padding-top: 2px; }
+  .archive-item-time { font-size: var(--font-label); color: var(--ink-ghost); margin-top: 2px; }
+  .stat-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--rule-faint); font-size: var(--font-caption); color: var(--ink-muted); }
+  .stat-value { font-weight: 600; color: var(--ink); }
+</style>

@@ -2,25 +2,37 @@
 import '../styles/global.css';
 import type { SEOData } from '../utils/seo';
 import { SITE_CONFIG } from '../utils/constants';
+import { getLang, useT, switchLangPath, localePath, type Lang } from '../i18n';
 
 interface Props {
   title: string;
   description?: string;
   seo?: SEOData;
+  lang?: Lang;
 }
 
-const { title, description, seo } = Astro.props;
+const { title, description, seo, lang: propLang } = Astro.props;
+const currentPath = Astro.url.pathname;
+const lang = propLang || getLang(currentPath);
+const t = useT(lang);
+const htmlLang = lang === 'zh' ? 'zh-CN' : 'en';
+const year = String(new Date().getFullYear());
+
 const seoData = seo || {
-  title: `${title} — ${SITE_CONFIG.title}`,
+  title: `${title} — ${t('site.title')}`,
   description: description || SITE_CONFIG.description,
   url: Astro.url.href
 };
 
-const currentPath = Astro.url.pathname;
+const switchPath = switchLangPath(currentPath, lang);
+const switchLabel = lang === 'zh' ? 'EN' : '中';
+
+// Strip /en prefix for path matching
+const matchPath = currentPath.replace(/^\/en/, '') || '/';
 ---
 
 <!doctype html>
-<html lang="zh-CN">
+<html lang={htmlLang}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -30,7 +42,7 @@ const currentPath = Astro.url.pathname;
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Noto+Serif+SC:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-    <link rel="alternate" type="application/rss+xml" title={SITE_CONFIG.title} href="/rss.xml" />
+    <link rel="alternate" type="application/rss+xml" title={t('site.title')} href="/rss.xml" />
 
     {seoData.ogTitle && <meta property="og:title" content={seoData.ogTitle} />}
     {seoData.ogDescription && <meta property="og:description" content={seoData.ogDescription} />}
@@ -49,27 +61,27 @@ const currentPath = Astro.url.pathname;
     </script>
   </head>
   <body>
-    <a href="#main-content" class="skip-link">跳到主内容</a>
+    <a href="#main-content" class="skip-link">{lang === 'zh' ? '跳到主内容' : 'Skip to content'}</a>
     <div class="min-h-screen flex flex-col">
-      <!-- Masthead -->
       <header class="site-header">
-        <a href="/" class="site-title">{SITE_CONFIG.title}</a>
-        <div class="site-tagline">{SITE_CONFIG.tagline}</div>
+        <a href={localePath('/', lang)} class="site-title">{t('site.title')}</a>
+        <div class="site-tagline">{t('site.tagline')}</div>
       </header>
 
-      <!-- Navigation -->
-      <nav class="site-nav" aria-label="主导航">
-        <a href="/" class:list={[currentPath === '/' && 'active']}>首页</a>
-        <span class="nav-dot">·</span>
-        <a href="/archive" class:list={[currentPath.startsWith('/archive') && 'active']}>归档</a>
-        <span class="nav-dot">·</span>
-        <a href="/about" class:list={[currentPath.startsWith('/about') && 'active']}>关于</a>
-        <span class="nav-dot">·</span>
-        <a href="/search" class:list={[currentPath.startsWith('/search') && 'active']}>搜索</a>
-        <span class="nav-dot">·</span>
-        <button id="theme-toggle" class="theme-toggle" aria-label="切换主题">
-          <span class="theme-icon-light">☀</span>
-          <span class="theme-icon-dark">🌙</span>
+      <nav class="site-nav" aria-label={lang === 'zh' ? '主导航' : 'Main navigation'}>
+        <a href={localePath('/', lang)} class:list={[matchPath === '/' && 'active']}>{t('nav.home')}</a>
+        <span class="nav-dot">{'·'}</span>
+        <a href={localePath('/archive', lang)} class:list={[matchPath.startsWith('/archive') && 'active']}>{t('nav.archive')}</a>
+        <span class="nav-dot">{'·'}</span>
+        <a href={localePath('/about', lang)} class:list={[matchPath.startsWith('/about') && 'active']}>{t('nav.about')}</a>
+        <span class="nav-dot">{'·'}</span>
+        <a href={localePath('/search', lang)} class:list={[matchPath.startsWith('/search') && 'active']}>{t('nav.search')}</a>
+        <span class="nav-dot">{'·'}</span>
+        <a href={switchPath} class="lang-switch">{switchLabel}</a>
+        <span class="nav-dot">{'·'}</span>
+        <button id="theme-toggle" class="theme-toggle" aria-label={lang === 'zh' ? '切换主题' : 'Toggle theme'}>
+          <span class="theme-icon-light">{'☀'}</span>
+          <span class="theme-icon-dark">{'🌙'}</span>
         </button>
       </nav>
 
@@ -78,8 +90,8 @@ const currentPath = Astro.url.pathname;
       </main>
 
       <footer class="site-footer">
-        <span>© {new Date().getFullYear()} {SITE_CONFIG.title}</span>
-        <span><a href="/rss.xml">RSS</a> · 基于 Astro 构建</span>
+        <span>{t('site.copyright', { year })}</span>
+        <span><a href="/rss.xml">{t('footer.rss', {})}</a> {'·'} {t('site.builtWith')}</span>
       </footer>
     </div>
 

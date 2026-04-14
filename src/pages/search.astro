@@ -1,25 +1,29 @@
 ---
 import IndexLayout from '../layouts/IndexLayout.astro';
 import { generatePageMeta } from '../utils/seo';
+import { getLang, useT } from '../i18n';
 import type { SearchIndex } from '../utils/search';
 
+const lang = getLang(Astro.url.pathname);
+const t = useT(lang);
+
 const seo = generatePageMeta({
-  title: '搜索',
-  description: '搜索笔记',
+  title: t('search.title'),
+  description: t('search.subtitle'),
   path: '/search'
 });
 
 const query = Astro.url.searchParams.get('q') || '';
 ---
 
-<IndexLayout title="搜索" description="搜索笔记标题、内容、标签与主题。" seo={seo}>
+<IndexLayout title={t('search.title')} description={t('search.subtitle')} seo={seo} lang={lang}>
   <div class="space-y-6">
     <form method="GET" action="/search" class="flex gap-3">
       <input
         type="text"
         name="q"
         value={query}
-        placeholder="搜索笔记…"
+        placeholder={t('search.placeholder')}
         class="flex-1 px-4 py-2.5 border border-rule bg-paper font-serif text-body text-ink placeholder:text-ink-ghost focus:outline-none focus:border-ink transition-colors"
         autofocus
       />
@@ -27,13 +31,13 @@ const query = Astro.url.searchParams.get('q') || '';
         type="submit"
         class="px-5 py-2.5 bg-ink text-paper font-sans text-small font-medium hover:bg-ink-light transition-colors"
       >
-        搜索
+        {t('search.button')}
       </button>
     </form>
 
     {query ? (
       <div id="search-results">
-        <p class="font-sans text-small text-ink-muted">正在加载…</p>
+        <p class="font-sans text-small text-ink-muted">{t('search.loading')}</p>
       </div>
     ) : (
       <div class="py-8 border-t border-rule-light">

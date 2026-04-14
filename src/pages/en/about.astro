@@ -1,0 +1,58 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { generatePageMeta } from '../../utils/seo';
+import { useT } from '../../i18n';
+
+const lang = 'en' as const;
+const t = useT(lang);
+const seo = generatePageMeta({ title: t('about.title'), description: t('about.subtitle'), path: '/en/about' });
+---
+
+<BaseLayout title={t('about.title')} seo={seo} lang={lang}>
+  <div class="layout-dual-wide">
+    <main>
+      <h1 class="font-display text-h1 mb-5">{t('about.title')}</h1>
+      <p class="about-intro">
+        A personal publication — recording the thinking behind code, the afterglow of reading, and those small moments in life worth remembering.
+      </p>
+
+      <h3 class="about-section-title">About Me</h3>
+      <p class="about-body">
+        夏天的爱人是绿色. AI Native. I believe AI is not just a tool, but a new way of working. I build skill systems for AI Agents — giving AI work discipline, turning it from "can write code" to "can deliver".
+      </p>
+      <p class="about-body">
+        Full-stack developer by day, interested in systems design, Rust, frontend architecture and AI engineering. I write as much prose as I write code.
+      </p>
+
+      <h3 class="about-section-title">Why I Write</h3>
+      <p class="about-body">
+        Writing is the best thinking tool. Many times I thought I understood a concept, until I tried to write it down — and found the understanding was full of gaps.
+      </p>
+
+      <div class="values-grid">
+        <div class="value-card"><h4>Precise</h4><p>Better to write less than to be vague.</p></div>
+        <div class="value-card"><h4>Honest</h4><p>Say "I don't know" when I don't.</p></div>
+        <div class="value-card"><h4>Spacious</h4><p>Leave room for the reader to think.</p></div>
+        <div class="value-card"><h4>Lasting</h4><p>Write what still matters in three years.</p></div>
+      </div>
+    </main>
+
+    <aside class="sticky top-8 self-start">
+      <div class="mb-7 text-center"><div class="avatar-box">🖊</div></div>
+      <div class="mb-7">
+        <div class="section-label">{t('about.contact')}</div>
+        <div class="contact-item"><span class="contact-label">GitHub</span><a href="https://github.com/xiatiandeairen" class="contact-value">@xiatiandeairen</a></div>
+        <div class="contact-item"><span class="contact-label">Email</span><a href="mailto:xiatian_672@163.com" class="contact-value">xiatian_672@163.com</a></div>
+        <div class="contact-item"><span class="contact-label">RSS</span><a href="/rss.xml" class="contact-value">/rss.xml</a></div>
+      </div>
+      <div class="mb-7">
+        <div class="section-label">{t('about.aboutSite')}</div>
+        <p class="colophon">Built with Astro<br>Deployed on GitHub Pages<br>Fonts: Playfair Display + Noto Serif SC + Inter<br>Design: newspaper typography<br>Est. 2024</p>
+      </div>
+    </aside>
+  </div>
+</BaseLayout>
+
+<style>
+  .values-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1em; margin: 1.5em 0; }
+</style>
