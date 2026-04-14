@@ -11,6 +11,7 @@
    ink-ghost: #6e6860   4.2:1  装饰性文字（年份水印、分隔点）
 */
 :root {
+  /* Colors */
   --paper: #f4f0e8;
   --ink: #1a1a1a;
   --ink-light: #2d2926;
@@ -22,6 +23,22 @@
   --rule-faint: #ece7de;
   --bg-subtle: #efebe3;
   --accent: #8b0000;
+
+  /* Fluid typography: clamp(mobile, preferred, desktop)
+     preferred = rem + vw so user zoom still works (WCAG compliant) */
+  --font-masthead: clamp(1.75rem, 1.5rem + 1.25vw, 2.25rem);
+  --font-h1:       clamp(1.375rem, 1.15rem + 1vw, 1.75rem);
+  --font-h2:       clamp(1.125rem, 1rem + 0.7vw, 1.375rem);
+  --font-h3:       clamp(0.9375rem, 0.9rem + 0.3vw, 1.0625rem);
+  --font-body:     clamp(0.9375rem, 0.92rem + 0.15vw, 1rem);
+  --font-small:    clamp(0.8125rem, 0.8rem + 0.1vw, 0.875rem);
+  --font-caption:  clamp(0.75rem, 0.74rem + 0.08vw, 0.8125rem);
+  --font-label:    clamp(0.6875rem, 0.68rem + 0.05vw, 0.75rem);
+
+  /* Fluid spacing */
+  --space-page: clamp(16px, 2.5vw + 4px, 40px);
+
+  /* Transitions */
   --transition-color: 0.2s ease;
   --transition-all: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -72,12 +89,13 @@ html {
 /* ═══════════ Masthead ═══════════ */
 .site-header {
   @apply text-center mx-auto max-w-content;
-  padding: 24px 40px 16px;
+  padding: 24px var(--space-page) 16px;
   border-bottom: 3px solid var(--ink);
 }
 
 .site-title {
-  @apply font-display text-masthead no-underline;
+  @apply font-display no-underline;
+  font-size: var(--font-masthead);
   color: var(--ink);
   transition: color var(--transition-color);
 }
@@ -88,7 +106,7 @@ html {
 
 .site-tagline {
   @apply italic;
-  font-size: 0.8125rem;
+  font-size: var(--font-caption);
   color: var(--ink-muted);
   margin-top: 4px;
   letter-spacing: 0.01em;
@@ -97,13 +115,14 @@ html {
 /* ═══════════ Navigation (方案 C) ═══════════ */
 .site-nav {
   @apply text-center mx-auto max-w-content font-serif;
-  padding: 10px 40px;
+  padding: 10px var(--space-page);
   border-bottom: 1px solid var(--rule);
-  font-size: 0.8125rem;
+  font-size: var(--font-small);
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
+  flex-wrap: wrap;
 }
 
 .site-nav a {
@@ -137,7 +156,7 @@ html {
 .nav-dot {
   color: var(--rule-light);
   user-select: none;
-  font-size: 0.75rem;
+  font-size: var(--font-caption);
 }
 
 /* ═══════════ Theme toggle ═══════════ */
@@ -162,15 +181,15 @@ html.dark .theme-icon-dark { display: inline; }
 /* ═══════════ Main ═══════════ */
 .site-main {
   @apply flex-1 mx-auto max-w-content w-full;
-  padding: 36px 40px;
+  padding: 36px var(--space-page);
 }
 
 /* ═══════════ Footer ═══════════ */
 .site-footer {
   @apply mx-auto max-w-content font-sans;
-  padding: 20px 40px;
+  padding: 20px var(--space-page);
   border-top: 3px solid var(--ink);
-  font-size: 0.75rem;
+  font-size: var(--font-label);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   display: flex;
@@ -189,7 +208,7 @@ html.dark .theme-icon-dark { display: inline; }
 /* ═══════════ Section label ═══════════ */
 .section-label {
   @apply font-sans;
-  font-size: 0.75rem;
+  font-size: var(--font-label);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -202,7 +221,7 @@ html.dark .theme-icon-dark { display: inline; }
 /* ═══════════ Category label ═══════════ */
 .cat-label {
   @apply font-sans;
-  font-size: 0.75rem;
+  font-size: var(--font-label);
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -222,7 +241,7 @@ html.dark .theme-icon-dark { display: inline; }
   border: 1px solid var(--rule-light);
   border-radius: 10px;
   font-family: Inter, sans-serif;
-  font-size: 0.8125rem;
+  font-size: var(--font-caption);
   color: var(--ink-muted);
   transition: border-color var(--transition-color);
 }
@@ -249,7 +268,7 @@ html.dark .theme-icon-dark { display: inline; }
     @apply antialiased font-serif;
     background: var(--paper);
     color: var(--ink);
-    font-size: 1rem;
+    font-size: var(--font-body);
     font-weight: 500;
     line-height: 1.8;
     font-feature-settings: 'kern' 1, 'liga' 1;
@@ -627,16 +646,16 @@ html.dark .theme-icon-dark { display: inline; }
   .ft-heading { margin-bottom: 0.5em; }
   .ft-heading a { color: var(--ink); text-decoration: none; transition: color 0.2s; }
   .ft-heading a:hover { color: var(--accent); }
-  .featured-lead { font-size: 0.9375rem; line-height: 1.75; color: var(--ink-muted); margin-bottom: 1em; }
-  .featured-body { font-size: 0.875rem; line-height: 1.75; color: var(--ink-light); }
-  .featured-link { display: inline-block; margin-top: 1.2em; font-size: 0.75rem; color: var(--ink); border-bottom: 1px solid var(--ink); padding-bottom: 1px; text-decoration: none; transition: color 0.2s, border-color 0.2s; }
+  .featured-lead { font-size: var(--font-body); line-height: 1.75; color: var(--ink-muted); margin-bottom: 1em; }
+  .featured-body { font-size: var(--font-small); line-height: 1.75; color: var(--ink-light); }
+  .featured-link { display: inline-block; margin-top: 1.2em; font-size: var(--font-caption); color: var(--ink); border-bottom: 1px solid var(--ink); padding-bottom: 1px; text-decoration: none; transition: color 0.2s, border-color 0.2s; }
   .featured-link:hover { color: var(--accent); border-color: var(--accent); }
 
   /* ── Sidebar item titles ── */
-  .sidebar-item-title { font-size: 0.9375rem; font-weight: 700; line-height: 1.35; margin-bottom: 2px; }
+  .sidebar-item-title { font-size: var(--font-body); font-weight: 700; line-height: 1.35; margin-bottom: 2px; }
   .sidebar-item-title a { color: var(--ink); text-decoration: none; transition: color 0.2s; }
   .sidebar-item-title a:hover { color: var(--accent); }
-  .sidebar-item-excerpt { font-size: 0.75rem; color: var(--ink-muted); line-height: 1.55; }
+  .sidebar-item-excerpt { font-size: var(--font-caption); color: var(--ink-muted); line-height: 1.55; }
 
   /* ── Remaining section ── */
   .remaining-section { margin-top: 2em; padding-top: 1.5em; border-top: 1px solid var(--rule); }
@@ -662,32 +681,11 @@ html.dark .theme-icon-dark { display: inline; }
 }
 
 /* ═══════════ Responsive: ≤ 767px ═══════════ */
+/* Typography is handled by clamp() — no font-size overrides needed.
+   This section only controls LAYOUT changes (dual→single column). */
 @media (max-width: 767px) {
-  /* Masthead */
-  .site-header {
-    padding: 16px 20px 12px;
-  }
-
-  .site-title {
-    font-size: 1.75rem;
-  }
-
-  /* Navigation: two lines */
-  .site-nav {
-    padding: 8px 20px;
-    flex-wrap: wrap;
-    gap: 6px 10px;
-    font-size: 0.75rem;
-  }
-
-  /* Main content */
-  .site-main {
-    padding: 24px 20px;
-  }
-
-  /* Footer */
+  /* Footer: stack vertically */
   .site-footer {
-    padding: 16px 20px;
     flex-direction: column;
     gap: 4px;
     text-align: center;
@@ -720,14 +718,9 @@ html.dark .theme-icon-dark { display: inline; }
     padding-top: 24px;
   }
 
-  /* Section label */
-  .section-label {
-    font-size: 0.6875rem;
-  }
-
-  /* Archive year label */
-  .archive-year {
-    font-size: 36px;
+  /* Prose: full width on mobile */
+  .prose {
+    max-width: 100%;
   }
 
   /* Filter buttons: scrollable */
