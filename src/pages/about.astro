@@ -1,86 +1,69 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { generatePageMeta } from '../utils/seo';
-import { SITE_CONFIG } from '../utils/constants';
 
-const seo = generatePageMeta({ title: '关于', description: '关于夏天的爱人', path: '/about' });
+const seo = generatePageMeta({ title: '关于', description: '关于夏天的爱人是绿色', path: '/about' });
 ---
 
 <BaseLayout title="关于" seo={seo}>
-  <div class="grid gap-12" style="grid-template-columns: 1fr 240px;">
+  <div class="layout-dual-wide">
     <main>
-      <h1 class="font-display text-h1 mb-5" style="color:var(--ink);">关于这里</h1>
-      <p class="italic mb-6 pb-6" style="font-size:18px;line-height:1.85;color:var(--ink-light);border-bottom:1px solid var(--rule-light);">
-        这是一份个人刊物——记录代码背后的思考、阅读之后的余韵、以及生活中那些不值一提却值得记住的瞬间。
+      <h1 class="font-display text-h1 mb-5">关于这里</h1>
+      <p class="about-intro">
+        这是一份个人刊物——记录 AI Native 实践中的思考、技术写作的沉淀、以及工具背后的设计哲学。
       </p>
 
-      <h3 class="font-display text-h2 mt-8 mb-3" style="color:var(--ink);">关于我</h3>
-      <p class="text-body" style="color:var(--ink-light);line-height:1.9;text-align:justify;">
-        我是一个写代码的人，也是一个用文字思考的人。白天在键盘上写程序，晚上（偶尔）在键盘上写文字。相信技术不只是工具，也是一种表达方式。
+      <h3 class="about-section-title">关于我</h3>
+      <p class="about-body">
+        夏天的爱人是绿色。AI Native，相信 AI 不只是工具，而是一种新的工作方式。我构建 AI Agent 的技能系统——给 AI 建立工作纪律，让它从"能写代码"变成"能交付"。
       </p>
-      <p class="text-body" style="color:var(--ink-light);line-height:1.9;text-align:justify;">
-        工作中主要做全栈开发，对系统设计、Rust、前端架构比较感兴趣。业余时间读书、做菜、拍照、偶尔发呆。
+      <p class="about-body">
+        日常工作是全栈开发，对系统设计、Rust、前端架构和 AI 工程化比较感兴趣。写的代码和写的文字一样多。
       </p>
 
-      <h3 class="font-display text-h2 mt-8 mb-3" style="color:var(--ink);">为什么写</h3>
-      <p class="text-body" style="color:var(--ink-light);line-height:1.9;text-align:justify;">
+      <h3 class="about-section-title">为什么写</h3>
+      <p class="about-body">
         写作是最好的思考工具。很多时候，我以为自己理解了一个概念，直到试图把它写下来——然后发现理解里全是漏洞。
       </p>
-      <p class="text-body" style="color:var(--ink-light);line-height:1.9;text-align:justify;">
+      <p class="about-body">
         这个网站没有 KPI、没有更新频率、没有流量目标。它只是一个地方，用来放那些值得被认真写下来的东西。
       </p>
 
-      <div class="grid grid-cols-2 gap-4 my-6">
-        <div class="p-4" style="border:1px solid var(--rule-light);border-radius:4px;">
-          <h4 class="font-sans text-small font-bold mb-1" style="text-transform:uppercase;letter-spacing:0.05em;">精确</h4>
-          <p class="font-sans text-small mb-0" style="color:var(--ink-muted);">宁可少写，也不含糊。</p>
-        </div>
-        <div class="p-4" style="border:1px solid var(--rule-light);border-radius:4px;">
-          <h4 class="font-sans text-small font-bold mb-1" style="text-transform:uppercase;letter-spacing:0.05em;">诚实</h4>
-          <p class="font-sans text-small mb-0" style="color:var(--ink-muted);">不懂就说不懂。</p>
-        </div>
-        <div class="p-4" style="border:1px solid var(--rule-light);border-radius:4px;">
-          <h4 class="font-sans text-small font-bold mb-1" style="text-transform:uppercase;letter-spacing:0.05em;">留白</h4>
-          <p class="font-sans text-small mb-0" style="color:var(--ink-muted);">给读者留思考空间。</p>
-        </div>
-        <div class="p-4" style="border:1px solid var(--rule-light);border-radius:4px;">
-          <h4 class="font-sans text-small font-bold mb-1" style="text-transform:uppercase;letter-spacing:0.05em;">持久</h4>
-          <p class="font-sans text-small mb-0" style="color:var(--ink-muted);">写三年后仍有价值的东西。</p>
-        </div>
+      <div class="values-grid">
+        <div class="value-card"><h4>精确</h4><p>宁可少写，也不含糊。</p></div>
+        <div class="value-card"><h4>诚实</h4><p>不懂就说不懂。</p></div>
+        <div class="value-card"><h4>留白</h4><p>给读者留思考空间。</p></div>
+        <div class="value-card"><h4>持久</h4><p>写三年后仍有价值的东西。</p></div>
       </div>
 
-      <h3 class="font-display text-h2 mt-8 mb-3" style="color:var(--ink);">版权声明</h3>
-      <p class="text-body" style="color:var(--ink-light);line-height:1.9;text-align:justify;">
+      <h3 class="about-section-title">版权声明</h3>
+      <p class="about-body">
         除非特别标注，所有文章均为原创。你可以自由引用，但请注明出处。如果某篇文章帮到了你，告诉我会让我很开心。
       </p>
     </main>
 
     <aside class="sticky top-8 self-start">
       <div class="mb-7 text-center">
-        <div class="mx-auto mb-3 flex items-center justify-center" style="width:100%;aspect-ratio:1;border-radius:4px;background:linear-gradient(135deg,var(--rule-light),var(--rule));font-size:48px;">
-          🖊
-        </div>
+        <div class="avatar-box">🖊</div>
       </div>
       <div class="mb-7">
         <div class="section-label">联系</div>
-        <div class="font-sans text-small" style="color:var(--ink-muted);">
-          <div class="flex justify-between py-2" style="border-bottom:1px solid var(--rule-faint);">
-            <span style="color:var(--ink-faint);">GitHub</span><span style="color:var(--ink);font-weight:500;">@xiatian</span>
-          </div>
-          <div class="flex justify-between py-2" style="border-bottom:1px solid var(--rule-faint);">
-            <span style="color:var(--ink-faint);">Twitter</span><span style="color:var(--ink);font-weight:500;">@xiatian_dev</span>
-          </div>
-          <div class="flex justify-between py-2" style="border-bottom:1px solid var(--rule-faint);">
-            <span style="color:var(--ink-faint);">Email</span><span style="color:var(--ink);font-weight:500;">hi@xiatian.dev</span>
-          </div>
-          <div class="flex justify-between py-2" style="border-bottom:1px solid var(--rule-faint);">
-            <span style="color:var(--ink-faint);">RSS</span><a href="/rss.xml" style="color:var(--ink);font-weight:500;">/rss.xml</a>
-          </div>
+        <div class="contact-item">
+          <span class="contact-label">GitHub</span>
+          <a href="https://github.com/xiatiandeairen" class="contact-value">@xiatiandeairen</a>
+        </div>
+        <div class="contact-item">
+          <span class="contact-label">Email</span>
+          <a href="mailto:xiatian_672@163.com" class="contact-value">xiatian_672@163.com</a>
+        </div>
+        <div class="contact-item">
+          <span class="contact-label">RSS</span>
+          <a href="/rss.xml" class="contact-value">/rss.xml</a>
         </div>
       </div>
       <div class="mb-7">
         <div class="section-label">关于本站</div>
-        <p class="font-sans" style="font-size:11px;color:var(--ink-faint);line-height:1.7;">
+        <p class="colophon">
           使用 Astro 构建<br>
           部署于 GitHub Pages<br>
           字体：Playfair Display + Noto Serif SC + Inter<br>
@@ -91,3 +74,12 @@ const seo = generatePageMeta({ title: '关于', description: '关于夏天的爱
     </aside>
   </div>
 </BaseLayout>
+
+<style>
+  .values-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1em;
+    margin: 1.5em 0;
+  }
+</style>

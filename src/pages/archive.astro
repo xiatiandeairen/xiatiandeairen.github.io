@@ -2,13 +2,11 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { getAllNotes, sortNotes, formatDate } from '../utils/notes';
 import { generatePageMeta } from '../utils/seo';
-import { SITE_CONFIG } from '../utils/constants';
 
 const allNotes = getAllNotes();
 const sorted = sortNotes(allNotes, 'date', 'desc');
 const seo = generatePageMeta({ title: '归档', description: '所有文章，按时间排列。', path: '/archive' });
 
-// Group by year and month
 type MonthGroup = { label: string; notes: typeof sorted };
 type YearGroup = { year: string; months: MonthGroup[] };
 
@@ -20,7 +18,6 @@ for (const note of sorted) {
   const d = new Date(note.date);
   const year = String(d.getFullYear());
   const month = d.toLocaleDateString('zh-CN', { month: 'long' });
-
   if (year !== currentYear) {
     yearGroups.push({ year, months: [] });
     currentYear = year;
@@ -34,59 +31,45 @@ for (const note of sorted) {
   yg.months[yg.months.length - 1].notes.push(note);
 }
 
-// Compute reading time
 function readingTime(content: string): number {
-  const words = content.replace(/\s+/g, ' ').trim().length;
-  return Math.max(1, Math.round(words / 400));
+  return Math.max(1, Math.round(content.replace(/\s+/g, ' ').trim().length / 400));
 }
 
-// Collect all question types for filters
 const types = [...new Set(sorted.map(n => n.question.type))].sort();
 ---
 
 <BaseLayout title="归档" seo={seo}>
-  <header class="mb-6 pb-4" style="border-bottom: 1px solid var(--rule-light);">
-    <h1 class="font-display text-h1 mb-1" style="color:var(--ink);">归档</h1>
-    <p class="font-sans text-small" style="color:var(--ink-muted);">
-      共 {allNotes.length} 篇文章，按时间排列。
-    </p>
+  <header class="archive-header">
+    <h1 class="font-display text-h1 mb-1">归档</h1>
+    <p class="font-sans text-small archive-subtitle">共 {allNotes.length} 篇文章，按时间排列。</p>
   </header>
 
-  <!-- Filters -->
-  <div class="flex flex-wrap gap-2 mb-8 pb-6" style="border-bottom: 1px solid var(--rule);">
+  <div class="filter-bar">
     <button class="filter-btn active" data-filter="all">全部</button>
     {types.map(type => (
       <button class="filter-btn" data-filter={type}>{type}</button>
     ))}
   </div>
 
-  <!-- Archive content -->
-  <div class="grid gap-10" style="grid-template-columns: 1fr 200px;">
+  <div class="layout-dual-archive">
     <div>
       {yearGroups.map(yg => (
-        <div class="mb-10">
-          <div class="font-display font-black" style="font-size:42px;color:var(--rule);opacity:0.4;letter-spacing:-0.03em;line-height:1;">
-            {yg.year}
-          </div>
+        <div class="year-group">
+          <div class="font-display font-black archive-year">{yg.year}</div>
           {yg.months.map(mg => (
-            <div class="mb-5">
-              <div class="font-sans mb-2 pb-1.5" style="font-size:10px;text-transform:uppercase;letter-spacing:0.12em;color:var(--ink-ghost);border-bottom:1px solid var(--rule-light);">
+            <div class="month-group">
+              <div class="month-label font-sans">
                 {mg.label} · {mg.notes.length} 篇
               </div>
               {mg.notes.map(note => (
-                <a
-                  href={`/notes/${note.slug}`}
-                  class="archive-item"
-                  data-type={note.question.type}
-                  style="display:grid;grid-template-columns:1fr auto;gap:16px;padding:10px 0;border-bottom:1px solid var(--rule-faint);transition:all 0.15s;text-decoration:none;"
-                >
+                <a href={`/notes/${note.slug}`} class="archive-item" data-type={note.question.type}>
                   <div>
-                    <div style="font-size:15px;font-weight:600;line-height:1.35;color:var(--ink);">{note.title}</div>
-                    <div class="cat-label" style="margin-top:2px;">{note.question.type}</div>
+                    <div class="archive-item-title">{note.title}</div>
+                    <div class="cat-label">{note.question.type}</div>
                   </div>
-                  <div class="font-sans" style="font-size:11px;color:var(--ink-ghost);white-space:nowrap;padding-top:2px;">
+                  <div class="archive-item-meta font-sans">
                     <div>{formatDate(note.date).slice(5)}</div>
-                    <div style="font-size:10px;color:var(--ink-ghost);margin-top:2px;">约 {readingTime(note.content)} 分钟</div>
+                    <div class="archive-item-time">约 {readingTime(note.content)} 分钟</div>
                   </div>
                 </a>
               ))}
@@ -96,14 +79,11 @@ const types = [...new Set(sorted.map(n => n.question.type))].sort();
       ))}
     </div>
 
-    <!-- Sidebar stats -->
     <aside class="sticky top-8 self-start">
       <div class="mb-7">
         <div class="section-label">统计</div>
-        <div class="font-sans text-small" style="color:var(--ink-muted);">
-          <div class="flex justify-between py-1.5" style="border-bottom:1px solid var(--rule-faint);">
-            <span>文章总数</span><span class="font-semibold" style="color:var(--ink);">{allNotes.length}</span>
-          </div>
+        <div class="stat-row font-sans">
+          <span>文章总数</span><span class="stat-value">{allNotes.length}</span>
         </div>
       </div>
       <div class="mb-7">
@@ -111,36 +91,14 @@ const types = [...new Set(sorted.map(n => n.question.type))].sort();
         {types.map(type => {
           const count = sorted.filter(n => n.question.type === type).length;
           return (
-            <div class="flex justify-between py-1.5 font-sans text-small" style="border-bottom:1px solid var(--rule-faint);color:var(--ink-muted);">
-              <span>{type}</span><span class="font-semibold" style="color:var(--ink);">{count}</span>
+            <div class="stat-row font-sans">
+              <span>{type}</span><span class="stat-value">{count}</span>
             </div>
           );
         })}
       </div>
     </aside>
   </div>
-
-  <style>
-    .filter-btn {
-      font-family: Inter, sans-serif;
-      font-size: 11px;
-      padding: 5px 12px;
-      border: 1px solid var(--rule-light);
-      border-radius: 3px;
-      background: transparent;
-      color: var(--ink-muted);
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-    .filter-btn:hover, .filter-btn.active {
-      border-color: var(--ink);
-      color: var(--ink);
-      background: var(--bg-subtle);
-    }
-    .archive-item:hover {
-      padding-left: 6px !important;
-    }
-  </style>
 
   <script is:inline>
     document.querySelectorAll('.filter-btn').forEach(btn => {
@@ -149,13 +107,73 @@ const types = [...new Set(sorted.map(n => n.question.type))].sort();
         btn.classList.add('active');
         const filter = btn.dataset.filter;
         document.querySelectorAll('.archive-item').forEach(item => {
-          if (filter === 'all' || item.dataset.type === filter) {
-            item.style.display = '';
-          } else {
-            item.style.display = 'none';
-          }
+          item.style.display = (filter === 'all' || item.dataset.type === filter) ? '' : 'none';
         });
       });
     });
   </script>
 </BaseLayout>
+
+<style>
+  .archive-header {
+    margin-bottom: 1.5em;
+    padding-bottom: 1em;
+    border-bottom: 1px solid var(--rule-light);
+  }
+  .archive-subtitle { color: var(--ink-muted); }
+  .filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 2em;
+    padding-bottom: 1.5em;
+    border-bottom: 1px solid var(--rule);
+  }
+  .year-group { margin-bottom: 2.5em; }
+  .archive-year {
+    font-size: 42px;
+    color: var(--rule);
+    opacity: 0.4;
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+  .month-group { margin-bottom: 1.25em; }
+  .month-label {
+    font-size: 0.625rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-ghost);
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--rule-light);
+  }
+  .archive-item-title {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    line-height: 1.35;
+    color: var(--ink);
+  }
+  .archive-item-meta {
+    font-size: 0.6875rem;
+    color: var(--ink-ghost);
+    white-space: nowrap;
+    padding-top: 2px;
+  }
+  .archive-item-time {
+    font-size: 0.625rem;
+    color: var(--ink-ghost);
+    margin-top: 2px;
+  }
+  .stat-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--rule-faint);
+    font-size: 0.75rem;
+    color: var(--ink-muted);
+  }
+  .stat-value {
+    font-weight: 600;
+    color: var(--ink);
+  }
+</style>
