@@ -1,7 +1,7 @@
 export const SITE_CONFIG = {
   title: '夏天的爱人',
   description: '一份关于代码、文字与生活的个人刊物',
-  tagline: '"在字里行间，找到回家的路"',
+  tagline: 'AI 工程化 · 技术写作 · 开发者手记',
   url: 'https://xiatiandeairen.github.io'
 };
 
