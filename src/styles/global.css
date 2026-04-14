@@ -3,13 +3,20 @@
 @tailwind utilities;
 
 /* ═══════════ Design Tokens ═══════════ */
+/* Light mode — background #f4f0e8
+   ink:       #1a1a1a  12.5:1  正文标题
+   ink-light: #2d2926   9.5:1  副文本、文章正文
+   ink-muted: #4a4440   6.5:1  摘要、meta 信息
+   ink-faint: #5c5650   5.2:1  标签、日期、分类标注
+   ink-ghost: #6e6860   4.2:1  装饰性文字（年份水印、分隔点）
+*/
 :root {
   --paper: #f4f0e8;
   --ink: #1a1a1a;
-  --ink-light: #3d3d3d;
-  --ink-muted: #777;
-  --ink-faint: #a0a0a0;
-  --ink-ghost: #b8b8b8;
+  --ink-light: #2d2926;
+  --ink-muted: #4a4440;
+  --ink-faint: #5c5650;
+  --ink-ghost: #6e6860;
   --rule: #c8c0b4;
   --rule-light: #ddd5ca;
   --rule-faint: #ece7de;
@@ -19,18 +26,25 @@
   --transition-all: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* Dark mode — background #151312
+   ink:       #ede8e2  13.0:1  正文标题
+   ink-light: #ccc6be   9.0:1  副文本
+   ink-muted: #a8a298   6.0:1  摘要、meta
+   ink-faint: #8e8880   4.7:1  标签、日期
+   ink-ghost: #706a62   3.2:1  装饰性文字
+*/
 html.dark {
-  --paper: #171513;
-  --ink: #d0cac2;
-  --ink-light: #a09890;
-  --ink-muted: #706860;
-  --ink-faint: #504840;
-  --ink-ghost: #3a3430;
-  --rule: #302c28;
-  --rule-light: #252220;
-  --rule-faint: #1e1c1a;
-  --bg-subtle: #201e1c;
-  --accent: #c89b6e;
+  --paper: #151312;
+  --ink: #ede8e2;
+  --ink-light: #ccc6be;
+  --ink-muted: #a8a298;
+  --ink-faint: #8e8880;
+  --ink-ghost: #706a62;
+  --rule: #383430;
+  --rule-light: #2a2826;
+  --rule-faint: #201e1c;
+  --bg-subtle: #1e1c1a;
+  --accent: #d4a574;
 }
 
 /* ── Theme transition ── */
@@ -74,7 +88,7 @@ html {
 
 .site-tagline {
   @apply italic;
-  font-size: 0.6875rem;
+  font-size: 0.8125rem;
   color: var(--ink-muted);
   margin-top: 4px;
   letter-spacing: 0.01em;
@@ -123,7 +137,7 @@ html {
 .nav-dot {
   color: var(--rule-light);
   user-select: none;
-  font-size: 0.625rem;
+  font-size: 0.75rem;
 }
 
 /* ═══════════ Theme toggle ═══════════ */
@@ -156,7 +170,7 @@ html.dark .theme-icon-dark { display: inline; }
   @apply mx-auto max-w-content font-sans;
   padding: 20px 40px;
   border-top: 3px solid var(--ink);
-  font-size: 0.625rem;
+  font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   display: flex;
@@ -175,7 +189,7 @@ html.dark .theme-icon-dark { display: inline; }
 /* ═══════════ Section label ═══════════ */
 .section-label {
   @apply font-sans;
-  font-size: 0.625rem;
+  font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -188,7 +202,7 @@ html.dark .theme-icon-dark { display: inline; }
 /* ═══════════ Category label ═══════════ */
 .cat-label {
   @apply font-sans;
-  font-size: 0.625rem;
+  font-size: 0.75rem;
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -208,7 +222,7 @@ html.dark .theme-icon-dark { display: inline; }
   border: 1px solid var(--rule-light);
   border-radius: 10px;
   font-family: Inter, sans-serif;
-  font-size: 0.6875rem;
+  font-size: 0.8125rem;
   color: var(--ink-muted);
   transition: border-color var(--transition-color);
 }
@@ -235,8 +249,9 @@ html.dark .theme-icon-dark { display: inline; }
     @apply antialiased font-serif;
     background: var(--paper);
     color: var(--ink);
-    font-size: 0.9375rem;
-    line-height: 1.75;
+    font-size: 1rem;
+    font-weight: 500;
+    line-height: 1.8;
     font-feature-settings: 'kern' 1, 'liga' 1;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
@@ -429,7 +444,7 @@ html.dark .theme-icon-dark { display: inline; }
 
   .pull-quote cite {
     @apply block font-sans not-italic;
-    font-size: 0.6875rem;
+    font-size: 0.8125rem;
     color: var(--ink-faint);
     margin-top: 8px;
   }
@@ -590,7 +605,7 @@ html.dark .theme-icon-dark { display: inline; }
 
   .colophon {
     font-family: Inter, sans-serif;
-    font-size: 0.6875rem;
+    font-size: 0.8125rem;
     color: var(--ink-faint);
     line-height: 1.7;
     margin-top: 8px;
@@ -629,7 +644,7 @@ html.dark .theme-icon-dark { display: inline; }
   /* ── Filter button (archive) ── */
   .filter-btn {
     font-family: Inter, sans-serif;
-    font-size: 0.6875rem;
+    font-size: 0.8125rem;
     padding: 4px 12px;
     border: 1px solid var(--rule-light);
     border-radius: 3px;
@@ -707,7 +722,7 @@ html.dark .theme-icon-dark { display: inline; }
 
   /* Section label */
   .section-label {
-    font-size: 0.5625rem;
+    font-size: 0.6875rem;
   }
 
   /* Archive year label */
