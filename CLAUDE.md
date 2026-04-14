@@ -9,6 +9,7 @@
 #### v1
 
 - [夏天的爱人 产品路线图](.know/docs/v1/roadmap.md) | 2026-04-14
+- [页面区域术语表](.know/docs/v1/page-terminology.md) | 2026-04-14
 
 #### Requirements
 
