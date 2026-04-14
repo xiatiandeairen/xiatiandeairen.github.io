@@ -6,17 +6,18 @@ interface Props {
   title: string;
   description?: string;
   seo?: SEOData;
+  showHeader?: boolean;
 }
 
-const { title, description, seo } = Astro.props;
+const { title, description, seo, showHeader = true } = Astro.props;
 ---
 
 <BaseLayout title={title} description={description} seo={seo}>
-  <div class="space-y-12">
-    <header class="space-y-3 mb-12">
-      <h1 class="text-h1 text-text-primary">{title}</h1>
-      {description && <p class="text-body text-text-muted max-w-reading">{description}</p>}
+  {showHeader && (
+    <header class="mb-8 pb-6 border-b border-rule-light">
+      <h1 class="font-display text-h1 text-ink mb-2">{title}</h1>
+      {description && <p class="font-sans text-small text-ink-muted">{description}</p>}
     </header>
-    <slot />
-  </div>
+  )}
+  <slot />
 </BaseLayout>

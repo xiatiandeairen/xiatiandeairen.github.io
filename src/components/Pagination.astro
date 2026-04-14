@@ -42,29 +42,28 @@ const visiblePages = getVisiblePages(currentPage, totalPages);
 ---
 
 {totalPages > 1 && (
-  <nav class="flex items-center justify-center gap-3 mt-16 pt-12 border-t border-border-light" aria-label="分页导航">
+  <nav class="flex items-center justify-center gap-4 mt-8 pt-6 border-t border-rule font-sans text-small" aria-label="分页导航">
     {currentPage > 1 && (
       <a
         href={getPageUrl(currentPage - 1)}
-        class="text-small text-link hover:text-link-hover transition-colors"
+        class="text-ink-muted no-underline hover:text-ink transition-colors"
       >
         ← 上一页
       </a>
     )}
-    
     <div class="flex items-center gap-2">
       {visiblePages.map((page) => {
         if (page === -1) {
-          return <span class="text-small text-text-tertiary px-2">...</span>;
+          return <span class="text-ink-ghost px-1">…</span>;
         }
         const isCurrent = page === currentPage;
         return (
           <a
             href={getPageUrl(page)}
-            class={`text-small transition-colors ${
+            class={`no-underline px-2 py-1 ${
               isCurrent
-                ? 'text-text-primary font-semibold'
-                : 'text-link hover:text-link-hover'
+                ? 'text-ink font-semibold'
+                : 'text-ink-muted hover:text-ink transition-colors'
             }`}
             aria-current={isCurrent ? 'page' : undefined}
           >
@@ -73,11 +72,10 @@ const visiblePages = getVisiblePages(currentPage, totalPages);
         );
       })}
     </div>
-
     {currentPage < totalPages && (
       <a
         href={getPageUrl(currentPage + 1)}
-        class="text-small text-link hover:text-link-hover transition-colors"
+        class="text-ink-muted no-underline hover:text-ink transition-colors"
       >
         下一页 →
       </a>

@@ -1,30 +1,89 @@
 ---
-import IndexLayout from '../layouts/IndexLayout.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
 import NoteCard from '../components/NoteCard.astro';
 import Pagination from '../components/Pagination.astro';
-import { getAllNotes, sortNotes, paginateNotes } from '../utils/notes';
+import { getAllNotes, sortNotes, paginateNotes, formatDate } from '../utils/notes';
 import { generatePageMeta } from '../utils/seo';
+import { SITE_CONFIG } from '../utils/constants';
 
 const allNotes = getAllNotes();
 const sortedNotes = sortNotes(allNotes, 'date', 'desc');
 const { notes, pagination } = paginateNotes(sortedNotes, 1);
 const seo = generatePageMeta({
-  title: '技术笔记',
-  description: '技术笔记集合',
+  title: SITE_CONFIG.title,
+  description: SITE_CONFIG.description,
   path: '/'
 });
+
+// Featured note = most recent
+const featured = notes[0];
+const sidebarNotes = notes.slice(1, 5);
+const remainingNotes = notes.slice(5);
 ---
 
-<IndexLayout title="技术笔记" seo={seo}>
+<BaseLayout title={SITE_CONFIG.title} description={SITE_CONFIG.description} seo={seo}>
   {notes.length === 0 ? (
-    <p class="text-text-muted text-center py-16">暂无笔记</p>
+    <p class="text-ink-muted text-center py-16 font-sans">暂无笔记</p>
   ) : (
     <>
-      <div>
-        {notes.map((note) => (
-          <NoteCard note={note} showQuality={true} />
-        ))}
+      {/* Featured + Sidebar two-column layout */}
+      <div class="grid gap-0" style="grid-template-columns: 1.6fr 1px 1fr;">
+        {/* Featured article */}
+        <article class="pr-8">
+          <div class="cat-label">
+            {featured.question.type}
+            {featured.question.subType ? ` · ${featured.question.subType}` : ''}
+          </div>
+          <h2 class="font-display text-h1 text-ink leading-tight mb-3">
+            <a href={`/notes/${featured.slug}`} class="no-underline hover:text-link-hover">
+              {featured.title}
+            </a>
+          </h2>
+          <p class="text-body italic text-ink-light leading-relaxed mb-4 max-w-reading">
+            {featured.content.replace(/#{1,6}\s/g, '').replace(/\*\*?|__?/g, '').replace(/\n+/g, ' ').trim().slice(0, 200)}…
+          </p>
+          <div class="font-sans text-body text-ink-light leading-relaxed">
+            {featured.content.replace(/#{1,6}\s/g, '').replace(/\*\*?|__?/g, '').replace(/\n+/g, ' ').trim().slice(200, 500)}…
+          </div>
+          <a href={`/notes/${featured.slug}`} class="inline-block mt-4 font-sans text-small text-ink border-b border-ink pb-px">
+            阅读全文 →
+          </a>
+        </article>
+
+        {/* Divider */}
+        <div class="bg-rule"></div>
+
+        {/* Sidebar */}
+        <aside class="pl-8">
+          <div class="section-label">近期文章</div>
+          {sidebarNotes.map((note) => (
+            <div class="py-3.5 border-b border-rule-light last:border-b-0 transition-all duration-150 hover:pl-1.5">
+              <div class="cat-label">{note.question.type}</div>
+              <h4 class="text-h3 leading-snug mb-1">
+                <a href={`/notes/${note.slug}`} class="no-underline hover:text-link-hover">
+                  {note.title}
+                </a>
+              </h4>
+              <p class="font-sans text-small text-ink-muted leading-relaxed">
+                {note.content.replace(/#{1,6}\s/g, '').replace(/\*\*?|__?/g, '').replace(/\n+/g, ' ').trim().slice(0, 80)}…
+              </p>
+            </div>
+          ))}
+        </aside>
       </div>
+
+      {/* Remaining notes list */}
+      {remainingNotes.length > 0 && (
+        <div class="mt-8 pt-6 border-t border-rule">
+          <div class="section-label">更多文章</div>
+          <div class="post-list">
+            {remainingNotes.map((note) => (
+              <NoteCard note={note} showExcerpt={true} />
+            ))}
+          </div>
+        </div>
+      )}
+
       <Pagination
         currentPage={pagination.currentPage}
         totalPages={pagination.totalPages}
@@ -32,4 +91,4 @@ const seo = generatePageMeta({
       />
     </>
   )}
-</IndexLayout>
+</BaseLayout>
