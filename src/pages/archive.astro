@@ -1,0 +1,161 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getAllNotes, sortNotes, formatDate } from '../utils/notes';
+import { generatePageMeta } from '../utils/seo';
+import { SITE_CONFIG } from '../utils/constants';
+
+const allNotes = getAllNotes();
+const sorted = sortNotes(allNotes, 'date', 'desc');
+const seo = generatePageMeta({ title: '归档', description: '所有文章，按时间排列。', path: '/archive' });
+
+// Group by year and month
+type MonthGroup = { label: string; notes: typeof sorted };
+type YearGroup = { year: string; months: MonthGroup[] };
+
+const yearGroups: YearGroup[] = [];
+let currentYear = '';
+let currentMonth = '';
+
+for (const note of sorted) {
+  const d = new Date(note.date);
+  const year = String(d.getFullYear());
+  const month = d.toLocaleDateString('zh-CN', { month: 'long' });
+
+  if (year !== currentYear) {
+    yearGroups.push({ year, months: [] });
+    currentYear = year;
+    currentMonth = '';
+  }
+  if (month !== currentMonth) {
+    yearGroups[yearGroups.length - 1].months.push({ label: month, notes: [] });
+    currentMonth = month;
+  }
+  const yg = yearGroups[yearGroups.length - 1];
+  yg.months[yg.months.length - 1].notes.push(note);
+}
+
+// Compute reading time
+function readingTime(content: string): number {
+  const words = content.replace(/\s+/g, ' ').trim().length;
+  return Math.max(1, Math.round(words / 400));
+}
+
+// Collect all question types for filters
+const types = [...new Set(sorted.map(n => n.question.type))].sort();
+---
+
+<BaseLayout title="归档" seo={seo}>
+  <header class="mb-6 pb-4" style="border-bottom: 1px solid var(--rule-light);">
+    <h1 class="font-display text-h1 mb-1" style="color:var(--ink);">归档</h1>
+    <p class="font-sans text-small" style="color:var(--ink-muted);">
+      共 {allNotes.length} 篇文章，按时间排列。
+    </p>
+  </header>
+
+  <!-- Filters -->
+  <div class="flex flex-wrap gap-2 mb-8 pb-6" style="border-bottom: 1px solid var(--rule);">
+    <button class="filter-btn active" data-filter="all">全部</button>
+    {types.map(type => (
+      <button class="filter-btn" data-filter={type}>{type}</button>
+    ))}
+  </div>
+
+  <!-- Archive content -->
+  <div class="grid gap-10" style="grid-template-columns: 1fr 200px;">
+    <div>
+      {yearGroups.map(yg => (
+        <div class="mb-10">
+          <div class="font-display font-black" style="font-size:42px;color:var(--rule);opacity:0.4;letter-spacing:-0.03em;line-height:1;">
+            {yg.year}
+          </div>
+          {yg.months.map(mg => (
+            <div class="mb-5">
+              <div class="font-sans mb-2 pb-1.5" style="font-size:10px;text-transform:uppercase;letter-spacing:0.12em;color:var(--ink-ghost);border-bottom:1px solid var(--rule-light);">
+                {mg.label} · {mg.notes.length} 篇
+              </div>
+              {mg.notes.map(note => (
+                <a
+                  href={`/notes/${note.slug}`}
+                  class="archive-item"
+                  data-type={note.question.type}
+                  style="display:grid;grid-template-columns:1fr auto;gap:16px;padding:10px 0;border-bottom:1px solid var(--rule-faint);transition:all 0.15s;text-decoration:none;"
+                >
+                  <div>
+                    <div style="font-size:15px;font-weight:600;line-height:1.35;color:var(--ink);">{note.title}</div>
+                    <div class="cat-label" style="margin-top:2px;">{note.question.type}</div>
+                  </div>
+                  <div class="font-sans" style="font-size:11px;color:var(--ink-ghost);white-space:nowrap;padding-top:2px;">
+                    <div>{formatDate(note.date).slice(5)}</div>
+                    <div style="font-size:10px;color:var(--ink-ghost);margin-top:2px;">约 {readingTime(note.content)} 分钟</div>
+                  </div>
+                </a>
+              ))}
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+
+    <!-- Sidebar stats -->
+    <aside class="sticky top-8 self-start">
+      <div class="mb-7">
+        <div class="section-label">统计</div>
+        <div class="font-sans text-small" style="color:var(--ink-muted);">
+          <div class="flex justify-between py-1.5" style="border-bottom:1px solid var(--rule-faint);">
+            <span>文章总数</span><span class="font-semibold" style="color:var(--ink);">{allNotes.length}</span>
+          </div>
+        </div>
+      </div>
+      <div class="mb-7">
+        <div class="section-label">分类</div>
+        {types.map(type => {
+          const count = sorted.filter(n => n.question.type === type).length;
+          return (
+            <div class="flex justify-between py-1.5 font-sans text-small" style="border-bottom:1px solid var(--rule-faint);color:var(--ink-muted);">
+              <span>{type}</span><span class="font-semibold" style="color:var(--ink);">{count}</span>
+            </div>
+          );
+        })}
+      </div>
+    </aside>
+  </div>
+
+  <style>
+    .filter-btn {
+      font-family: Inter, sans-serif;
+      font-size: 11px;
+      padding: 5px 12px;
+      border: 1px solid var(--rule-light);
+      border-radius: 3px;
+      background: transparent;
+      color: var(--ink-muted);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .filter-btn:hover, .filter-btn.active {
+      border-color: var(--ink);
+      color: var(--ink);
+      background: var(--bg-subtle);
+    }
+    .archive-item:hover {
+      padding-left: 6px !important;
+    }
+  </style>
+
+  <script is:inline>
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const filter = btn.dataset.filter;
+        document.querySelectorAll('.archive-item').forEach(item => {
+          if (filter === 'all' || item.dataset.type === filter) {
+            item.style.display = '';
+          } else {
+            item.style.display = 'none';
+          }
+        });
+      });
+    });
+  </script>
+</BaseLayout>

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>导航栏方案对比</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:Inter,sans-serif;background:#0a0a0b;color:#e8e8ec;min-height:100vh;padding:32px;}
+    h1{font-size:1rem;font-weight:700;background:linear-gradient(135deg,#6366f1,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px;}
+    .desc{font-size:0.8125rem;color:#8a8a96;margin-bottom:32px;}
+    .option{margin-bottom:40px;}
+    .option-label{font-size:0.8125rem;font-weight:600;color:#e8e8ec;margin-bottom:4px;}
+    .option-desc{font-size:0.75rem;color:#6b6b80;margin-bottom:12px;}
+    .frame{border:2px solid #2a2a30;border-radius:12px;overflow:hidden;background:#f4f0e8;}
+    .current{border-color:#ef4444;}
+    .option-label .tag{font-size:0.6875rem;padding:2px 8px;border-radius:4px;background:rgba(239,68,68,0.15);color:#ef4444;margin-left:8px;font-weight:500;}
+  </style>
+</head>
+<body>
+  <h1>导航栏方案对比</h1>
+  <p class="desc">当前问题：dateline 导航条字太小(9px)、大写字母+超宽间距导致空散、导航项和日期没有视觉层级区分</p>
+
+  <!-- ── CURRENT (问题版) ── -->
+  <div class="option">
+    <div class="option-label">当前方案 <span class="tag">问题</span></div>
+    <div class="option-desc">9px 全大写 + 0.12em 间距 → 字太小太散，导航和日期混在一起</div>
+    <div class="frame current">
+      <div style="text-align:center;padding:20px 40px 16px;border-bottom:4px solid #1a1a1a;max-width:900px;margin:0 auto;">
+        <div style="font-family:'Playfair Display',serif;font-size:28px;font-weight:900;letter-spacing:-0.02em;color:#1a1a1a;">夏天的爱人</div>
+        <div style="font-size:11px;color:#999;font-style:italic;margin-top:3px;">"在字里行间，找到回家的路"</div>
+      </div>
+      <div style="display:flex;justify-content:space-between;max-width:900px;margin:0 auto;padding:8px 40px;border-bottom:2px solid #1a1a1a;font-family:Inter,sans-serif;font-size:9px;text-transform:uppercase;letter-spacing:0.12em;color:#aaa;">
+        <div style="display:flex;gap:16px;"><span>首页</span><span>归档</span><span>关于</span><span>搜索</span></div>
+        <span>2026 年 4 月 14 日</span>
+      </div>
+      <div style="padding:40px;max-width:900px;margin:0 auto;font-family:'Noto Serif SC',serif;color:#1a1a1a;">
+        <div style="font-family:'Playfair Display',serif;font-size:24px;font-weight:900;line-height:1.2;">我给 AI Agent 写了一套操作系统</div>
+        <p style="font-size:15px;color:#555;margin-top:12px;line-height:1.8;">AI 编程助手越来越强，但有一个问题始终没被解决：它没有纪律。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── OPTION A: 合并为一行，左站名右导航 ── -->
+  <div class="option">
+    <div class="option-label">方案 A — 单行导航</div>
+    <div class="option-desc">站名左对齐 + 导航右对齐，合并为一行。字号 13px，正常大小写，去掉日期。干净紧凑。</div>
+    <div class="frame">
+      <div style="display:flex;justify-content:space-between;align-items:center;max-width:900px;margin:0 auto;padding:16px 40px;border-bottom:4px solid #1a1a1a;">
+        <a href="#" style="font-family:'Playfair Display',serif;font-size:22px;font-weight:900;color:#1a1a1a;text-decoration:none;letter-spacing:-0.02em;">夏天的爱人</a>
+        <nav style="display:flex;gap:24px;font-family:Inter,sans-serif;font-size:13px;color:#888;">
+          <a href="#" style="color:#1a1a1a;text-decoration:none;font-weight:500;">首页</a>
+          <a href="#" style="color:#888;text-decoration:none;">归档</a>
+          <a href="#" style="color:#888;text-decoration:none;">关于</a>
+          <a href="#" style="color:#888;text-decoration:none;">搜索</a>
+        </nav>
+      </div>
+      <div style="padding:40px;max-width:900px;margin:0 auto;font-family:'Noto Serif SC',serif;color:#1a1a1a;">
+        <div style="font-family:'Playfair Display',serif;font-size:24px;font-weight:900;line-height:1.2;">我给 AI Agent 写了一套操作系统</div>
+        <p style="font-size:15px;color:#555;margin-top:12px;line-height:1.8;">AI 编程助手越来越强，但有一个问题始终没被解决：它没有纪律。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── OPTION B: 居中站名 + 下方导航居中，两行但紧凑 ── -->
+  <div class="option">
+    <div class="option-label">方案 B — 居中双行紧凑</div>
+    <div class="option-desc">保留居中 masthead，但导航紧跟其下、字号提大到 13px、正常大小写、居中排列。tagline 移除，减少层级。</div>
+    <div class="frame">
+      <div style="text-align:center;max-width:900px;margin:0 auto;padding:20px 40px 0;">
+        <div style="font-family:'Playfair Display',serif;font-size:28px;font-weight:900;letter-spacing:-0.02em;color:#1a1a1a;">夏天的爱人</div>
+      </div>
+      <div style="text-align:center;max-width:900px;margin:0 auto;padding:10px 40px 16px;border-bottom:4px solid #1a1a1a;">
+        <nav style="display:inline-flex;gap:28px;font-family:Inter,sans-serif;font-size:13px;color:#888;">
+          <a href="#" style="color:#1a1a1a;text-decoration:none;font-weight:500;">首页</a>
+          <a href="#" style="color:#888;text-decoration:none;">归档</a>
+          <a href="#" style="color:#888;text-decoration:none;">关于</a>
+          <a href="#" style="color:#888;text-decoration:none;">搜索</a>
+        </nav>
+      </div>
+      <div style="padding:40px;max-width:900px;margin:0 auto;font-family:'Noto Serif SC',serif;color:#1a1a1a;">
+        <div style="font-family:'Playfair Display',serif;font-size:24px;font-weight:900;line-height:1.2;">我给 AI Agent 写了一套操作系统</div>
+        <p style="font-size:15px;color:#555;margin-top:12px;line-height:1.8;">AI 编程助手越来越强，但有一个问题始终没被解决：它没有纪律。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── OPTION C: 居中站名 + 导航在粗线下方，带分隔点 ── -->
+  <div class="option">
+    <div class="option-label">方案 C — 居中站名 + 分隔导航</div>
+    <div class="option-desc">保留居中 masthead + tagline 的杂志感，导航用 · 分隔、字号 12px、衬线体，放在粗线下方。保留报纸仪式感但可读性提升。</div>
+    <div class="frame">
+      <div style="text-align:center;max-width:900px;margin:0 auto;padding:20px 40px 14px;border-bottom:4px solid #1a1a1a;">
+        <div style="font-family:'Playfair Display',serif;font-size:28px;font-weight:900;letter-spacing:-0.02em;color:#1a1a1a;">夏天的爱人</div>
+        <div style="font-size:11px;color:#999;font-style:italic;margin-top:3px;">"在字里行间，找到回家的路"</div>
+      </div>
+      <div style="text-align:center;max-width:900px;margin:0 auto;padding:12px 40px;border-bottom:1px solid #c8c0b4;">
+        <nav style="display:inline-flex;align-items:center;gap:8px;font-family:'Noto Serif SC',serif;font-size:13px;color:#888;">
+          <a href="#" style="color:#1a1a1a;text-decoration:none;">首页</a>
+          <span style="color:#ccc;">·</span>
+          <a href="#" style="color:#888;text-decoration:none;">归档</a>
+          <span style="color:#ccc;">·</span>
+          <a href="#" style="color:#888;text-decoration:none;">关于</a>
+          <span style="color:#ccc;">·</span>
+          <a href="#" style="color:#888;text-decoration:none;">搜索</a>
+        </nav>
+      </div>
+      <div style="padding:40px;max-width:900px;margin:0 auto;font-family:'Noto Serif SC',serif;color:#1a1a1a;">
+        <div style="font-family:'Playfair Display',serif;font-size:24px;font-weight:900;line-height:1.2;">我给 AI Agent 写了一套操作系统</div>
+        <p style="font-size:15px;color:#555;margin-top:12px;line-height:1.8;">AI 编程助手越来越强，但有一个问题始终没被解决：它没有纪律。</p>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
