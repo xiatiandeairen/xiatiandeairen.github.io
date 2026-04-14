@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Design Explorer — 设计决策系统</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@400;600;700;900&family=Space+Grotesk:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div id="app">
+    <!-- Top Navigation -->
+    <header id="header">
+      <div class="header-left">
+        <button id="btn-back" class="btn-icon" title="返回上一步" style="display:none;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        </button>
+        <h1 class="logo">Design Explorer</h1>
+      </div>
+      <nav id="breadcrumb" class="breadcrumb"></nav>
+      <div class="header-right">
+        <button id="btn-random" class="btn-secondary" title="随机探索">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>
+          <span>随机探索</span>
+        </button>
+        <button id="btn-export" class="btn-primary" style="display:none;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+          <span>导出方案</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Stage Info -->
+    <div id="stage-info" class="stage-info">
+      <h2 id="stage-title" class="stage-title"></h2>
+      <p id="stage-desc" class="stage-desc"></p>
+    </div>
+
+    <!-- Main Content Area -->
+    <main id="main-content" class="main-content"></main>
+
+    <!-- Final Result Overlay -->
+    <div id="final-overlay" class="final-overlay" style="display:none;">
+      <div class="final-header">
+        <h2>你的最终方案</h2>
+        <p id="final-path"></p>
+        <div class="final-actions">
+          <button id="btn-restart" class="btn-secondary">重新开始</button>
+          <button id="btn-export-final" class="btn-primary">导出完整 HTML</button>
+          <button id="btn-fullscreen" class="btn-secondary">全屏预览</button>
+        </div>
+      </div>
+      <div id="final-preview" class="final-preview"></div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

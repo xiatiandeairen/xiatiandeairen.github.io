@@ -2,18 +2,111 @@
 @tailwind components;
 @tailwind utilities;
 
+.skip-link {
+  @apply absolute left-0 top-0 -translate-y-full bg-ink text-paper px-4 py-2 z-[100] focus:translate-y-0 focus:outline-none transition-transform;
+}
+
+/* ── Masthead ── */
+.site-header {
+  @apply text-center mx-auto max-w-content;
+  padding: 20px 40px 16px;
+  border-bottom: 4px solid #1a1a1a;
+}
+
+.site-title {
+  @apply font-display text-masthead text-ink;
+}
+
+.site-tagline {
+  @apply text-caption text-ink-muted italic mt-1;
+}
+
+/* ── Dateline bar ── */
+.site-dateline {
+  @apply flex justify-between items-center mx-auto max-w-content font-sans text-ink-faint;
+  padding: 8px 40px;
+  border-bottom: 2px solid #1a1a1a;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.site-nav-links {
+  @apply flex items-center gap-4;
+}
+
+.site-nav-links a {
+  @apply no-underline text-ink-faint transition-colors;
+}
+
+.site-nav-links a:hover {
+  @apply text-ink no-underline;
+}
+
+/* ── Main content ── */
+.site-main {
+  @apply flex-1 mx-auto max-w-content w-full;
+  padding: 32px 40px;
+}
+
+/* ── Footer ── */
+.site-footer {
+  @apply mx-auto max-w-content font-sans text-ink-faint;
+  padding: 16px 40px;
+  border-top: 4px solid #1a1a1a;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  display: flex;
+  justify-content: space-between;
+}
+
+.site-footer a {
+  @apply text-ink-faint no-underline;
+}
+
+.site-footer a:hover {
+  @apply text-ink;
+}
+
+/* ── Section title (uppercase label with rule) ── */
+.section-label {
+  @apply font-sans text-ink-faint pb-2 mb-4;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  border-bottom: 2px solid #1a1a1a;
+}
+
+/* ── Category label ── */
+.cat-label {
+  @apply font-sans text-ink-ghost;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-bottom: 4px;
+}
+
+/* ── Divider line ── */
+.rule {
+  @apply bg-rule;
+}
+
+.rule-heavy {
+  border-bottom: 4px solid #1a1a1a;
+}
+
 @layer base {
   * {
-    @apply border-border;
+    @apply border-rule;
   }
 
   html {
-    @apply bg-bg-page;
+    @apply bg-paper;
   }
 
   body {
-    @apply bg-bg-page text-text-primary antialiased;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    @apply bg-paper text-ink antialiased font-serif;
     font-feature-settings: 'kern' 1, 'liga' 1;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
@@ -21,44 +114,44 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply text-text-primary font-semibold;
+    @apply text-ink font-semibold;
     margin-top: 0;
   }
 
   h1 {
-    @apply mb-6;
+    @apply font-display mb-4;
   }
 
   h2 {
-    @apply mb-4 mt-12;
+    @apply mb-3 mt-10;
   }
 
   h3 {
-    @apply mb-3 mt-8;
+    @apply mb-2 mt-6;
   }
 
   p {
-    @apply mb-6;
+    @apply mb-4 text-body;
     max-width: 65ch;
   }
 
   a {
-    @apply text-link no-underline;
-    transition: color 0.2s ease;
+    @apply text-ink no-underline;
+    transition: color 0.15s ease;
   }
 
   a:hover {
-    @apply text-link-hover underline;
+    @apply text-link-hover;
   }
 
   code {
-    @apply text-small font-mono bg-bg-subtle px-1.5 py-0.5 rounded;
-    font-size: 0.9em;
+    @apply font-mono bg-bg-subtle px-1.5 py-0.5 rounded;
+    font-size: 0.875em;
   }
 
   pre {
-    @apply overflow-x-auto bg-bg-subtle p-6 rounded-lg border border-border-light mb-6;
-    font-size: 0.9em;
+    @apply overflow-x-auto bg-bg-subtle p-6 rounded border border-rule-light mb-6;
+    font-size: 0.875em;
     line-height: 1.6;
   }
 
@@ -67,16 +160,16 @@
   }
 
   blockquote {
-    @apply border-l-4 border-link/30 pl-6 italic text-text-secondary my-6;
+    @apply border-l-3 border-ink pl-6 italic text-ink-light my-6;
     max-width: 65ch;
   }
 
   hr {
-    @apply border-t border-border-light my-12;
+    @apply border-t border-rule-light my-10;
   }
 
   ul, ol {
-    @apply mb-6;
+    @apply mb-4;
     max-width: 65ch;
   }
 
@@ -85,15 +178,15 @@
   }
 
   img {
-    @apply max-w-full h-auto mb-6;
+    @apply max-w-full h-auto mb-4;
   }
 
   table {
-    @apply w-full mb-6 border-collapse;
+    @apply w-full mb-4 border-collapse;
   }
 
   th, td {
-    @apply border border-border-light px-4 py-2 text-left;
+    @apply border border-rule-light px-4 py-2 text-left;
   }
 
   th {
@@ -103,22 +196,71 @@
 
 @layer components {
   .card {
-    @apply bg-white border border-border rounded-lg p-6 shadow-card transition-all duration-200;
-  }
-
-  .card-hover {
-    @apply hover:shadow-card-hover hover:border-link/30;
+    @apply border border-rule-light p-6 transition-all duration-200;
   }
 
   .badge {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+    @apply inline-flex items-center px-2 py-0.5 rounded font-sans text-xs font-medium;
   }
 
   .badge-primary {
-    @apply bg-link/10 text-link;
+    @apply bg-bg-subtle text-ink;
   }
 
   .badge-secondary {
-    @apply bg-text-secondary/10 text-text-secondary;
+    @apply bg-bg-subtle text-ink-muted;
+  }
+
+  .post-list {
+    @apply space-y-0;
+  }
+
+  .post-card {
+    @apply py-4 border-b border-rule-light cursor-pointer;
+    transition: padding-left 0.15s ease;
+  }
+
+  .post-card:hover {
+    padding-left: 6px;
+  }
+
+  .post-card-title {
+    @apply text-h3 font-serif mb-1;
+  }
+
+  .post-card-title a {
+    @apply no-underline text-ink;
+  }
+
+  .post-card-title a:hover {
+    @apply text-link-hover;
+  }
+
+  .back-to-top {
+    @apply inline-block mt-10 font-sans text-sm text-ink-muted no-underline;
+    border-bottom: 1px solid currentColor;
+    padding-bottom: 1px;
+  }
+
+  .back-to-top:hover {
+    @apply text-ink no-underline;
+  }
+
+  /* ── Quote block ── */
+  .pull-quote {
+    @apply text-center mx-auto max-w-content py-7;
+    padding-left: 40px;
+    padding-right: 40px;
+    border-top: 1px solid #c8c0b4;
+    border-bottom: 1px solid #c8c0b4;
+  }
+
+  .pull-quote blockquote {
+    @apply font-display text-xl italic text-ink-light leading-relaxed border-none pl-0 my-0 mx-auto;
+    max-width: 480px;
+  }
+
+  .pull-quote cite {
+    @apply block font-sans text-caption text-ink-faint mt-2 not-italic;
   }
 }

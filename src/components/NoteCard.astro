@@ -6,9 +6,10 @@ import { QUALITY_COLORS, QUALITY_THRESHOLDS } from '../utils/constants';
 interface Props {
   note: Note;
   showQuality?: boolean;
+  showExcerpt?: boolean;
 }
 
-const { note, showQuality = false } = Astro.props;
+const { note, showQuality = false, showExcerpt = false } = Astro.props;
 const dateFormatted = formatDate(note.date);
 
 function getQualityColor(score: number): string {
@@ -16,43 +17,38 @@ function getQualityColor(score: number): string {
   if (score >= QUALITY_THRESHOLDS.medium) return QUALITY_COLORS.medium;
   return QUALITY_COLORS.low;
 }
+
+function getExcerpt(content: string, maxLen: number = 140): string {
+  const plain = content.replace(/#{1,6}\s/g, '').replace(/\*\*?|__?/g, '').replace(/\n+/g, ' ').trim();
+  if (plain.length <= maxLen) return plain;
+  return plain.slice(0, maxLen).trim() + '…';
+}
 ---
 
-<article class="mb-12 pb-12 border-b border-border-light last:border-0">
-  <a href={`/notes/${note.slug}`} class="block group">
-    <h2 class="text-h2 text-text-primary group-hover:text-link transition-colors mb-4">
+<article class="post-card">
+  <div class="cat-label">{note.question.type}{note.question.subType ? ` · ${note.question.subType}` : ''}</div>
+  <h2 class="post-card-title">
+    <a href={`/notes/${note.slug}`}>
       {note.title}
-    </h2>
-    <div class="flex flex-wrap items-center gap-3 text-small text-text-muted mb-4">
-      <time datetime={note.date}>{dateFormatted}</time>
-      <span class="text-text-tertiary">·</span>
-      <span>{note.question.type}</span>
-      {note.question.subType && (
-        <>
-          <span class="text-text-tertiary">·</span>
-          <span>{note.question.subType}</span>
-        </>
-      )}
-      {showQuality && (
-        <>
-          <span class="text-text-tertiary">·</span>
-          <span style={`color: ${getQualityColor(note.quality.overall)}`}>
-            {note.quality.overall}/10
-          </span>
-        </>
-      )}
-    </div>
-    {note.tags.length > 0 && (
-      <div class="flex flex-wrap gap-2">
-        {note.tags.slice(0, 4).map((tag) => (
-          <span class="text-small text-text-muted">
-            {tag.name}
-          </span>
-        ))}
-        {note.tags.length > 4 && (
-          <span class="text-small text-text-tertiary">+{note.tags.length - 4}</span>
-        )}
-      </div>
+    </a>
+  </h2>
+  {showExcerpt && note.content && (
+    <p class="font-sans text-small text-ink-muted leading-relaxed max-w-reading mt-1 mb-2">
+      {getExcerpt(note.content)}
+    </p>
+  )}
+  <div class="flex flex-wrap items-center gap-3 font-sans text-caption text-ink-ghost mt-1">
+    <time datetime={note.date}>{dateFormatted}</time>
+    {showQuality && (
+      <span style={`color: ${getQualityColor(note.quality.overall)}`}>
+        {note.quality.overall}/10
+      </span>
     )}
-  </a>
+    {note.tags.length > 0 && (
+      <span>
+        {note.tags.slice(0, 3).map(tag => tag.name).join(' · ')}
+        {note.tags.length > 3 ? ` +${note.tags.length - 3}` : ''}
+      </span>
+    )}
+  </div>
 </article>

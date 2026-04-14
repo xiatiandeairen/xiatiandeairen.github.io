@@ -1,56 +1,50 @@
 ---
 import IndexLayout from '../layouts/IndexLayout.astro';
-import NoteCard from '../components/NoteCard.astro';
 import { generatePageMeta } from '../utils/seo';
 import type { SearchIndex } from '../utils/search';
 
 const seo = generatePageMeta({
   title: '搜索',
-  description: '搜索技术笔记',
+  description: '搜索笔记',
   path: '/search'
 });
 
 const query = Astro.url.searchParams.get('q') || '';
 ---
 
-<IndexLayout title="搜索" seo={seo}>
+<IndexLayout title="搜索" description="搜索笔记标题、内容、标签与主题。" seo={seo}>
   <div class="space-y-6">
-    <form method="GET" action="/search" class="space-y-4">
-      <div class="flex gap-4">
-        <input
-          type="text"
-          name="q"
-          value={query}
-          placeholder="搜索笔记标题、内容、标签..."
-          class="flex-1 px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-link/20 focus:border-link text-body"
-          autofocus
-        />
-        <button
-          type="submit"
-          class="px-6 py-3 bg-link text-white rounded-lg hover:bg-link-hover transition-colors font-medium"
-        >
-          搜索
-        </button>
-      </div>
+    <form method="GET" action="/search" class="flex gap-3">
+      <input
+        type="text"
+        name="q"
+        value={query}
+        placeholder="搜索笔记…"
+        class="flex-1 px-4 py-2.5 border border-rule bg-paper font-serif text-body text-ink placeholder:text-ink-ghost focus:outline-none focus:border-ink transition-colors"
+        autofocus
+      />
+      <button
+        type="submit"
+        class="px-5 py-2.5 bg-ink text-paper font-sans text-small font-medium hover:bg-ink-light transition-colors"
+      >
+        搜索
+      </button>
     </form>
 
     {query ? (
-      <div id="search-results" class="space-y-4">
-        <p class="text-text-secondary">正在加载搜索结果...</p>
+      <div id="search-results">
+        <p class="font-sans text-small text-ink-muted">正在加载…</p>
       </div>
     ) : (
-      <div class="p-6 border border-border rounded-lg bg-bg-subtle">
-        <p class="text-text-secondary mb-2">
-          搜索功能支持：
+      <div class="py-8 border-t border-rule-light">
+        <p class="font-sans text-small text-ink-muted mb-3">
+          支持搜索：
         </p>
-        <ul class="list-disc list-inside space-y-1 text-small text-text-secondary">
-          <li>笔记标题搜索</li>
-          <li>笔记内容全文搜索</li>
-          <li>标签和主题搜索</li>
+        <ul class="list-disc list-inside space-y-1 font-sans text-small text-ink-muted">
+          <li>笔记标题</li>
+          <li>笔记内容全文</li>
+          <li>标签和主题</li>
         </ul>
-        <p class="text-text-secondary mt-4 text-small">
-          搜索索引文件在构建时自动生成，支持实时搜索功能。
-        </p>
       </div>
     )}
   </div>
@@ -71,53 +65,39 @@ const query = Astro.url.searchParams.get('q') || '';
               throw new Error(`HTTP error! status: ${response.status}`);
             }
             const index = await response.json();
-            
+
             const searchTerm = query.toLowerCase().trim();
             const results = index.notes.filter(note => {
               const titleMatch = note.title.toLowerCase().includes(searchTerm);
               const contentMatch = note.content.toLowerCase().includes(searchTerm);
               const tagMatch = note.tags.some(tag => tag.toLowerCase().includes(searchTerm));
               const topicMatch = note.topics.some(topic => topic.toLowerCase().includes(searchTerm));
-              
               return titleMatch || contentMatch || tagMatch || topicMatch;
             });
 
             if (results.length === 0) {
-              resultsContainer.innerHTML = `
-                <p class="text-text-secondary text-center py-8">
-                  未找到匹配的笔记
-                </p>
-              `;
+              resultsContainer.innerHTML = '<p class="font-sans text-small text-ink-muted text-center py-8">未找到匹配的笔记</p>';
               return;
             }
 
             resultsContainer.innerHTML = `
-              <p class="text-text-secondary mb-4">
-                找到 ${results.length} 条结果
-              </p>
-              <div class="space-y-4">
+              <p class="font-sans text-small text-ink-muted mb-4">找到 ${results.length} 条结果</p>
+              <div>
                 ${results.map(note => {
                   const escapedTitle = note.title.replace(/</g, '&lt;').replace(/>/g, '&gt;');
                   const escapedContent = note.content.substring(0, 150).replace(/</g, '&lt;').replace(/>/g, '&gt;');
                   const dateStr = new Date(note.date).toLocaleDateString('zh-CN');
-                  const tagsStr = note.tags.length > 0 ? note.tags.join(', ') : '';
-                  const topicsStr = note.topics.length > 0 ? note.topics.join(', ') : '';
-                  
+                  const tagsStr = note.tags.length > 0 ? note.tags.join(' · ') : '';
+
                   return `
-                    <article class="border-b border-border-light pb-4 last:border-b-0">
-                      <h3 class="text-h3 mb-2">
-                        <a href="/notes/${note.slug}" class="text-link hover:underline">
-                          ${escapedTitle}
-                        </a>
+                    <article class="py-4 border-b border-rule-light last:border-b-0" style="transition:padding-left 0.15s;" onmouseover="this.style.paddingLeft='6px'" onmouseout="this.style.paddingLeft='0'">
+                      <div style="font-family:Inter,sans-serif;font-size:9px;text-transform:uppercase;letter-spacing:0.12em;color:#bbb;margin-bottom:4px;">${dateStr}${tagsStr ? ' · ' + tagsStr : ''}</div>
+                      <h3 style="font-size:1.125rem;font-weight:700;line-height:1.35;margin-bottom:4px;">
+                        <a href="/notes/${note.slug}" style="color:#1a1a1a;text-decoration:none;">${escapedTitle}</a>
                       </h3>
-                      <p class="text-small text-text-secondary mb-2">
-                        ${escapedContent}${note.content.length > 150 ? '...' : ''}
+                      <p style="font-family:Inter,sans-serif;font-size:0.8125rem;color:#888;line-height:1.6;">
+                        ${escapedContent}${note.content.length > 150 ? '…' : ''}
                       </p>
-                      <div class="flex items-center gap-4 text-small text-text-muted">
-                        <span>${dateStr}</span>
-                        ${tagsStr ? `<span>标签: ${tagsStr}</span>` : ''}
-                        ${topicsStr ? `<span>主题: ${topicsStr}</span>` : ''}
-                      </div>
                     </article>
                   `;
                 }).join('')}
@@ -126,12 +106,8 @@ const query = Astro.url.searchParams.get('q') || '';
           } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
             resultsContainer.innerHTML = `
-              <p class="text-text-secondary text-center py-8">
-                搜索时发生错误，请稍后重试
-              </p>
-              <p class="text-small text-text-muted text-center mt-2">
-                错误信息: ${errorMessage}
-              </p>
+              <p class="font-sans text-small text-ink-muted text-center py-8">搜索时发生错误，请稍后重试</p>
+              <p class="font-sans text-caption text-ink-ghost text-center mt-2">${errorMessage}</p>
             `;
             console.error('Search error:', error);
           }
