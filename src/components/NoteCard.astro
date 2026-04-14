@@ -38,11 +38,11 @@ function getExcerpt(content: string, maxLen: number = 120): string {
     <a href={`/notes/${note.slug}`}>{note.title}</a>
   </h2>
   {showExcerpt && note.content && (
-    <p class="font-sans max-w-reading" style="font-size:0.8125rem;color:var(--ink-muted);line-height:1.55;margin:4px 0 6px;">
+    <p class="font-sans max-w-reading notecard-excerpt">
       {getExcerpt(note.content)}
     </p>
   )}
-  <div class="flex flex-wrap items-center gap-2 font-sans" style="font-size:0.6875rem;color:var(--ink-ghost);">
+  <div class="flex flex-wrap items-center gap-2 font-sans notecard-meta">
     <time datetime={note.date}>{dateFormatted}</time>
     <span>·</span>
     <span>约 {readingMinutes} 分钟</span>
@@ -62,3 +62,16 @@ function getExcerpt(content: string, maxLen: number = 120): string {
     )}
   </div>
 </article>
+
+<style>
+  .notecard-excerpt {
+    font-size: 0.8125rem;
+    color: var(--ink-muted);
+    line-height: 1.55;
+    margin: 4px 0 6px;
+  }
+  .notecard-meta {
+    font-size: 0.6875rem;
+    color: var(--ink-ghost);
+  }
+</style>

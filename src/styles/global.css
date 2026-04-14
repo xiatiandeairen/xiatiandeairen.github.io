@@ -434,6 +434,198 @@ html.dark .theme-icon-dark { display: inline; }
     margin-top: 8px;
   }
 
+  /* ── Layout: dual column ── */
+  .layout-dual {
+    display: grid;
+    grid-template-columns: 1fr 220px;
+    gap: 48px;
+    max-width: 900px;
+  }
+
+  .layout-dual-wide {
+    display: grid;
+    grid-template-columns: 1fr 240px;
+    gap: 48px;
+    max-width: 900px;
+  }
+
+  .layout-dual-archive {
+    display: grid;
+    grid-template-columns: 1fr 200px;
+    gap: 40px;
+    max-width: 900px;
+  }
+
+  .layout-featured {
+    display: grid;
+    grid-template-columns: 1.6fr 1px 1fr;
+    gap: 0;
+  }
+
+  .layout-featured-divider {
+    background: var(--rule);
+  }
+
+  .layout-featured-main {
+    padding-right: 32px;
+  }
+
+  .layout-featured-side {
+    padding-left: 32px;
+  }
+
+  /* ── Sidebar item (used in index sidebar + archive) ── */
+  .sidebar-item {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--rule-faint);
+    position: relative;
+    transition: all 0.25s;
+  }
+
+  .sidebar-item::before {
+    content: '';
+    position: absolute;
+    left: -10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 2px;
+    height: 0;
+    background: var(--accent);
+    transition: height 0.25s;
+  }
+
+  .sidebar-item:hover::before {
+    height: 50%;
+  }
+
+  .sidebar-item:last-child {
+    border-bottom: none;
+  }
+
+  /* ── Archive item ── */
+  .archive-item {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 16px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--rule-faint);
+    transition: all 0.15s;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .archive-item:hover {
+    padding-left: 6px;
+    color: inherit;
+  }
+
+  /* ── About page ── */
+  .about-intro {
+    font-size: 1.125rem;
+    line-height: 1.85;
+    color: var(--ink-light);
+    font-style: italic;
+    margin-bottom: 1.5em;
+    padding-bottom: 1.5em;
+    border-bottom: 1px solid var(--rule-light);
+  }
+
+  .about-section-title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 2em 0 0.75em;
+  }
+
+  .about-body {
+    font-size: 0.9375rem;
+    line-height: 1.9;
+    color: var(--ink-light);
+    text-align: justify;
+    margin-bottom: 0.875em;
+  }
+
+  .value-card {
+    padding: 1em;
+    border: 1px solid var(--rule-light);
+    border-radius: 4px;
+  }
+
+  .value-card h4 {
+    font-family: Inter, sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+    color: var(--ink);
+  }
+
+  .value-card p {
+    font-size: 0.8125rem;
+    color: var(--ink-muted);
+    margin: 0;
+    max-width: none;
+    line-height: 1.6;
+  }
+
+  .contact-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--rule-faint);
+    font-family: Inter, sans-serif;
+    font-size: 0.75rem;
+  }
+
+  .contact-label {
+    color: var(--ink-faint);
+  }
+
+  .contact-value {
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  .colophon {
+    font-family: Inter, sans-serif;
+    font-size: 0.6875rem;
+    color: var(--ink-faint);
+    line-height: 1.7;
+    margin-top: 8px;
+  }
+
+  .avatar-box {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 4px;
+    background: linear-gradient(135deg, var(--rule-light), var(--rule));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+    margin-bottom: 12px;
+  }
+
+  /* ── Featured article (index) ── */
+  .ft-heading { margin-bottom: 0.5em; }
+  .ft-heading a { color: var(--ink); text-decoration: none; transition: color 0.2s; }
+  .ft-heading a:hover { color: var(--accent); }
+  .featured-lead { font-size: 0.9375rem; line-height: 1.75; color: var(--ink-muted); margin-bottom: 1em; }
+  .featured-body { font-size: 0.875rem; line-height: 1.75; color: var(--ink-light); }
+  .featured-link { display: inline-block; margin-top: 1.2em; font-size: 0.75rem; color: var(--ink); border-bottom: 1px solid var(--ink); padding-bottom: 1px; text-decoration: none; transition: color 0.2s, border-color 0.2s; }
+  .featured-link:hover { color: var(--accent); border-color: var(--accent); }
+
+  /* ── Sidebar item titles ── */
+  .sidebar-item-title { font-size: 0.9375rem; font-weight: 700; line-height: 1.35; margin-bottom: 2px; }
+  .sidebar-item-title a { color: var(--ink); text-decoration: none; transition: color 0.2s; }
+  .sidebar-item-title a:hover { color: var(--accent); }
+  .sidebar-item-excerpt { font-size: 0.75rem; color: var(--ink-muted); line-height: 1.55; }
+
+  /* ── Remaining section ── */
+  .remaining-section { margin-top: 2em; padding-top: 1.5em; border-top: 1px solid var(--rule); }
+
   /* ── Filter button (archive) ── */
   .filter-btn {
     font-family: Inter, sans-serif;
@@ -451,5 +643,93 @@ html.dark .theme-icon-dark { display: inline; }
     border-color: var(--ink);
     color: var(--ink);
     background: var(--bg-subtle);
+  }
+}
+
+/* ═══════════ Responsive: ≤ 767px ═══════════ */
+@media (max-width: 767px) {
+  /* Masthead */
+  .site-header {
+    padding: 16px 20px 12px;
+  }
+
+  .site-title {
+    font-size: 1.75rem;
+  }
+
+  /* Navigation: two lines */
+  .site-nav {
+    padding: 8px 20px;
+    flex-wrap: wrap;
+    gap: 6px 10px;
+    font-size: 0.75rem;
+  }
+
+  /* Main content */
+  .site-main {
+    padding: 24px 20px;
+  }
+
+  /* Footer */
+  .site-footer {
+    padding: 16px 20px;
+    flex-direction: column;
+    gap: 4px;
+    text-align: center;
+  }
+
+  /* All dual layouts → single column */
+  .layout-dual,
+  .layout-dual-wide,
+  .layout-dual-archive {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  .layout-featured {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .layout-featured-divider {
+    display: none;
+  }
+
+  .layout-featured-main {
+    padding-right: 0;
+  }
+
+  .layout-featured-side {
+    padding-left: 0;
+    border-top: 1px solid var(--rule-light);
+    padding-top: 24px;
+  }
+
+  /* Section label */
+  .section-label {
+    font-size: 0.5625rem;
+  }
+
+  /* Archive year label */
+  .archive-year {
+    font-size: 36px;
+  }
+
+  /* Filter buttons: scrollable */
+  .filter-bar {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 8px;
+  }
+
+  .filter-btn {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* About values grid */
+  .values-grid {
+    grid-template-columns: 1fr;
   }
 }

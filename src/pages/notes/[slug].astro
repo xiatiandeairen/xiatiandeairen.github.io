@@ -53,8 +53,8 @@ const wordCount = note.content.replace(/\s+/g, ' ').trim().length;
       {note.question.type}
       {note.question.subType ? ` · ${note.question.subType}` : ''}
     </div>
-    <h1 class="font-display text-h1 mb-3" style="color:var(--ink);">{note.title}</h1>
-    <div class="flex flex-wrap items-center gap-4 font-sans" style="font-size:11px;color:var(--ink-faint);">
+    <h1 class="font-display text-h1 mb-3">{note.title}</h1>
+    <div class="flex flex-wrap items-center gap-4 font-sans article-meta">
       <time datetime={note.date}>{new Date(note.date).toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' })}</time>
       <span>·</span>
       <span class="reading-badge">📖 约 {readingMinutes} 分钟阅读</span>
@@ -64,7 +64,7 @@ const wordCount = note.content.replace(/\s+/g, ' ').trim().length;
   </header>
 
   {/* Article body with sidebar */}
-  <div class="grid gap-12" style="grid-template-columns: 1fr 220px;">
+  <div class="layout-dual">
     <article class="prose prose-lg max-w-reading
       prose-headings:font-display prose-headings:text-ink prose-headings:font-bold
       prose-h2:text-xl prose-h2:mt-10 prose-h2:mb-3
@@ -137,6 +137,13 @@ const wordCount = note.content.replace(/\s+/g, ' ').trim().length;
   )}
 
   <a href="#main-content" class="back-to-top">回到顶部 ↑</a>
+
+  <style>
+    .article-meta {
+      font-size: 0.6875rem;
+      color: var(--ink-faint);
+    }
+  </style>
 
   <script is:inline>
     (function() {

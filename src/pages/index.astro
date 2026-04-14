@@ -2,7 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import NoteCard from '../components/NoteCard.astro';
 import Pagination from '../components/Pagination.astro';
-import { getAllNotes, sortNotes, paginateNotes, formatDate } from '../utils/notes';
+import { getAllNotes, sortNotes, paginateNotes } from '../utils/notes';
 import { generatePageMeta } from '../utils/seo';
 import { SITE_CONFIG } from '../utils/constants';
 
@@ -15,10 +15,21 @@ const seo = generatePageMeta({
   path: '/'
 });
 
-// Featured note = most recent
 const featured = notes[0];
 const sidebarNotes = notes.slice(1, 5);
 const remainingNotes = notes.slice(5);
+
+function plainText(content: string): string {
+  return content
+    .replace(/```[\s\S]*?```/g, '')
+    .replace(/`[^`]+`/g, '')
+    .replace(/#{1,6}\s/g, '')
+    .replace(/\*\*?|__?/g, '')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/[<>]/g, '')
+    .replace(/\n+/g, ' ')
+    .trim();
+}
 ---
 
 <BaseLayout title={SITE_CONFIG.title} description={SITE_CONFIG.description} seo={seo}>
@@ -26,55 +37,46 @@ const remainingNotes = notes.slice(5);
     <p class="text-ink-muted text-center py-16 font-sans">暂无笔记</p>
   ) : (
     <>
-      {/* Featured + Sidebar two-column layout */}
-      <div class="grid gap-0" style="grid-template-columns: 1.6fr 1px 1fr;">
-        {/* Featured article */}
-        <article class="pr-8">
+      <div class="layout-featured">
+        <article class="layout-featured-main">
           <div class="cat-label">
             {featured.question.type}
             {featured.question.subType ? ` · ${featured.question.subType}` : ''}
           </div>
-          <h2 class="font-display text-h1 leading-tight" style="margin-bottom:0.5em;">
-            <a href={`/notes/${featured.slug}`} class="no-underline" style="color:var(--ink);transition:color 0.2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--ink)'">
-              {featured.title}
-            </a>
+          <h2 class="font-display leading-tight ft-heading">
+            <a href={`/notes/${featured.slug}`}>{featured.title}</a>
           </h2>
-          <p class="italic max-w-reading" style="font-size:0.9375rem;line-height:1.75;color:var(--ink-muted);margin-bottom:1em;">
-            {featured.content.replace(/#{1,6}\s/g, '').replace(/\*\*?|__?/g, '').replace(/\n+/g, ' ').trim().slice(0, 180)}…
+          <p class="featured-lead italic max-w-reading">
+            {plainText(featured.content).slice(0, 180)}…
           </p>
-          <div class="font-sans" style="font-size:0.875rem;line-height:1.75;color:var(--ink-light);">
-            {featured.content.replace(/#{1,6}\s/g, '').replace(/\*\*?|__?/g, '').replace(/\n+/g, ' ').trim().slice(180, 450)}…
+          <div class="featured-body font-sans">
+            {plainText(featured.content).slice(180, 450)}…
           </div>
-          <a href={`/notes/${featured.slug}`} class="inline-block font-sans no-underline" style="margin-top:1.2em;font-size:0.75rem;color:var(--ink);border-bottom:1px solid var(--ink);padding-bottom:1px;transition:color 0.2s,border-color 0.2s;">
-            阅读全文 →
+          <a href={`/notes/${featured.slug}`} class="featured-link font-sans">
+            {'阅读全文 →'}
           </a>
         </article>
 
-        {/* Divider */}
-        <div style="background:var(--rule);"></div>
+        <div class="layout-featured-divider"></div>
 
-        {/* Sidebar */}
-        <aside class="pl-8">
+        <aside class="layout-featured-side">
           <div class="section-label">近期文章</div>
           {sidebarNotes.map((note) => (
-            <div class="sidebar-item" style="padding:12px 0;border-bottom:1px solid var(--rule-faint);position:relative;transition:all 0.25s;">
+            <div class="sidebar-item">
               <div class="cat-label">{note.question.type}</div>
-              <h4 style="font-size:0.9375rem;font-weight:700;line-height:1.35;margin-bottom:2px;">
-                <a href={`/notes/${note.slug}`} class="no-underline" style="color:var(--ink);transition:color 0.2s;">
-                  {note.title}
-                </a>
+              <h4 class="sidebar-item-title">
+                <a href={`/notes/${note.slug}`}>{note.title}</a>
               </h4>
-              <p class="font-sans" style="font-size:0.75rem;color:var(--ink-muted);line-height:1.55;">
-                {note.content.replace(/#{1,6}\s/g, '').replace(/\*\*?|__?/g, '').replace(/\n+/g, ' ').trim().slice(0, 70)}…
+              <p class="sidebar-item-excerpt font-sans">
+                {plainText(note.content).slice(0, 70)}…
               </p>
             </div>
           ))}
         </aside>
       </div>
 
-      {/* Remaining notes list */}
       {remainingNotes.length > 0 && (
-        <div class="mt-8 pt-6 border-t border-rule">
+        <div class="remaining-section">
           <div class="section-label">更多文章</div>
           <div class="post-list">
             {remainingNotes.map((note) => (
