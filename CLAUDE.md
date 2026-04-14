@@ -9,3 +9,7 @@
 #### v1
 
 - [夏天的爱人 产品路线图](.know/docs/v1/roadmap.md) | 2026-04-14
+
+#### Requirements
+
+- [m1-basic-usability](.know/docs/requirements/m1-basic-usability/prd.md) | 2026-04-14
