@@ -747,27 +747,4 @@ html.dark .theme-icon-dark { display: inline; }
   .values-grid {
     grid-template-columns: 1fr;
   }
-
-  /* Typography scale down */
-  h1, .text-h1 {
-    font-size: 1.375rem !important;
-  }
-
-  h2, .text-h2 {
-    font-size: 1.125rem !important;
-  }
-
-  /* Prose max-width: full width on mobile */
-  .prose {
-    max-width: 100% !important;
-  }
-
-  /* Ensure symmetric padding */
-  .site-main,
-  .site-header,
-  .site-nav,
-  .site-footer {
-    padding-left: 20px;
-    padding-right: 20px;
-  }
 }
