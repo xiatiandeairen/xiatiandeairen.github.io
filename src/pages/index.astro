@@ -4,14 +4,17 @@ import NoteCard from '../components/NoteCard.astro';
 import Pagination from '../components/Pagination.astro';
 import { getAllNotes, sortNotes, paginateNotes } from '../utils/notes';
 import { generatePageMeta } from '../utils/seo';
-import { SITE_CONFIG } from '../utils/constants';
+import { getLang, useT } from '../i18n';
+
+const lang = getLang(Astro.url.pathname);
+const t = useT(lang);
 
 const allNotes = getAllNotes();
 const sortedNotes = sortNotes(allNotes, 'date', 'desc');
 const { notes, pagination } = paginateNotes(sortedNotes, 1);
 const seo = generatePageMeta({
-  title: SITE_CONFIG.title,
-  description: SITE_CONFIG.description,
+  title: t('site.title'),
+  description: t('site.tagline'),
   path: '/'
 });
 
@@ -32,9 +35,9 @@ function plainText(content: string): string {
 }
 ---
 
-<BaseLayout title={SITE_CONFIG.title} description={SITE_CONFIG.description} seo={seo}>
+<BaseLayout title={t('site.title')} description={t('site.tagline')} seo={seo} lang={lang}>
   {notes.length === 0 ? (
-    <p class="text-ink-muted text-center py-16 font-sans">暂无笔记</p>
+    <p class="text-ink-muted text-center py-16 font-sans">{t('common.empty')}</p>
   ) : (
     <>
       <div class="layout-featured">
@@ -53,14 +56,14 @@ function plainText(content: string): string {
             {plainText(featured.content).slice(180, 450)}…
           </div>
           <a href={`/notes/${featured.slug}`} class="featured-link font-sans">
-            {'阅读全文 →'}
+            {t('article.readMore')}
           </a>
         </article>
 
         <div class="layout-featured-divider"></div>
 
         <aside class="layout-featured-side">
-          <div class="section-label">近期文章</div>
+          <div class="section-label">{t('article.featured')}</div>
           {sidebarNotes.map((note) => (
             <div class="sidebar-item">
               <div class="cat-label">{note.question.type}</div>
@@ -77,10 +80,10 @@ function plainText(content: string): string {
 
       {remainingNotes.length > 0 && (
         <div class="remaining-section">
-          <div class="section-label">更多文章</div>
+          <div class="section-label">{t('article.more')}</div>
           <div class="post-list">
             {remainingNotes.map((note) => (
-              <NoteCard note={note} showExcerpt={true} />
+              <NoteCard note={note} showExcerpt={true} lang={lang} />
             ))}
           </div>
         </div>
@@ -90,6 +93,7 @@ function plainText(content: string): string {
         currentPage={pagination.currentPage}
         totalPages={pagination.totalPages}
         baseUrl="/"
+        lang={lang}
       />
     </>
   )}

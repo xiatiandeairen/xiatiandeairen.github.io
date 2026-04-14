@@ -1,0 +1,56 @@
+---
+import IndexLayout from '../../layouts/IndexLayout.astro';
+import { generatePageMeta } from '../../utils/seo';
+import { useT } from '../../i18n';
+
+const lang = 'en' as const;
+const t = useT(lang);
+const seo = generatePageMeta({ title: t('search.title'), description: t('search.subtitle'), path: '/en/search' });
+const query = Astro.url.searchParams.get('q') || '';
+---
+
+<IndexLayout title={t('search.title')} description={t('search.subtitle')} seo={seo} lang={lang}>
+  <div class="space-y-6">
+    <form method="GET" action="/en/search" class="flex gap-3">
+      <input type="text" name="q" value={query} placeholder={t('search.placeholder')} class="flex-1 px-4 py-2.5 border border-rule bg-paper font-serif text-body text-ink placeholder:text-ink-ghost focus:outline-none focus:border-ink transition-colors" autofocus />
+      <button type="submit" class="px-5 py-2.5 bg-ink text-paper font-sans text-small font-medium hover:bg-ink-light transition-colors">{t('search.button')}</button>
+    </form>
+    {query ? (
+      <div id="search-results"><p class="font-sans text-small text-ink-muted">{t('search.loading')}</p></div>
+    ) : (
+      <div class="py-8 border-t border-rule-light">
+        <p class="font-sans text-small text-ink-muted mb-3">{t('search.supports')}</p>
+        <ul class="list-disc list-inside space-y-1 font-sans text-small text-ink-muted">
+          <li>{t('search.supportTitle')}</li>
+          <li>{t('search.supportContent')}</li>
+          <li>{t('search.supportTags')}</li>
+        </ul>
+      </div>
+    )}
+  </div>
+  {query && (
+    <script is:inline>
+      (function() {
+        async function performSearch() {
+          var query = new URLSearchParams(window.location.search).get('q') || '';
+          if (!query.trim()) return;
+          var c = document.getElementById('search-results');
+          if (!c) return;
+          try {
+            var r = await fetch('/search-index.json');
+            var index = await r.json();
+            var term = query.toLowerCase().trim();
+            var results = index.notes.filter(function(n) {
+              return n.title.toLowerCase().includes(term) || n.content.toLowerCase().includes(term) || n.tags.some(function(t){return t.toLowerCase().includes(term)}) || n.topics.some(function(t){return t.toLowerCase().includes(term)});
+            });
+            if (results.length === 0) { c.innerHTML = '<p class="font-sans text-small text-ink-muted text-center py-8">No matching notes found</p>'; return; }
+            c.innerHTML = '<p class="font-sans text-small text-ink-muted mb-4">' + results.length + ' results found</p><div>' + results.map(function(note) {
+              return '<article class="archive-item" style="display:block;padding:12px 0;border-bottom:1px solid var(--rule-faint);transition:padding-left 0.15s;" onmouseover="this.style.paddingLeft=\'6px\'" onmouseout="this.style.paddingLeft=\'0\'"><div class="cat-label">' + new Date(note.date).toLocaleDateString('en-US') + '</div><h3 style="font-size:var(--font-body);font-weight:700;line-height:1.35;margin-bottom:4px;"><a href="/notes/' + note.slug + '" style="color:var(--ink);text-decoration:none;">' + note.title.replace(/</g,'&lt;') + '</a></h3><p style="font-family:Inter,sans-serif;font-size:var(--font-small);color:var(--ink-muted);line-height:1.6;">' + note.content.substring(0,150).replace(/</g,'&lt;') + '…</p></article>';
+            }).join('') + '</div>';
+          } catch(e) { c.innerHTML = '<p class="font-sans text-small text-ink-muted text-center py-8">Search error</p>'; }
+        }
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', performSearch); else performSearch();
+      })();
+    </script>
+  )}
+</IndexLayout>

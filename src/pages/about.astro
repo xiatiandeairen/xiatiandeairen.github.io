@@ -1,11 +1,14 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { generatePageMeta } from '../utils/seo';
+import { getLang, useT } from '../i18n';
 
-const seo = generatePageMeta({ title: '关于', description: '关于夏天的爱人是绿色', path: '/about' });
+const lang = getLang(Astro.url.pathname);
+const t = useT(lang);
+const seo = generatePageMeta({ title: t('about.title'), description: t('about.subtitle'), path: '/about' });
 ---
 
-<BaseLayout title="关于" seo={seo}>
+<BaseLayout title={t('about.title')} seo={seo} lang={lang}>
   <div class="layout-dual-wide">
     <main>
       <h1 class="font-display text-h1 mb-5">关于这里</h1>
@@ -47,7 +50,7 @@ const seo = generatePageMeta({ title: '关于', description: '关于夏天的爱
         <div class="avatar-box">🖊</div>
       </div>
       <div class="mb-7">
-        <div class="section-label">联系</div>
+        <div class="section-label">{t('about.contact')}</div>
         <div class="contact-item">
           <span class="contact-label">GitHub</span>
           <a href="https://github.com/xiatiandeairen" class="contact-value">@xiatiandeairen</a>
@@ -62,7 +65,7 @@ const seo = generatePageMeta({ title: '关于', description: '关于夏天的爱
         </div>
       </div>
       <div class="mb-7">
-        <div class="section-label">关于本站</div>
+        <div class="section-label">{t('about.aboutSite')}</div>
         <p class="colophon">
           使用 Astro 构建<br>
           部署于 GitHub Pages<br>

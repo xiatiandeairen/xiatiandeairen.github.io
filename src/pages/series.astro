@@ -2,9 +2,12 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { getAllNotes } from '../utils/notes';
 import { generatePageMeta } from '../utils/seo';
+import { getLang, useT } from '../i18n';
 
+const lang = getLang(Astro.url.pathname);
+const t = useT(lang);
 const allNotes = getAllNotes();
-const seo = generatePageMeta({ title: '系列文章', description: '按系列浏览文章', path: '/series' });
+const seo = generatePageMeta({ title: t('series.title'), description: t('series.subtitle'), path: '/series' });
 
 // Group notes by series
 const seriesMap = new Map<string, any[]>();
@@ -27,19 +30,19 @@ function readingTime(content: string): number {
 }
 ---
 
-<BaseLayout title="系列文章" seo={seo}>
+<BaseLayout title={t('series.title')} seo={seo} lang={lang}>
   <header class="series-header">
-    <h1 class="font-display text-h1 mb-1">系列文章</h1>
-    <p class="font-sans text-small series-subtitle">按主题组织的系列文章，建议按顺序阅读。</p>
+    <h1 class="font-display text-h1 mb-1">{t('series.title')}</h1>
+    <p class="font-sans text-small series-subtitle">{t('series.subtitle')}</p>
   </header>
 
   {seriesList.length === 0 ? (
-    <p class="font-sans text-small series-empty">暂无系列文章</p>
+    <p class="font-sans text-small series-empty">{t('series.empty')}</p>
   ) : (
     seriesList.map(([name, notes]) => (
       <div class="series-group">
         <h2 class="font-display text-h2 series-group-title">{name}</h2>
-        <p class="font-sans text-small series-group-meta">{'共 ' + notes.length + ' 篇'}</p>
+        <p class="font-sans text-small series-group-meta">{t('series.count', { count: notes.length })}</p>
         <div class="series-list">
           {notes.map((note: any, i: number) => (
             <a href={`/notes/${note.slug}`} class="series-item">
@@ -47,7 +50,7 @@ function readingTime(content: string): number {
               <div class="series-item-body">
                 <div class="series-item-title font-serif">{note.title}</div>
                 <div class="series-item-meta font-sans">
-                  {'约 ' + readingTime(note.content) + ' 分钟'}
+                  {t('series.readingTime', { min: readingTime(note.content) })}
                 </div>
               </div>
             </a>

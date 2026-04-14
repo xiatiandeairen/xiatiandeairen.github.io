@@ -1,0 +1,66 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getAllNotes } from '../../utils/notes';
+import { generatePageMeta } from '../../utils/seo';
+import { useT } from '../../i18n';
+
+const lang = 'en' as const;
+const t = useT(lang);
+const allNotes = getAllNotes();
+const seo = generatePageMeta({ title: t('series.title'), description: t('series.subtitle'), path: '/en/series' });
+
+const seriesMap = new Map<string, any[]>();
+for (const note of allNotes) {
+  const s = (note as any).series;
+  if (!s?.name) continue;
+  if (!seriesMap.has(s.name)) seriesMap.set(s.name, []);
+  seriesMap.get(s.name)!.push(note);
+}
+for (const [, notes] of seriesMap) notes.sort((a: any, b: any) => ((a as any).series?.order || 0) - ((b as any).series?.order || 0));
+const seriesList = Array.from(seriesMap.entries());
+
+function readingTime(content: string): number { return Math.max(1, Math.round(content.replace(/\s+/g, ' ').trim().length / 400)); }
+---
+
+<BaseLayout title={t('series.title')} seo={seo} lang={lang}>
+  <header class="series-header">
+    <h1 class="font-display text-h1 mb-1">{t('series.title')}</h1>
+    <p class="font-sans text-small series-subtitle">{t('series.subtitle')}</p>
+  </header>
+  {seriesList.length === 0 ? (
+    <p class="font-sans text-small series-empty">{t('series.empty')}</p>
+  ) : (
+    seriesList.map(([name, notes]) => (
+      <div class="series-group">
+        <h2 class="font-display text-h2 series-group-title">{name}</h2>
+        <p class="font-sans text-small series-group-meta">{t('series.count', { count: notes.length })}</p>
+        <div class="series-list">
+          {notes.map((note: any, i: number) => (
+            <a href={`/notes/${note.slug}`} class="series-item">
+              <span class="series-num font-sans">{String(i + 1).padStart(2, '0')}</span>
+              <div class="series-item-body">
+                <div class="series-item-title font-serif">{note.title}</div>
+                <div class="series-item-meta font-sans">{t('series.readingTime', { min: readingTime(note.content) })}</div>
+              </div>
+            </a>
+          ))}
+        </div>
+      </div>
+    ))
+  )}
+</BaseLayout>
+
+<style>
+  .series-header { margin-bottom: 1.5em; padding-bottom: 1em; border-bottom: 1px solid var(--rule-light); }
+  .series-subtitle { color: var(--ink-muted); }
+  .series-empty { color: var(--ink-muted); text-align: center; padding: 4em 0; }
+  .series-group { margin-bottom: 3em; }
+  .series-group-title { color: var(--ink); margin-bottom: 4px; }
+  .series-group-meta { color: var(--ink-muted); margin-bottom: 1em; }
+  .series-list { border-top: 1px solid var(--rule-light); }
+  .series-item { display: flex; align-items: flex-start; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--rule-faint); text-decoration: none; color: inherit; transition: all 0.2s; }
+  .series-item:hover { padding-left: 6px; color: inherit; }
+  .series-num { font-size: var(--font-small); font-weight: 600; color: var(--rule); min-width: 24px; padding-top: 2px; }
+  .series-item-title { font-size: var(--font-body); font-weight: 600; line-height: 1.35; color: var(--ink); }
+  .series-item-meta { font-size: var(--font-caption); color: var(--ink-ghost); margin-top: 2px; }
+</style>
