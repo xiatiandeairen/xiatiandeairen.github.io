@@ -12,13 +12,17 @@ interface Props {
 const { note, showQuality = false, showExcerpt = false } = Astro.props;
 const dateFormatted = formatDate(note.date);
 
+// Reading time
+const charCount = note.content.replace(/\s+/g, '').length;
+const readingMinutes = Math.max(1, Math.round(charCount / 400));
+
 function getQualityColor(score: number): string {
   if (score >= QUALITY_THRESHOLDS.high) return QUALITY_COLORS.high;
   if (score >= QUALITY_THRESHOLDS.medium) return QUALITY_COLORS.medium;
   return QUALITY_COLORS.low;
 }
 
-function getExcerpt(content: string, maxLen: number = 140): string {
+function getExcerpt(content: string, maxLen: number = 120): string {
   const plain = content.replace(/#{1,6}\s/g, '').replace(/\*\*?|__?/g, '').replace(/\n+/g, ' ').trim();
   if (plain.length <= maxLen) return plain;
   return plain.slice(0, maxLen).trim() + '…';
@@ -26,29 +30,35 @@ function getExcerpt(content: string, maxLen: number = 140): string {
 ---
 
 <article class="post-card">
-  <div class="cat-label">{note.question.type}{note.question.subType ? ` · ${note.question.subType}` : ''}</div>
+  <div class="cat-label">
+    {note.question.type}
+    {note.question.subType ? ` · ${note.question.subType}` : ''}
+  </div>
   <h2 class="post-card-title">
-    <a href={`/notes/${note.slug}`}>
-      {note.title}
-    </a>
+    <a href={`/notes/${note.slug}`}>{note.title}</a>
   </h2>
   {showExcerpt && note.content && (
-    <p class="font-sans text-small text-ink-muted leading-relaxed max-w-reading mt-1 mb-2">
+    <p class="font-sans max-w-reading" style="font-size:0.8125rem;color:var(--ink-muted);line-height:1.55;margin:4px 0 6px;">
       {getExcerpt(note.content)}
     </p>
   )}
-  <div class="flex flex-wrap items-center gap-3 font-sans text-caption text-ink-ghost mt-1">
+  <div class="flex flex-wrap items-center gap-2 font-sans" style="font-size:0.6875rem;color:var(--ink-ghost);">
     <time datetime={note.date}>{dateFormatted}</time>
+    <span>·</span>
+    <span>约 {readingMinutes} 分钟</span>
     {showQuality && (
-      <span style={`color: ${getQualityColor(note.quality.overall)}`}>
-        {note.quality.overall}/10
-      </span>
+      <>
+        <span>·</span>
+        <span style={`color: ${getQualityColor(note.quality.overall)}`}>
+          {note.quality.overall}/10
+        </span>
+      </>
     )}
     {note.tags.length > 0 && (
-      <span>
-        {note.tags.slice(0, 3).map(tag => tag.name).join(' · ')}
-        {note.tags.length > 3 ? ` +${note.tags.length - 3}` : ''}
-      </span>
+      <>
+        <span>·</span>
+        <span>{note.tags.slice(0, 3).map(tag => tag.name).join(' · ')}</span>
+      </>
     )}
   </div>
 </article>

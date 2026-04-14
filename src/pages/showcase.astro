@@ -1,0 +1,246 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { generatePageMeta } from '../utils/seo';
+
+const seo = generatePageMeta({
+  title: 'Pure Design Showcase - 工业级UI/UX设计展示',
+  description: '展示pure风格和工业级UI/UX设计标准的静态网站',
+  path: '/showcase'
+});
+---
+
+<BaseLayout title="Pure Design Showcase" seo={seo}>
+  <div class="space-y-24">
+    <section class="text-center space-y-6">
+      <h1 class="text-h1">Pure Design System</h1>
+      <p class="text-body text-text-secondary max-w-2xl mx-auto">
+        工业级UI/UX设计标准展示 · 简洁、纯净、高效的设计语言
+      </p>
+    </section>
+
+    <section class="space-y-12">
+      <h2 class="text-h2">色彩系统</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="card space-y-4">
+          <div class="h-24 bg-text-primary rounded-lg"></div>
+          <div>
+            <h3 class="text-h3 mb-2">Primary</h3>
+            <p class="text-small text-text-secondary">#1a1a1a</p>
+          </div>
+        </div>
+        <div class="card space-y-4">
+          <div class="h-24 bg-text-secondary rounded-lg"></div>
+          <div>
+            <h3 class="text-h3 mb-2">Secondary</h3>
+            <p class="text-small text-text-secondary">#6b7280</p>
+          </div>
+        </div>
+        <div class="card space-y-4">
+          <div class="h-24 bg-link rounded-lg"></div>
+          <div>
+            <h3 class="text-h3 mb-2">Link</h3>
+            <p class="text-small text-text-secondary">#0066cc</p>
+          </div>
+        </div>
+        <div class="card space-y-4">
+          <div class="h-24 bg-bg-subtle rounded-lg border border-border"></div>
+          <div>
+            <h3 class="text-h3 mb-2">Subtle</h3>
+            <p class="text-small text-text-secondary">#fafafa</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="space-y-12">
+      <h2 class="text-h2">排版系统</h2>
+      <div class="space-y-8">
+        <div>
+          <h1 class="text-h1">Heading 1</h1>
+          <p class="text-small text-text-secondary mt-2">2.5rem · 700 · -0.02em</p>
+        </div>
+        <div>
+          <h2 class="text-h2">Heading 2</h2>
+          <p class="text-small text-text-secondary mt-2">1.875rem · 600 · -0.01em</p>
+        </div>
+        <div>
+          <h3 class="text-h3">Heading 3</h3>
+          <p class="text-small text-text-secondary mt-2">1.5rem · 600</p>
+        </div>
+        <div>
+          <p class="text-body">Body text - 1.125rem line height 1.8. 这是正文文本，展示了良好的可读性和行高设置。设计遵循工业级标准，确保在不同设备上都有出色的阅读体验。</p>
+        </div>
+        <div>
+          <p class="text-small">Small text - 0.9375rem line height 1.6. 这是小号文本，用于辅助信息和次要内容。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="space-y-12">
+      <h2 class="text-h2">组件展示</h2>
+      
+      <div class="space-y-8">
+        <div>
+          <h3 class="text-h3 mb-6">按钮</h3>
+          <div class="flex flex-wrap gap-4">
+            <button class="px-6 py-3 bg-link text-white rounded-lg font-medium hover:bg-link-hover transition-colors focus:outline-none focus:ring-2 focus:ring-link focus:ring-offset-2">
+              主要按钮
+            </button>
+            <button class="px-6 py-3 bg-bg-subtle text-text-primary rounded-lg font-medium hover:bg-border-light transition-colors focus:outline-none focus:ring-2 focus:ring-link focus:ring-offset-2">
+              次要按钮
+            </button>
+            <button class="px-6 py-3 border border-border text-text-primary rounded-lg font-medium hover:bg-bg-subtle transition-colors focus:outline-none focus:ring-2 focus:ring-link focus:ring-offset-2">
+              边框按钮
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="text-h3 mb-6">卡片</h3>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="card card-hover">
+              <h4 class="text-h3 mb-3">卡片标题</h4>
+              <p class="text-small text-text-secondary mb-4">
+                这是一个标准的卡片组件，具有悬停效果和清晰的视觉层次。
+              </p>
+              <a href="#" class="text-link text-small font-medium">了解更多 →</a>
+            </div>
+            <div class="card card-hover">
+              <h4 class="text-h3 mb-3">卡片标题</h4>
+              <p class="text-small text-text-secondary mb-4">
+                卡片设计遵循工业级标准，确保一致性和可访问性。
+              </p>
+              <a href="#" class="text-link text-small font-medium">了解更多 →</a>
+            </div>
+            <div class="card card-hover">
+              <h4 class="text-h3 mb-3">卡片标题</h4>
+              <p class="text-small text-text-secondary mb-4">
+                响应式设计确保在不同屏幕尺寸下都有良好的表现。
+              </p>
+              <a href="#" class="text-link text-small font-medium">了解更多 →</a>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="text-h3 mb-6">标签</h3>
+          <div class="flex flex-wrap gap-3">
+            <span class="badge badge-primary">主要标签</span>
+            <span class="badge badge-secondary">次要标签</span>
+            <span class="badge badge-primary">设计</span>
+            <span class="badge badge-secondary">UI/UX</span>
+            <span class="badge badge-primary">工业级</span>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="text-h3 mb-6">表单元素</h3>
+          <div class="max-w-md space-y-6">
+            <div>
+              <label for="input-text" class="block text-small font-medium text-text-primary mb-2">
+                文本输入
+              </label>
+              <input
+                type="text"
+                id="input-text"
+                placeholder="请输入内容"
+                class="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-link focus:border-link transition-colors"
+              />
+            </div>
+            <div>
+              <label for="textarea" class="block text-small font-medium text-text-primary mb-2">
+                文本区域
+              </label>
+              <textarea
+                id="textarea"
+                rows="4"
+                placeholder="请输入多行文本"
+                class="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-link focus:border-link transition-colors resize-y"
+              ></textarea>
+            </div>
+            <div>
+              <label class="flex items-center space-x-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  class="w-5 h-5 text-link border-border rounded focus:ring-2 focus:ring-link"
+                />
+                <span class="text-small text-text-primary">我同意相关条款</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="space-y-12">
+      <h2 class="text-h2">间距系统</h2>
+      <div class="space-y-6">
+        <div class="flex items-center gap-6">
+          <div class="w-16 text-small text-text-secondary">4px</div>
+          <div class="h-4 w-4 bg-link rounded"></div>
+          <div class="flex-1 h-1 bg-border-light"></div>
+        </div>
+        <div class="flex items-center gap-6">
+          <div class="w-16 text-small text-text-secondary">8px</div>
+          <div class="h-8 w-8 bg-link rounded"></div>
+          <div class="flex-1 h-1 bg-border-light"></div>
+        </div>
+        <div class="flex items-center gap-6">
+          <div class="w-16 text-small text-text-secondary">16px</div>
+          <div class="h-16 w-16 bg-link rounded"></div>
+          <div class="flex-1 h-1 bg-border-light"></div>
+        </div>
+        <div class="flex items-center gap-6">
+          <div class="w-16 text-small text-text-secondary">24px</div>
+          <div class="h-24 w-24 bg-link rounded"></div>
+          <div class="flex-1 h-1 bg-border-light"></div>
+        </div>
+        <div class="flex items-center gap-6">
+          <div class="w-16 text-small text-text-secondary">32px</div>
+          <div class="h-32 w-32 bg-link rounded"></div>
+          <div class="flex-1 h-1 bg-border-light"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="space-y-12">
+      <h2 class="text-h2">设计原则</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="card">
+          <h3 class="text-h3 mb-4">简洁性</h3>
+          <p class="text-small text-text-secondary">
+            去除不必要的装饰，专注于内容本身。每个元素都有其存在的理由，遵循"少即是多"的设计哲学。
+          </p>
+        </div>
+        <div class="card">
+          <h3 class="text-h3 mb-4">一致性</h3>
+          <p class="text-small text-text-secondary">
+            统一的视觉语言和交互模式，确保用户在不同页面和功能间获得连贯的体验。
+          </p>
+        </div>
+        <div class="card">
+          <h3 class="text-h3 mb-4">可访问性</h3>
+          <p class="text-small text-text-secondary">
+            符合WCAG标准，确保所有用户都能轻松使用。包括适当的对比度、键盘导航和屏幕阅读器支持。
+          </p>
+        </div>
+        <div class="card">
+          <h3 class="text-h3 mb-4">响应式</h3>
+          <p class="text-small text-text-secondary">
+            适配各种设备和屏幕尺寸，从移动设备到桌面显示器，都提供优化的用户体验。
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="space-y-12">
+      <h2 class="text-h2">代码示例</h2>
+      <pre><code class="language-html">&lt;div class="card card-hover"&gt;
+  &lt;h3 class="text-h3 mb-4"&gt;标题&lt;/h3&gt;
+  &lt;p class="text-small text-text-secondary"&gt;
+    内容文本
+  &lt;/p&gt;
+&lt;/div&gt;</code></pre>
+    </section>
+  </div>
+</BaseLayout>

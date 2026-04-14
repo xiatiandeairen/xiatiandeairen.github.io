@@ -1,6 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ['./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}'],
+  darkMode: 'class',
   theme: {
     extend: {
       fontFamily: {
@@ -10,41 +11,39 @@ export default {
         'mono': ['"JetBrains Mono"', 'Menlo', 'monospace'],
       },
       colors: {
-        'paper': '#f4f0e8',
-        'ink': '#1a1a1a',
-        'ink-light': '#444444',
-        'ink-muted': '#888888',
-        'ink-faint': '#aaaaaa',
-        'ink-ghost': '#bbbbbb',
-        'rule': '#c8c0b4',
-        'rule-light': '#ddd5ca',
-        'rule-faint': '#ece7de',
-        'rule-heavy': '#1a1a1a',
-        'accent': '#8b0000',
-        // Keep old tokens as aliases for compatibility
-        'text-primary': '#1a1a1a',
-        'text-secondary': '#444444',
-        'text-tertiary': '#888888',
-        'text-muted': '#aaaaaa',
-        'border': '#c8c0b4',
-        'border-light': '#ddd5ca',
-        'bg-subtle': '#efebe3',
-        'bg-page': '#f4f0e8',
-        'link': '#1a1a1a',
-        'link-hover': '#8b0000',
+        'paper': 'var(--paper)',
+        'ink': 'var(--ink)',
+        'ink-light': 'var(--ink-light)',
+        'ink-muted': 'var(--ink-muted)',
+        'ink-faint': 'var(--ink-faint)',
+        'ink-ghost': 'var(--ink-ghost)',
+        'rule': 'var(--rule)',
+        'rule-light': 'var(--rule-light)',
+        'rule-faint': 'var(--rule-faint)',
+        'bg-subtle': 'var(--bg-subtle)',
+        'accent': 'var(--accent)',
+        'text-primary': 'var(--ink)',
+        'text-secondary': 'var(--ink-light)',
+        'text-tertiary': 'var(--ink-muted)',
+        'text-muted': 'var(--ink-faint)',
+        'border': 'var(--rule)',
+        'border-light': 'var(--rule-light)',
+        'bg-page': 'var(--paper)',
+        'link': 'var(--ink)',
+        'link-hover': 'var(--accent)',
         'quality-high': '#059669',
         'quality-medium': '#d97706',
         'quality-low': '#dc2626'
       },
       fontSize: {
-        'masthead': ['2.625rem', { lineHeight: '1', fontWeight: '900', letterSpacing: '-0.02em' }],
-        'h1': ['1.875rem', { lineHeight: '1.2', fontWeight: '900', letterSpacing: '-0.02em' }],
-        'h2': ['1.5rem', { lineHeight: '1.3', fontWeight: '700' }],
-        'h3': ['1.125rem', { lineHeight: '1.35', fontWeight: '700' }],
-        'body': ['1rem', { lineHeight: '1.85' }],
-        'small': ['0.8125rem', { lineHeight: '1.6' }],
-        'caption': ['0.6875rem', { lineHeight: '1.5' }],
-        'label': ['0.5625rem', { lineHeight: '1', fontWeight: '500', letterSpacing: '0.12em' }],
+        'masthead': ['2.25rem', { lineHeight: '1.1', fontWeight: '900', letterSpacing: '-0.025em' }],
+        'h1': ['1.625rem', { lineHeight: '1.25', fontWeight: '800', letterSpacing: '-0.02em' }],
+        'h2': ['1.25rem', { lineHeight: '1.3', fontWeight: '700', letterSpacing: '-0.01em' }],
+        'h3': ['1rem', { lineHeight: '1.35', fontWeight: '700' }],
+        'body': ['0.9375rem', { lineHeight: '1.75' }],
+        'small': ['0.8125rem', { lineHeight: '1.5' }],
+        'caption': ['0.6875rem', { lineHeight: '1.4' }],
+        'label': ['0.625rem', { lineHeight: '1', fontWeight: '600', letterSpacing: '0.08em' }],
       },
       maxWidth: {
         'content': '900px',
@@ -53,15 +52,6 @@ export default {
       spacing: {
         '18': '4.5rem',
         '88': '22rem',
-        'prose': '1.8em'
-      },
-      boxShadow: {
-        'card': 'none',
-        'card-hover': 'none'
-      },
-      transitionDuration: {
-        '200': '200ms',
-        '300': '300ms'
       },
       borderWidth: {
         '3': '3px',

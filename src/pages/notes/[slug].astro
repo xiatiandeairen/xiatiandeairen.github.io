@@ -36,17 +36,31 @@ export async function getStaticPaths() {
 const { note, htmlContent, seo, mode, prevNote, nextNote } = Astro.props;
 const urlMode = Astro.url.searchParams.get('mode');
 const displayMode = urlMode === 'audit' ? 'audit' : mode;
+
+// Reading time: Chinese ~400 chars/min
+const charCount = note.content.replace(/\s+/g, '').length;
+const readingMinutes = Math.max(1, Math.round(charCount / 400));
+const wordCount = note.content.replace(/\s+/g, ' ').trim().length;
 ---
 
 <NoteLayout note={note} seo={seo} mode={displayMode}>
+  <!-- Reading progress bar -->
+  <div class="reading-progress" id="reading-progress"></div>
+
   {/* Article header */}
   <header class="mb-8 pb-6 border-b border-rule">
     <div class="cat-label mb-2">
       {note.question.type}
       {note.question.subType ? ` · ${note.question.subType}` : ''}
     </div>
-    <h1 class="font-display text-h1 text-ink mb-3">{note.title}</h1>
-    <MetaFields note={note} mode={displayMode} />
+    <h1 class="font-display text-h1 mb-3" style="color:var(--ink);">{note.title}</h1>
+    <div class="flex flex-wrap items-center gap-4 font-sans" style="font-size:11px;color:var(--ink-faint);">
+      <time datetime={note.date}>{new Date(note.date).toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' })}</time>
+      <span>·</span>
+      <span class="reading-badge">📖 约 {readingMinutes} 分钟阅读</span>
+      <span>·</span>
+      <span>{wordCount.toLocaleString()} 字</span>
+    </div>
   </header>
 
   {/* Article body with sidebar */}
@@ -123,4 +137,15 @@ const displayMode = urlMode === 'audit' ? 'audit' : mode;
   )}
 
   <a href="#main-content" class="back-to-top">回到顶部 ↑</a>
+
+  <script is:inline>
+    (function() {
+      const bar = document.getElementById('reading-progress');
+      if (!bar) return;
+      window.addEventListener('scroll', function() {
+        const h = document.documentElement.scrollHeight - window.innerHeight;
+        if (h > 0) bar.style.width = (window.scrollY / h * 100) + '%';
+      }, { passive: true });
+    })();
+  </script>
 </NoteLayout>
