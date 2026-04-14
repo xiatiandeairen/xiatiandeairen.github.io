@@ -37,6 +37,9 @@ tags:
 topics:
   - name: "AI 工程化"
   - name: "开发工具"
+series:
+  name: "AI Skills 系列"
+  order: 7
 ---
 
 # Long Sprint 实践：让 AI 自主完成大型任务

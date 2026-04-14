@@ -36,6 +36,9 @@ tags:
 topics:
   - name: "AI 工程化"
   - name: "方法论"
+series:
+  name: "AI Skills 系列"
+  order: 6
 ---
 
 # Skill 设计模式：如何写出 AI 真正能执行的指令

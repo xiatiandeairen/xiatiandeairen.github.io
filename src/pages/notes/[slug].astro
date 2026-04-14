@@ -6,6 +6,35 @@ import { generateSEOMeta } from '../../utils/seo';
 import { marked } from 'marked';
 
 export async function getStaticPaths() {
+  function extractToc(content: string): { id: string; text: string; level: number }[] {
+    const toc: { id: string; text: string; level: number }[] = [];
+    const lines = content.split('\n');
+    for (const line of lines) {
+      const match = line.match(/^(#{2,3})\s+(.+)$/);
+      if (match) {
+        const text = match[2].replace(/\*\*?|`[^`]+`/g, '').trim();
+        const id = text.toLowerCase().replace(/[^\w\u4e00-\u9fff]+/g, '-').replace(/^-|-$/g, '');
+        toc.push({ id, text, level: match[1].length });
+      }
+    }
+    return toc;
+  }
+
+  function getRelated(current: any, allNotes: any[], max: number = 3) {
+    const currentTags = new Set(current.tags.map((t: any) => t.name));
+    if (currentTags.size === 0) return [];
+    return allNotes
+      .filter(n => n.slug !== current.slug)
+      .map(n => {
+        const overlap = n.tags.filter((t: any) => currentTags.has(t.name)).length;
+        return { note: n, overlap };
+      })
+      .filter(r => r.overlap > 0)
+      .sort((a, b) => b.overlap - a.overlap)
+      .slice(0, max)
+      .map(r => r.note);
+  }
+
   const notes = getAllNotes();
   const sortedNotes = sortNotes(notes, 'date', 'desc');
 
@@ -13,41 +42,51 @@ export async function getStaticPaths() {
     const seo = generateSEOMeta(note);
     const mode = 'public';
     const htmlContent = marked.parse(note.content);
+    const toc = extractToc(note.content);
+    const related = getRelated(note, notes);
 
-    // Find prev/next notes
     const idx = sortedNotes.findIndex(n => n.slug === note.slug);
     const prevNote = idx < sortedNotes.length - 1 ? sortedNotes[idx + 1] : null;
     const nextNote = idx > 0 ? sortedNotes[idx - 1] : null;
 
     return {
       params: { slug: note.slug },
-      props: {
-        note,
-        htmlContent,
-        seo,
-        mode,
-        prevNote,
-        nextNote,
-      }
+      props: { note, htmlContent, seo, mode, prevNote, nextNote, toc, related }
     };
   });
 }
 
-const { note, htmlContent, seo, mode, prevNote, nextNote } = Astro.props;
+const { note, htmlContent, seo, mode, prevNote, nextNote, toc, related } = Astro.props;
 const urlMode = Astro.url.searchParams.get('mode');
 const displayMode = urlMode === 'audit' ? 'audit' : mode;
 
-// Reading time: Chinese ~400 chars/min
 const charCount = note.content.replace(/\s+/g, '').length;
 const readingMinutes = Math.max(1, Math.round(charCount / 400));
 const wordCount = note.content.replace(/\s+/g, ' ').trim().length;
+
+// Series detection from frontmatter
+const series = (note as any).series;
+const seriesNotes = series ? getAllNotes()
+  .filter((n: any) => (n as any).series?.name === series.name)
+  .sort((a: any, b: any) => ((a as any).series?.order || 0) - ((b as any).series?.order || 0))
+  : [];
+const seriesIndex = seriesNotes.findIndex((n: any) => n.slug === note.slug);
+const seriesPrev = seriesIndex > 0 ? seriesNotes[seriesIndex - 1] : null;
+const seriesNext = seriesIndex < seriesNotes.length - 1 ? seriesNotes[seriesIndex + 1] : null;
 ---
 
 <NoteLayout note={note} seo={seo} mode={displayMode}>
-  <!-- Reading progress bar -->
   <div class="reading-progress" id="reading-progress"></div>
 
-  {/* Article header */}
+  {/* Series banner */}
+  {series && (
+    <div class="series-banner">
+      <span class="series-label font-sans">{'系列文章'}</span>
+      <span class="series-name font-serif">{series.name}</span>
+      <span class="series-pos font-sans">{`${seriesIndex + 1} / ${seriesNotes.length}`}</span>
+    </div>
+  )}
+
   <header class="mb-8 pb-6 border-b border-rule">
     <div class="cat-label mb-2">
       {note.question.type}
@@ -56,16 +95,15 @@ const wordCount = note.content.replace(/\s+/g, ' ').trim().length;
     <h1 class="font-display text-h1 mb-3">{note.title}</h1>
     <div class="flex flex-wrap items-center gap-4 font-sans article-meta">
       <time datetime={note.date}>{new Date(note.date).toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' })}</time>
-      <span>·</span>
-      <span class="reading-badge">📖 约 {readingMinutes} 分钟阅读</span>
-      <span>·</span>
-      <span>{wordCount.toLocaleString()} 字</span>
+      <span>{'·'}</span>
+      <span class="reading-badge">{'📖 约 ' + readingMinutes + ' 分钟阅读'}</span>
+      <span>{'·'}</span>
+      <span>{wordCount.toLocaleString() + ' 字'}</span>
     </div>
   </header>
 
-  {/* Article body with sidebar */}
   <div class="layout-dual">
-    <article class="prose prose-lg max-w-reading
+    <article id="article-body" class="prose prose-lg max-w-reading
       prose-headings:font-display prose-headings:text-ink prose-headings:font-bold
       prose-h2:text-xl prose-h2:mt-10 prose-h2:mb-3
       prose-h3:text-lg prose-h3:mt-8 prose-h3:mb-2
@@ -80,17 +118,32 @@ const wordCount = note.content.replace(/\s+/g, ' ').trim().length;
       <div set:html={htmlContent} />
     </article>
 
-    {/* Sidebar */}
-    <aside class="sticky top-8 self-start space-y-7">
+    <aside class="article-sidebar sticky top-8 self-start space-y-7">
+      {/* TOC */}
+      {toc.length > 0 && (
+        <nav class="toc-nav">
+          <div class="section-label">{'目录'}</div>
+          {toc.map((item) => (
+            <a
+              href={`#${item.id}`}
+              class:list={['toc-item', item.level === 3 && 'toc-sub']}
+              data-id={item.id}
+            >
+              {item.text}
+            </a>
+          ))}
+        </nav>
+      )}
+
       {/* Tags */}
       {note.tags.length > 0 && (
         <div>
-          <div class="section-label">标签</div>
+          <div class="section-label">{'标签'}</div>
           <div class="flex flex-wrap gap-1.5">
             {note.tags.map((tag) => (
               <a
                 href={`/tags/${encodeURIComponent(tag.name)}`}
-                class="font-sans text-caption px-2.5 py-1 border border-rule-light rounded text-ink-muted no-underline hover:border-ink hover:text-ink transition-all"
+                class="font-sans text-caption px-2.5 py-1 border border-rule-light rounded no-underline hover:border-ink hover:text-ink transition-all tag-chip"
               >
                 {tag.name}
               </a>
@@ -102,12 +155,12 @@ const wordCount = note.content.replace(/\s+/g, ' ').trim().length;
       {/* Topics */}
       {note.topics.length > 0 && (
         <div>
-          <div class="section-label">主题</div>
+          <div class="section-label">{'主题'}</div>
           <div class="space-y-1">
             {note.topics.map((topic) => (
               <a
                 href={`/topics/${encodeURIComponent(topic.name)}`}
-                class="block font-sans text-small text-ink-muted no-underline hover:text-ink transition-colors"
+                class="block font-sans text-small no-underline hover:text-ink transition-colors topic-link"
               >
                 {topic.name}
               </a>
@@ -118,41 +171,217 @@ const wordCount = note.content.replace(/\s+/g, ' ').trim().length;
     </aside>
   </div>
 
-  {/* Prev / Next navigation */}
-  {(prevNote || nextNote) && (
-    <nav class="grid grid-cols-2 gap-6 mt-8 pt-6 border-t border-rule" aria-label="文章导航">
-      {prevNote ? (
-        <a href={`/notes/${prevNote.slug}`} class="no-underline group">
-          <div class="cat-label">← 上一篇</div>
-          <div class="font-serif text-h3 text-ink group-hover:text-link-hover transition-colors">{prevNote.title}</div>
+  {/* Related articles */}
+  {related.length > 0 && (
+    <div class="related-section">
+      <div class="section-label">{'相关文章'}</div>
+      <div class="related-grid">
+        {related.map((r: any) => (
+          <a href={`/notes/${r.slug}`} class="related-card">
+            <div class="cat-label">{r.question.type}</div>
+            <div class="related-card-title font-serif">{r.title}</div>
+          </a>
+        ))}
+      </div>
+    </div>
+  )}
+
+  {/* Series navigation */}
+  {series && (seriesPrev || seriesNext) && (
+    <nav class="series-nav" aria-label="系列导航">
+      {seriesPrev ? (
+        <a href={`/notes/${seriesPrev.slug}`} class="series-nav-link">
+          <div class="cat-label">{'← 上一篇 · ' + series.name}</div>
+          <div class="series-nav-title font-serif">{seriesPrev.title}</div>
         </a>
       ) : <div />}
-      {nextNote ? (
-        <a href={`/notes/${nextNote.slug}`} class="no-underline text-right group">
-          <div class="cat-label">下一篇 →</div>
-          <div class="font-serif text-h3 text-ink group-hover:text-link-hover transition-colors">{nextNote.title}</div>
+      {seriesNext ? (
+        <a href={`/notes/${seriesNext.slug}`} class="series-nav-link series-nav-next">
+          <div class="cat-label">{series.name + ' · 下一篇 →'}</div>
+          <div class="series-nav-title font-serif">{seriesNext.title}</div>
         </a>
       ) : <div />}
     </nav>
   )}
 
-  <a href="#main-content" class="back-to-top">回到顶部 ↑</a>
+  {/* Prev / Next navigation */}
+  {(prevNote || nextNote) && (
+    <nav class="grid grid-cols-2 gap-6 mt-8 pt-6 border-t border-rule" aria-label="文章导航">
+      {prevNote ? (
+        <a href={`/notes/${prevNote.slug}`} class="no-underline group">
+          <div class="cat-label">{'← 上一篇'}</div>
+          <div class="font-serif text-h3 group-hover:text-link-hover transition-colors prev-next-title">{prevNote.title}</div>
+        </a>
+      ) : <div />}
+      {nextNote ? (
+        <a href={`/notes/${nextNote.slug}`} class="no-underline text-right group">
+          <div class="cat-label">{'下一篇 →'}</div>
+          <div class="font-serif text-h3 group-hover:text-link-hover transition-colors prev-next-title">{nextNote.title}</div>
+        </a>
+      ) : <div />}
+    </nav>
+  )}
+
+  <a href="#main-content" class="back-to-top">{'回到顶部 ↑'}</a>
 
   <style>
-    .article-meta {
-      font-size: 0.6875rem;
-      color: var(--ink-faint);
+    .article-meta { font-size: 0.6875rem; color: var(--ink-faint); }
+    .tag-chip { color: var(--ink-muted); }
+    .topic-link { color: var(--ink-muted); }
+    .prev-next-title { color: var(--ink); }
+
+    /* Series banner */
+    .series-banner {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+      margin-bottom: 24px;
+      border: 1px solid var(--rule-light);
+      border-radius: 4px;
+      background: var(--bg-subtle);
+      font-size: 0.8125rem;
+    }
+    .series-label { font-size: 0.625rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-faint); }
+    .series-name { color: var(--ink); font-weight: 600; }
+    .series-pos { color: var(--ink-muted); margin-left: auto; font-size: 0.75rem; }
+
+    /* TOC */
+    .toc-item {
+      display: block;
+      font-family: Inter, sans-serif;
+      font-size: 0.75rem;
+      color: var(--ink-muted);
+      padding: 4px 0;
+      border-left: 2px solid transparent;
+      padding-left: 10px;
+      margin-left: -10px;
+      text-decoration: none;
+      transition: all 0.15s;
+      line-height: 1.4;
+    }
+    .toc-item:hover { color: var(--ink); }
+    .toc-item.active {
+      color: var(--ink);
+      border-left-color: var(--accent);
+      font-weight: 500;
+    }
+    .toc-sub { padding-left: 22px; margin-left: -10px; font-size: 0.6875rem; }
+
+    /* Related */
+    .related-section {
+      margin-top: 2.5em;
+      padding-top: 1.5em;
+      border-top: 1px solid var(--rule);
+    }
+    .related-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+    }
+    .related-card {
+      padding: 14px;
+      border: 1px solid var(--rule-faint);
+      border-radius: 4px;
+      text-decoration: none;
+      transition: all 0.2s;
+      color: inherit;
+    }
+    .related-card:hover {
+      border-color: var(--rule);
+      color: inherit;
+    }
+    .related-card-title {
+      font-size: 0.875rem;
+      font-weight: 600;
+      line-height: 1.35;
+      color: var(--ink);
+    }
+
+    /* Series nav */
+    .series-nav {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 2em;
+      padding-top: 1.5em;
+      border-top: 1px solid var(--rule);
+    }
+    .series-nav-link { text-decoration: none; color: inherit; }
+    .series-nav-link:hover { color: inherit; }
+    .series-nav-next { text-align: right; }
+    .series-nav-title { font-size: 0.9375rem; font-weight: 600; color: var(--ink); margin-top: 2px; }
+
+    @media (max-width: 767px) {
+      .article-sidebar .toc-nav { display: none; }
+      .series-nav { grid-template-columns: 1fr; }
+      .series-nav-next { text-align: left; }
+      .related-grid { grid-template-columns: 1fr; }
     }
   </style>
 
   <script is:inline>
     (function() {
-      const bar = document.getElementById('reading-progress');
-      if (!bar) return;
-      window.addEventListener('scroll', function() {
-        const h = document.documentElement.scrollHeight - window.innerHeight;
-        if (h > 0) bar.style.width = (window.scrollY / h * 100) + '%';
-      }, { passive: true });
+      // Reading progress
+      var bar = document.getElementById('reading-progress');
+      if (bar) {
+        window.addEventListener('scroll', function() {
+          var h = document.documentElement.scrollHeight - window.innerHeight;
+          if (h > 0) bar.style.width = (window.scrollY / h * 100) + '%';
+        }, { passive: true });
+      }
+
+      // TOC scroll spy
+      var tocItems = document.querySelectorAll('.toc-item');
+      if (tocItems.length === 0) return;
+      var headings = [];
+      tocItems.forEach(function(item) {
+        var id = item.getAttribute('data-id');
+        var el = document.getElementById(id);
+        if (el) headings.push({ el: el, item: item });
+      });
+      if (headings.length === 0) return;
+
+      var current = null;
+      function updateToc() {
+        var scrollY = window.scrollY + 100;
+        var active = headings[0];
+        for (var i = 0; i < headings.length; i++) {
+          if (headings[i].el.offsetTop <= scrollY) active = headings[i];
+        }
+        if (active && active !== current) {
+          if (current) current.item.classList.remove('active');
+          active.item.classList.add('active');
+          current = active;
+        }
+      }
+      window.addEventListener('scroll', updateToc, { passive: true });
+      updateToc();
+
+      // Code block copy buttons
+      document.querySelectorAll('pre').forEach(function(pre) {
+        var code = pre.querySelector('code');
+        if (!code) return;
+        var wrapper = document.createElement('div');
+        wrapper.style.cssText = 'position:relative;';
+        pre.parentNode.insertBefore(wrapper, pre);
+        wrapper.appendChild(pre);
+
+        var btn = document.createElement('button');
+        btn.textContent = '复制';
+        btn.style.cssText = 'position:absolute;top:8px;right:8px;padding:3px 10px;font-family:Inter,sans-serif;font-size:11px;background:var(--rule-light);color:var(--ink-muted);border:1px solid var(--rule);border-radius:3px;cursor:pointer;opacity:0;transition:opacity 0.15s;z-index:1;';
+        wrapper.appendChild(btn);
+
+        wrapper.addEventListener('mouseenter', function() { btn.style.opacity = '1'; });
+        wrapper.addEventListener('mouseleave', function() { btn.style.opacity = '0'; });
+
+        btn.addEventListener('click', function() {
+          navigator.clipboard.writeText(code.textContent || '').then(function() {
+            btn.textContent = '已复制';
+            setTimeout(function() { btn.textContent = '复制'; }, 2000);
+          });
+        });
+      });
     })();
   </script>
 </NoteLayout>

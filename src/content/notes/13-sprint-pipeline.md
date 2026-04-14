@@ -37,6 +37,9 @@ tags:
 topics:
   - name: "AI 工程化"
   - name: "开发工具"
+series:
+  name: "AI Skills 系列"
+  order: 2
 ---
 
 # Sprint：给 AI 一条流水线而不是一句话
