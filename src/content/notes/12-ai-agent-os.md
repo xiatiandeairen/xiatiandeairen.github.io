@@ -35,6 +35,9 @@ tags:
 topics:
   - name: "AI 工程化"
   - name: "开发工具"
+series:
+  name: "AI Skills 系列"
+  order: 1
 ---
 
 # 我给 AI Agent 写了一套操作系统

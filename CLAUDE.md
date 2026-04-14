@@ -13,3 +13,4 @@
 #### Requirements
 
 - [m1-basic-usability](.know/docs/requirements/m1-basic-usability/prd.md) | 2026-04-14
+- [m2-reading-experience](.know/docs/requirements/m2-reading-experience/prd.md) | 2026-04-14
