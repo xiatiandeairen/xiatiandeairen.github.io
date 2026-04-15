@@ -6,10 +6,8 @@ export default {
     builtWith: 'Built with Astro',
   },
   nav: {
-    home: 'Home',
-    archive: 'Archive',
+    blog: 'Blog',
     about: 'About',
-    search: 'Search',
   },
   article: {
     featured: 'Recent',
