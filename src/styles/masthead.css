@@ -131,35 +131,39 @@
   background: var(--bg-subtle);
 }
 
-/* ── Search tooltip ── */
+/* ── Search shortcut hint (GitHub style) ── */
 .search-trigger-btn {
-  position: relative;
+  overflow: hidden;
+  gap: var(--space-1);
+  width: auto;
+  max-width: 28px;
+  transition: max-width var(--duration-normal) var(--ease-default), color var(--transition-color), background var(--transition-color);
 }
 
-.search-trigger-btn::after {
-  content: '⌘K';
-  position: absolute;
-  top: calc(100% + var(--space-2));
-  left: 50%;
-  transform: translateX(-50%);
+.search-trigger-btn .search-kbd {
   font-family: Inter, sans-serif;
   font-size: var(--font-xs);
-  color: var(--paper);
-  background: var(--ink);
-  padding: var(--space-1) var(--space-2);
+  color: var(--ink-ghost);
+  border: 1px solid var(--rule-light);
   border-radius: var(--radius-sm);
+  padding: 0 var(--space-1);
+  line-height: 1.6;
   white-space: nowrap;
   opacity: 0;
-  pointer-events: none;
   transition: opacity var(--duration-fast);
 }
 
-.search-trigger-btn:hover::after {
+.search-trigger-btn:hover {
+  max-width: 80px;
+}
+
+.search-trigger-btn:hover .search-kbd {
   opacity: 1;
 }
 
 @media (max-width: 767px) {
-  .search-trigger-btn::after { display: none; }
+  .search-trigger-btn .search-kbd { display: none; }
+  .search-trigger-btn:hover { max-width: 28px; }
 }
 
 /* ── Theme toggle icons ── */
