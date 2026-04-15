@@ -35,11 +35,13 @@
   }
 }
 
-/* ── Dropdown Item States ──
-   normal:       ink-muted, transparent bg, no indicator
-   hover:        ink, rule-faint bg, no indicator
-   active:       accent, transparent bg, left accent bar, font-weight 600
-   active:hover: accent, rule-faint bg, left accent bar, font-weight 600
+/* ── Dropdown Item ──
+   States:
+     normal               default           → ink-muted color, transparent bg, no indicator
+     hover                mouse enter       → ink color, rule-faint bg
+     active               .active class     → accent color, font-weight 600, left accent bar 40%
+     active:hover         active + mouse    → accent color, rule-faint bg, left accent bar 40%
+   Platform: hover: hover (parent .has-dropdown)
 */
 
 /* State: normal */

@@ -3,6 +3,7 @@ import '../styles/global.css';
 import type { SEOData } from '../utils/seo';
 import { SITE_CONFIG } from '../utils/constants';
 import { getLang, useT, switchLangPath, localePath, type Lang } from '../i18n';
+import Sidebar from '../components/Sidebar.astro';
 
 interface Props {
   title: string;
@@ -118,6 +119,16 @@ const matchPath = currentPath.replace(/^\/en/, '') || '/';
         <span>{t('site.copyright', { year })}</span>
         <span><a href="/rss.xml" class="footer-link">RSS</a> {'·'} {t('site.builtWith')}</span>
       </footer>
+    </div>
+
+    {/* Sidebar drawer: hover to reveal */}
+    <div class="sidebar-drawer" role="complementary" aria-label={lang === 'zh' ? '侧边栏' : 'Sidebar'}>
+      <div class="sidebar-indicator">
+        <svg width="8" height="12" viewBox="0 0 8 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 1L1 6l5 5"/></svg>
+      </div>
+      <div class="sidebar-panel">
+        <Sidebar lang={lang} />
+      </div>
     </div>
 
     {/* Search overlay */}

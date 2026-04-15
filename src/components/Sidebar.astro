@@ -1,0 +1,171 @@
+---
+import { getAllNotes, sortNotes } from '../utils/notes';
+import { useT, localePath, type Lang } from '../i18n';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useT(lang);
+
+// Popular: top 5 most recent
+const allNotes = getAllNotes();
+const popular = sortNotes(allNotes, 'date', 'desc').slice(0, 3);
+
+// Series: unique series names
+const seriesMap = new Map<string, number>();
+for (const note of allNotes) {
+  const s = (note as any).series;
+  if (s?.name) {
+    seriesMap.set(s.name, (seriesMap.get(s.name) || 0) + 1);
+  }
+}
+const seriesList = Array.from(seriesMap.entries()).slice(0, 3);
+const hasMoreSeries = seriesMap.size > 3;
+---
+
+<aside class="sidebar">
+  {/* Popular articles */}
+  <div class="sidebar-section">
+    <div class="section-label">{t('sidebar.popular')}</div>
+    {popular.map((note, i) => (
+      <a href={`/notes/${note.slug}`} class="sidebar-popular-item">
+        <span class="sidebar-popular-num font-sans">{String(i + 1).padStart(2, '0')}</span>
+        <span class="sidebar-popular-title">{note.title}</span>
+      </a>
+    ))}
+  </div>
+
+  {/* Series */}
+  {seriesList.length > 0 && (
+    <div class="sidebar-section">
+      <div class="section-label">{t('sidebar.series')}</div>
+      {seriesList.map(([name, count]) => (
+        <a href={localePath('/series', lang)} class="sidebar-series-item">
+          <span>{name}</span>
+          <span class="sidebar-series-count font-sans">{count}</span>
+        </a>
+      ))}
+      {hasMoreSeries && (
+        <a href={localePath('/series', lang)} class="sidebar-more font-sans">{lang === 'zh' ? '全部系列 →' : 'All series →'}</a>
+      )}
+    </div>
+  )}
+
+  {/* RSS */}
+  <div class="sidebar-section">
+    <a href="/rss.xml" class="sidebar-rss">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg>
+      <span>{t('sidebar.subscribe')}</span>
+    </a>
+  </div>
+</aside>
+
+<style>
+  .sidebar-section {
+    margin-bottom: var(--space-6);
+  }
+
+  .sidebar-section:last-child {
+    margin-bottom: 0;
+  }
+
+  /* Popular articles */
+  .sidebar-popular-item {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-2);
+    padding: var(--space-2) 0;
+    border-bottom: 1px solid var(--rule-faint);
+    text-decoration: none;
+    color: inherit;
+    transition: all var(--duration-fast);
+  }
+
+  .sidebar-popular-item:hover {
+    padding-left: var(--space-1);
+  }
+
+  .sidebar-popular-item:last-of-type {
+    border-bottom: none;
+  }
+
+  .sidebar-popular-num {
+    font-size: var(--font-label);
+    color: var(--ink-ghost);
+    font-weight: 600;
+    line-height: 1.35;
+    flex-shrink: 0;
+    min-width: 18px;
+  }
+
+  .sidebar-popular-title {
+    font-size: var(--font-caption);
+    font-weight: 600;
+    line-height: 1.35;
+    color: var(--ink);
+    transition: color var(--transition-color);
+  }
+
+  .sidebar-popular-item:hover .sidebar-popular-title {
+    color: var(--accent);
+  }
+
+  /* Series */
+  .sidebar-series-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-1) 0;
+    border-bottom: 1px solid var(--rule-faint);
+    text-decoration: none;
+    font-size: var(--font-caption);
+    color: var(--ink-muted);
+    transition: color var(--transition-color);
+  }
+
+  .sidebar-series-item:hover {
+    color: var(--ink);
+  }
+
+  .sidebar-series-item:last-of-type {
+    border-bottom: none;
+  }
+
+  .sidebar-series-count {
+    font-size: var(--font-label);
+    color: var(--ink-ghost);
+    font-weight: 600;
+  }
+
+  /* More link */
+  .sidebar-more {
+    display: block;
+    font-size: var(--font-label);
+    color: var(--ink-ghost);
+    text-decoration: none;
+    margin-top: var(--space-2);
+    transition: color var(--transition-color);
+  }
+
+  .sidebar-more:hover {
+    color: var(--accent);
+  }
+
+  /* RSS */
+  .sidebar-rss {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-family: Inter, sans-serif;
+    font-size: var(--font-caption);
+    color: var(--ink-muted);
+    text-decoration: none;
+    transition: color var(--transition-color);
+  }
+
+  .sidebar-rss:hover {
+    color: var(--accent);
+  }
+</style>

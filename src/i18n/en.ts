@@ -69,6 +69,11 @@ export default {
     prev: '← Previous',
     next: 'Next →',
   },
+  sidebar: {
+    popular: 'Popular',
+    series: 'Series',
+    subscribe: 'Subscribe RSS',
+  },
   common: {
     empty: 'No content yet',
   },
