@@ -61,21 +61,20 @@ const matchPath = currentPath.replace(/^\/en/, '') || '/';
     <div class="min-h-screen flex flex-col">
 
       <div class="masthead-outer">
-        {/* Tool icons — outer right */}
-        <div class="masthead-tools">
-          <button id="search-trigger" class="tool-btn" aria-label={lang === 'zh' ? '搜索' : 'Search'} title={lang === 'zh' ? '搜索 ⌘K' : 'Search ⌘K'}>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-          </button>
-          <a href={switchPath} class="tool-btn" aria-label={lang === 'zh' ? 'English' : '中文'} title={lang === 'zh' ? 'English' : '中文'}>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-          </a>
-          <button id="theme-toggle" class="tool-btn" aria-label={lang === 'zh' ? '切换主题' : 'Toggle theme'}>
-            <span class="theme-icon-light"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg></span>
-            <span class="theme-icon-dark"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
-          </button>
-        </div>
-
         <header class="masthead">
+          {/* Tool icons — content area right edge */}
+          <div class="masthead-tools">
+            <button id="search-trigger" class="tool-btn" aria-label={lang === 'zh' ? '搜索' : 'Search'} title={lang === 'zh' ? '搜索 ⌘K' : 'Search ⌘K'}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            </button>
+            <a href={switchPath} class="tool-btn" aria-label={lang === 'zh' ? 'English' : '中文'} title={lang === 'zh' ? 'English' : '中文'}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            </a>
+            <button id="theme-toggle" class="tool-btn" aria-label={lang === 'zh' ? '切换主题' : 'Toggle theme'}>
+              <span class="theme-icon-light"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg></span>
+              <span class="theme-icon-dark"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
+            </button>
+          </div>
           <div class="masthead-title-row">
             <a href={localePath('/', lang)} class="masthead-brand">{t('site.title')}</a>
           </div>
