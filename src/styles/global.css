@@ -87,18 +87,25 @@ html {
 }
 
 /* ═══════════ Masthead ═══════════ */
+
+/* Outer: full viewport width, holds tools at far right */
+.masthead-outer {
+  position: relative;
+  border-bottom: 3px solid var(--ink);
+}
+
+/* Inner: content-width centered */
 .masthead {
   @apply mx-auto max-w-content;
   padding: 20px var(--space-page) 14px;
-  border-bottom: 3px solid var(--ink);
-  position: relative;
 }
 
-/* Tool icons — far right, vertically centered with title */
+/* Tool icons — positioned to outer container's right */
 .masthead-tools {
   position: absolute;
-  top: 20px;
+  top: 50%;
   right: var(--space-page);
+  transform: translateY(-50%);
   display: flex;
   align-items: center;
   gap: 4px;
