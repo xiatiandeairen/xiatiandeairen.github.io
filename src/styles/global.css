@@ -91,6 +91,37 @@ html {
   @apply mx-auto max-w-content;
   padding: 24px var(--space-page) 16px;
   border-bottom: 3px solid var(--ink);
+  position: relative;
+}
+
+/* Tool icons: top-right corner */
+.masthead-tools {
+  position: absolute;
+  top: 16px;
+  right: var(--space-page);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tool-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  background: transparent;
+  color: var(--ink-ghost);
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all var(--transition-all);
+  text-decoration: none;
+}
+
+.tool-btn:hover {
+  color: var(--ink);
+  background: var(--bg-subtle);
 }
 
 .masthead-row {
@@ -176,49 +207,12 @@ html.dark .theme-icon-dark { display: inline; }
   transition: color var(--transition-color);
 }
 
-.footer-left, .footer-right { flex: 1; }
-.footer-right { text-align: right; }
-.footer-center {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
 .footer-link {
   color: var(--ink-faint);
   text-decoration: none;
   transition: color var(--transition-color);
 }
 .footer-link:hover { color: var(--ink); }
-
-.footer-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--ink-faint);
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: inherit;
-  padding: 0;
-  transition: color var(--transition-color);
-}
-.footer-btn:hover { color: var(--ink); }
-
-.footer-dot {
-  color: var(--rule-light);
-  user-select: none;
-}
-
-.search-shortcut {
-  font-family: Inter, sans-serif;
-  font-size: 0.625rem;
-  color: var(--ink-ghost);
-  border: 1px solid var(--rule-light);
-  border-radius: 3px;
-  padding: 0 4px;
-  line-height: 1.6;
-}
 
 /* ═══════════ Search Overlay ═══════════ */
 .search-overlay {
@@ -812,16 +806,22 @@ html.dark .theme-icon-dark { display: inline; }
     gap: 16px;
   }
 
+  .masthead-tools {
+    top: 12px;
+    gap: 2px;
+  }
+
+  .tool-btn {
+    width: 28px;
+    height: 28px;
+  }
+
   /* Footer: stack */
   .site-footer {
     flex-direction: column;
-    gap: 8px;
+    gap: 4px;
     text-align: center;
   }
-  .footer-left, .footer-right { text-align: center; }
-
-  /* Search shortcut: hide on mobile */
-  .search-shortcut { display: none; }
 
   /* All dual layouts → single column */
   .layout-dual,

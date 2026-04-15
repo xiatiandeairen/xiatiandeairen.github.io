@@ -25,7 +25,6 @@ const seoData = seo || {
 };
 
 const switchPath = switchLangPath(currentPath, lang);
-const switchLabel = lang === 'zh' ? 'English' : '中文';
 const matchPath = currentPath.replace(/^\/en/, '') || '/';
 ---
 
@@ -61,8 +60,22 @@ const matchPath = currentPath.replace(/^\/en/, '') || '/';
     <a href="#main-content" class="skip-link">{lang === 'zh' ? '跳到主内容' : 'Skip to content'}</a>
     <div class="min-h-screen flex flex-col">
 
-      {/* ── Masthead: 杂志式对称 ── */}
       <header class="masthead">
+        {/* Tool icons: top-right */}
+        <div class="masthead-tools">
+          <button id="search-trigger" class="tool-btn" aria-label={lang === 'zh' ? '搜索' : 'Search'} title={lang === 'zh' ? '搜索 ⌘K' : 'Search ⌘K'}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          </button>
+          <a href={switchPath} class="tool-btn" aria-label={lang === 'zh' ? '切换英文' : 'Switch to Chinese'} title={lang === 'zh' ? 'English' : '中文'}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          </a>
+          <button id="theme-toggle" class="tool-btn" aria-label={lang === 'zh' ? '切换主题' : 'Toggle theme'}>
+            <span class="theme-icon-light"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg></span>
+            <span class="theme-icon-dark"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
+          </button>
+        </div>
+
+        {/* Symmetric navigation */}
         <nav class="masthead-row" aria-label={lang === 'zh' ? '主导航' : 'Main navigation'}>
           <a href={localePath('/archive', lang)} class:list={['masthead-nav-link', matchPath.startsWith('/archive') && 'active']}>
             {t('nav.blog')}
@@ -81,31 +94,13 @@ const matchPath = currentPath.replace(/^\/en/, '') || '/';
         <slot />
       </main>
 
-      {/* ── Footer: 功能键移到这里 ── */}
       <footer class="site-footer">
-        <div class="footer-left">
-          <span>{t('site.copyright', { year })}</span>
-        </div>
-        <div class="footer-center">
-          <a href={switchPath} class="footer-link">{switchLabel}</a>
-          <span class="footer-dot">{'·'}</span>
-          <button id="theme-toggle" class="footer-btn" aria-label={lang === 'zh' ? '切换主题' : 'Toggle theme'}>
-            <span class="theme-icon-light">{'☀'}</span>
-            <span class="theme-icon-dark">{'🌙'}</span>
-          </button>
-          <span class="footer-dot">{'·'}</span>
-          <button id="search-trigger" class="footer-btn" aria-label={lang === 'zh' ? '搜索' : 'Search'}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-            <span class="search-shortcut">{'⌘K'}</span>
-          </button>
-        </div>
-        <div class="footer-right">
-          <a href="/rss.xml" class="footer-link">RSS</a>
-        </div>
+        <span>{t('site.copyright', { year })}</span>
+        <span><a href="/rss.xml" class="footer-link">RSS</a> {'·'} {t('site.builtWith')}</span>
       </footer>
     </div>
 
-    {/* ── Search overlay ── */}
+    {/* Search overlay */}
     <div id="search-overlay" class="search-overlay" style="display:none;">
       <div class="search-backdrop" id="search-backdrop"></div>
       <div class="search-dialog">
@@ -120,75 +115,40 @@ const matchPath = currentPath.replace(/^\/en/, '') || '/';
 
     <script is:inline>
       (function() {
-        // Theme toggle
+        // Theme
         document.getElementById('theme-toggle').addEventListener('click', function() {
-          var html = document.documentElement;
-          var isDark = html.classList.toggle('dark');
+          var isDark = document.documentElement.classList.toggle('dark');
           localStorage.setItem('theme', isDark ? 'dark' : 'light');
         });
 
-        // Search overlay
+        // Search
         var overlay = document.getElementById('search-overlay');
         var input = document.getElementById('search-input');
         var results = document.getElementById('search-results');
         var searchIndex = null;
-        var debounceTimer = null;
+        var timer = null;
 
-        function openSearch() {
-          overlay.style.display = '';
-          input.focus();
-          input.value = '';
-          results.innerHTML = '';
-          document.body.style.overflow = 'hidden';
-        }
-
-        function closeSearch() {
-          overlay.style.display = 'none';
-          document.body.style.overflow = '';
-        }
+        function openSearch() { overlay.style.display = ''; input.focus(); input.value = ''; results.innerHTML = ''; document.body.style.overflow = 'hidden'; }
+        function closeSearch() { overlay.style.display = 'none'; document.body.style.overflow = ''; }
 
         document.getElementById('search-trigger').addEventListener('click', openSearch);
         document.getElementById('search-backdrop').addEventListener('click', closeSearch);
 
         document.addEventListener('keydown', function(e) {
-          if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-            e.preventDefault();
-            overlay.style.display === 'none' ? openSearch() : closeSearch();
-          }
-          if (e.key === 'Escape' && overlay.style.display !== 'none') {
-            closeSearch();
-          }
+          if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); overlay.style.display === 'none' ? openSearch() : closeSearch(); }
+          if (e.key === 'Escape' && overlay.style.display !== 'none') closeSearch();
         });
 
-        input.addEventListener('input', function() {
-          clearTimeout(debounceTimer);
-          debounceTimer = setTimeout(doSearch, 200);
-        });
+        input.addEventListener('input', function() { clearTimeout(timer); timer = setTimeout(doSearch, 200); });
 
         async function doSearch() {
           var q = input.value.trim().toLowerCase();
           if (!q) { results.innerHTML = ''; return; }
-          if (!searchIndex) {
-            try {
-              var r = await fetch('/search-index.json');
-              searchIndex = await r.json();
-            } catch(e) { results.innerHTML = '<div class="search-empty">Error</div>'; return; }
-          }
-          var matches = searchIndex.notes.filter(function(n) {
-            return n.title.toLowerCase().includes(q) || n.content.toLowerCase().includes(q) || n.tags.some(function(t){return t.toLowerCase().includes(q)});
-          }).slice(0, 8);
-
-          if (matches.length === 0) {
-            results.innerHTML = '<div class="search-empty">No results</div>';
-            return;
-          }
-          results.innerHTML = matches.map(function(n) {
-            return '<a href="/notes/' + n.slug + '" class="search-result-item"><span class="search-result-title">' + n.title.replace(/</g,'&lt;') + '</span><span class="search-result-date">' + new Date(n.date).toLocaleDateString() + '</span></a>';
-          }).join('');
-
-          results.querySelectorAll('.search-result-item').forEach(function(el) {
-            el.addEventListener('click', closeSearch);
-          });
+          if (!searchIndex) { try { searchIndex = await (await fetch('/search-index.json')).json(); } catch(e) { return; } }
+          var m = searchIndex.notes.filter(function(n) { return n.title.toLowerCase().includes(q) || n.content.toLowerCase().includes(q) || n.tags.some(function(t){return t.toLowerCase().includes(q)}); }).slice(0, 8);
+          if (!m.length) { results.innerHTML = '<div class="search-empty">No results</div>'; return; }
+          results.innerHTML = m.map(function(n) { return '<a href="/notes/' + n.slug + '" class="search-result-item"><span class="search-result-title">' + n.title.replace(/</g,'&lt;') + '</span><span class="search-result-date">' + new Date(n.date).toLocaleDateString() + '</span></a>'; }).join('');
+          results.querySelectorAll('.search-result-item').forEach(function(el) { el.addEventListener('click', closeSearch); });
         }
       })();
     </script>
