@@ -1,0 +1,144 @@
+/* ═══════════════════════════════════════
+   Masthead — Header + Navigation + Tools
+   ═══════════════════════════════════════ */
+
+/* Outer: full viewport width, border spans full */
+.masthead-outer {
+  border-bottom: 3px solid var(--ink);
+}
+
+/* Inner: content-width centered */
+.masthead {
+  @apply mx-auto max-w-content;
+  padding: var(--space-5) var(--space-page) var(--space-3);
+  position: relative;
+}
+
+/* ── Site title ── */
+.masthead-title-row {
+  text-align: center;
+}
+
+.masthead-brand {
+  @apply font-display no-underline;
+  font-size: var(--font-masthead);
+  color: var(--ink);
+  transition: color var(--transition-color);
+}
+
+.masthead-brand:hover {
+  color: var(--accent);
+}
+
+/* ── Bottom row: [spacer] [center: tagline | sep | nav] [tools] ── */
+.masthead-bottom-row {
+  display: flex;
+  align-items: center;
+  margin-top: var(--space-2);
+}
+
+.masthead-spacer {
+  flex: 1;
+}
+
+.masthead-center {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.masthead-tagline {
+  font-size: var(--font-caption);
+  font-weight: 500;
+  color: var(--ink-muted);
+  letter-spacing: 0.04em;
+}
+
+.masthead-sep {
+  width: 1px;
+  height: var(--space-3);
+  background: var(--rule);
+  flex-shrink: 0;
+}
+
+/* ── Navigation ── */
+.masthead-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.masthead-nav a {
+  @apply font-serif no-underline;
+  font-size: var(--font-caption);
+  color: var(--ink-muted);
+  transition: color var(--transition-color);
+  position: relative;
+}
+
+.masthead-nav a::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: var(--accent);
+  transition: width var(--duration-slow) ease;
+}
+
+.masthead-nav a:hover::after,
+.masthead-nav a.active::after {
+  width: 100%;
+}
+
+.masthead-nav a:hover,
+.masthead-nav a.active {
+  color: var(--ink);
+}
+
+/* ── Tool icons ── */
+.masthead-tools {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2px;
+}
+
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  color: var(--ink-ghost);
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  transition: all var(--transition-all);
+  text-decoration: none;
+}
+
+.icon-button:hover {
+  color: var(--ink);
+  background: var(--bg-subtle);
+}
+
+/* ── Theme toggle icons ── */
+.theme-icon-dark { display: none; }
+html.dark .theme-icon-light { display: none; }
+html.dark .theme-icon-dark { display: inline; }
+
+/* ── Mobile ── */
+@media (max-width: 767px) {
+  .masthead-bottom-row {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-2);
+  }
+  .masthead-spacer { display: none; }
+  .masthead-tools { flex: none; }
+  .icon-button { width: 26px; height: 26px; }
+}

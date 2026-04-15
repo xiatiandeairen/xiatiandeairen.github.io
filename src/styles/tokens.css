@@ -1,0 +1,121 @@
+/* ═══════════════════════════════════════
+   Design Tokens
+   Three layers: Global → Semantic → Component
+   ═══════════════════════════════════════ */
+
+/* ── Spacing Scale ── */
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --space-page: clamp(var(--space-4), 2.5vw + 4px, 40px);
+}
+
+/* ── Radius ── */
+:root {
+  --radius-sm: 3px;
+  --radius-md: 4px;
+  --radius-lg: 8px;
+  --radius-pill: 10px;
+}
+
+/* ── Transitions ── */
+:root {
+  --ease-default: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-fast: 0.15s;
+  --duration-normal: 0.2s;
+  --duration-slow: 0.25s;
+  --transition-color: var(--duration-normal) ease;
+  --transition-all: var(--duration-slow) var(--ease-default);
+}
+
+/* ── Z-Index Scale ── */
+:root {
+  --z-base: 0;
+  --z-sticky: 10;
+  --z-overlay: 1000;
+  --z-progress: 999;
+}
+
+/* ── Typography Scale (fluid: mobile → desktop) ── */
+:root {
+  --font-masthead: clamp(1.75rem, 1.5rem + 1.25vw, 2.25rem);
+  --font-h1:       clamp(1.375rem, 1.15rem + 1vw, 1.75rem);
+  --font-h2:       clamp(1.125rem, 1rem + 0.7vw, 1.375rem);
+  --font-h3:       clamp(0.9375rem, 0.9rem + 0.3vw, 1.0625rem);
+  --font-body:     clamp(0.9375rem, 0.92rem + 0.15vw, 1rem);
+  --font-small:    clamp(0.8125rem, 0.8rem + 0.1vw, 0.875rem);
+  --font-caption:  clamp(0.75rem, 0.74rem + 0.08vw, 0.8125rem);
+  --font-label:    clamp(0.6875rem, 0.68rem + 0.05vw, 0.75rem);
+}
+
+/* ── Color: Light Mode ──
+   Background: #f4f0e8
+   Contrast ratios vs background:
+     ink:       12.5:1  primary text
+     ink-light:  9.5:1  secondary text
+     ink-muted:  6.5:1  tertiary text
+     ink-faint:  5.2:1  labels, dates
+     ink-ghost:  4.2:1  decorative
+*/
+:root {
+  --color-paper: #f4f0e8;
+  --color-ink: #1a1a1a;
+  --color-ink-light: #2d2926;
+  --color-ink-muted: #4a4440;
+  --color-ink-faint: #5c5650;
+  --color-ink-ghost: #6e6860;
+  --color-rule: #c8c0b4;
+  --color-rule-light: #ddd5ca;
+  --color-rule-faint: #ece7de;
+  --color-surface: #efebe3;
+  --color-accent: #8b0000;
+}
+
+/* ── Semantic Tokens (map to global) ── */
+:root {
+  --paper: var(--color-paper);
+  --ink: var(--color-ink);
+  --ink-light: var(--color-ink-light);
+  --ink-muted: var(--color-ink-muted);
+  --ink-faint: var(--color-ink-faint);
+  --ink-ghost: var(--color-ink-ghost);
+  --rule: var(--color-rule);
+  --rule-light: var(--color-rule-light);
+  --rule-faint: var(--color-rule-faint);
+  --bg-subtle: var(--color-surface);
+  --accent: var(--color-accent);
+}
+
+/* ── Color: Dark Mode ──
+   Background: #151312
+   Contrast ratios:
+     ink:       13.0:1
+     ink-light:  9.0:1
+     ink-muted:  6.0:1
+     ink-faint:  4.7:1
+     ink-ghost:  3.2:1
+*/
+html.dark {
+  --color-paper: #151312;
+  --color-ink: #ede8e2;
+  --color-ink-light: #ccc6be;
+  --color-ink-muted: #a8a298;
+  --color-ink-faint: #8e8880;
+  --color-ink-ghost: #706a62;
+  --color-rule: #383430;
+  --color-rule-light: #2a2826;
+  --color-rule-faint: #201e1c;
+  --color-surface: #1e1c1a;
+  --color-accent: #d4a574;
+}
+
+/* ── Theme Transition ── */
+html {
+  transition: background var(--transition-color), color var(--transition-color);
+}

@@ -1,0 +1,130 @@
+/* ═══════════════════════════════════════
+   Layout Primitives + Page Structure
+   ═══════════════════════════════════════ */
+
+/* ── Content width container ── */
+.content-width {
+  max-width: 900px;
+  margin-inline: auto;
+  padding-inline: var(--space-page);
+}
+
+/* ── Site main ── */
+.site-main {
+  @apply flex-1 mx-auto max-w-content w-full;
+  padding: var(--space-6) var(--space-page);
+  animation: fadeIn 0.35s ease-out;
+}
+
+/* ── Site footer ── */
+.site-footer {
+  @apply mx-auto max-w-content font-sans;
+  padding: var(--space-5) var(--space-page);
+  border-top: 3px solid var(--ink);
+  font-size: var(--font-label);
+  letter-spacing: 0.06em;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--ink-faint);
+  transition: color var(--transition-color);
+}
+
+.footer-link {
+  color: var(--ink-faint);
+  text-decoration: none;
+  transition: color var(--transition-color);
+}
+.footer-link:hover { color: var(--ink); }
+
+/* ── Dual column (article detail, about) ── */
+.layout-dual {
+  display: grid;
+  grid-template-columns: 1fr 220px;
+  gap: var(--space-7);
+  max-width: 900px;
+}
+
+.layout-dual-wide {
+  display: grid;
+  grid-template-columns: 1fr 240px;
+  gap: var(--space-7);
+  max-width: 900px;
+}
+
+.layout-dual-archive {
+  display: grid;
+  grid-template-columns: 1fr 200px;
+  gap: var(--space-6);
+  max-width: 900px;
+}
+
+/* ── Featured layout (index hero) ── */
+.layout-featured {
+  display: grid;
+  grid-template-columns: 1.6fr 1px 1fr;
+  gap: 0;
+}
+
+.layout-featured-divider {
+  background: var(--rule);
+}
+
+.layout-featured-main {
+  padding-right: var(--space-6);
+}
+
+.layout-featured-side {
+  padding-left: var(--space-6);
+}
+
+/* ═══════════ Responsive: ≤ 767px ═══════════ */
+@media (max-width: 767px) {
+  /* Footer: stack */
+  .site-footer {
+    flex-direction: column;
+    gap: var(--space-1);
+    text-align: center;
+  }
+
+  /* All dual layouts → single column */
+  .layout-dual,
+  .layout-dual-wide,
+  .layout-dual-archive {
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
+  }
+
+  .layout-featured {
+    grid-template-columns: 1fr;
+    gap: var(--space-5);
+  }
+
+  .layout-featured-divider { display: none; }
+  .layout-featured-main { padding-right: 0; }
+
+  .layout-featured-side {
+    padding-left: 0;
+    border-top: 1px solid var(--rule-light);
+    padding-top: var(--space-5);
+  }
+
+  /* Prose: full width */
+  .prose { max-width: 100%; }
+
+  /* About values grid */
+  .values-grid { grid-template-columns: 1fr; }
+
+  /* Filter bar: horizontal scroll */
+  .filter-bar {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: var(--space-2);
+  }
+
+  .filter-btn {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+}
