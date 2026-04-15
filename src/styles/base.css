@@ -46,14 +46,14 @@
   /* ── Code ── */
   code {
     @apply font-mono px-1.5 py-0.5 rounded;
-    font-size: 0.85em;
+    font-size: var(--font-code);
     background: var(--bg-subtle);
   }
 
   pre {
     @apply overflow-x-auto rounded;
     padding: var(--space-5) var(--space-5);
-    font-size: 0.85em;
+    font-size: var(--font-code);
     line-height: 1.65;
     background: var(--bg-subtle);
     border: 1px solid var(--rule-light);

@@ -60,7 +60,7 @@
 
 .search-esc {
   font-family: Inter, sans-serif;
-  font-size: 0.625rem;
+  font-size: var(--font-xs);
   color: var(--ink-ghost);
   border: 1px solid var(--rule-light);
   border-radius: var(--radius-sm);

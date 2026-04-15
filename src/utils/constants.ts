@@ -12,9 +12,9 @@ export const PAGINATION = {
 export const TAG_MAX_DEPTH = 2;
 
 export const QUALITY_COLORS = {
-  high: '#15803D',
-  medium: '#CA8A04',
-  low: '#B91C1C'
+  high: 'var(--color-quality-high)',
+  medium: 'var(--color-quality-medium)',
+  low: 'var(--color-quality-low)'
 } as const;
 
 export const QUALITY_THRESHOLDS = {

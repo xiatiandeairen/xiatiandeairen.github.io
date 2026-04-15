@@ -49,7 +49,7 @@
     display: inline-flex;
     align-items: center;
     gap: var(--space-1);
-    padding: 2px var(--space-3);
+    padding: var(--space-1) var(--space-3);
     border: 1px solid var(--rule-light);
     border-radius: var(--radius-pill);
     font-family: Inter, sans-serif;
@@ -103,7 +103,7 @@
     font-size: var(--font-h3);
     font-weight: 700;
     line-height: 1.35;
-    margin-bottom: 2px;
+    margin-bottom: var(--space-1);
   }
 
   .post-card-title a {
@@ -167,7 +167,7 @@
     font-size: var(--font-body);
     font-weight: 700;
     line-height: 1.35;
-    margin-bottom: 2px;
+    margin-bottom: var(--space-1);
   }
   .search-result-card h3 a {
     color: var(--ink);
@@ -181,18 +181,18 @@
   }
 
   /* ── Featured article (index) ── */
-  .featured-heading { margin-bottom: 0.5em; }
+  .featured-heading { margin-bottom: var(--space-2); }
   .featured-heading a { color: var(--ink); text-decoration: none; transition: color var(--transition-color); }
   .featured-heading a:hover { color: var(--accent); }
   .featured-lead { font-size: var(--font-body); line-height: 1.75; color: var(--ink-muted); margin-bottom: 1em; }
   .featured-body { font-size: var(--font-small); line-height: 1.75; color: var(--ink-light); }
   .featured-link {
     display: inline-block;
-    margin-top: 1.2em;
+    margin-top: var(--space-4);
     font-size: var(--font-caption);
     color: var(--ink);
     border-bottom: 1px solid var(--ink);
-    padding-bottom: 1px;
+    padding-bottom: var(--space-1);
     text-decoration: none;
     transition: color var(--transition-color), border-color var(--transition-color);
   }

@@ -120,20 +120,20 @@ const types = [...new Set(sorted.map(n => n.question.type))].sort();
 
 <style>
   .archive-header {
-    margin-bottom: 1.5em;
-    padding-bottom: 1em;
+    margin-bottom: var(--space-5);
+    padding-bottom: var(--space-4);
     border-bottom: 1px solid var(--rule-light);
   }
   .archive-subtitle { color: var(--ink-muted); }
   .filter-bar {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 2em;
-    padding-bottom: 1.5em;
+    gap: var(--space-2);
+    margin-bottom: var(--space-6);
+    padding-bottom: var(--space-5);
     border-bottom: 1px solid var(--rule);
   }
-  .year-group { margin-bottom: 2.5em; }
+  .year-group { margin-bottom: var(--space-7); }
   .archive-year {
     font-size: 42px;
     color: var(--rule);
@@ -141,39 +141,39 @@ const types = [...new Set(sorted.map(n => n.question.type))].sort();
     letter-spacing: -0.03em;
     line-height: 1;
   }
-  .month-group { margin-bottom: 1.25em; }
+  .month-group { margin-bottom: var(--space-4); }
   .month-label {
-    font-size: 0.75rem;
+    font-size: var(--font-label);
     text-transform: uppercase;
     letter-spacing: 0.12em;
     color: var(--ink-ghost);
-    margin-bottom: 8px;
-    padding-bottom: 6px;
+    margin-bottom: var(--space-2);
+    padding-bottom: var(--space-1);
     border-bottom: 1px solid var(--rule-light);
   }
   .archive-item-title {
-    font-size: 0.9375rem;
+    font-size: var(--font-body);
     font-weight: 600;
     line-height: 1.35;
     color: var(--ink);
   }
   .archive-item-meta {
-    font-size: 0.8125rem;
+    font-size: var(--font-caption);
     color: var(--ink-ghost);
     white-space: nowrap;
-    padding-top: 2px;
+    padding-top: var(--space-1);
   }
   .archive-item-time {
-    font-size: 0.75rem;
+    font-size: var(--font-label);
     color: var(--ink-ghost);
-    margin-top: 2px;
+    margin-top: var(--space-1);
   }
   .stat-row {
     display: flex;
     justify-content: space-between;
-    padding: 6px 0;
+    padding: var(--space-1) 0;
     border-bottom: 1px solid var(--rule-faint);
-    font-size: 0.75rem;
+    font-size: var(--font-caption);
     color: var(--ink-muted);
   }
   .stat-value {
