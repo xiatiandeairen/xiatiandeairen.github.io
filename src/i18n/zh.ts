@@ -69,6 +69,11 @@ export default {
     prev: '← 上一页',
     next: '下一页 →',
   },
+  sidebar: {
+    popular: '热门文章',
+    series: '系列专栏',
+    subscribe: '订阅 RSS',
+  },
   common: {
     empty: '暂无内容',
   },
