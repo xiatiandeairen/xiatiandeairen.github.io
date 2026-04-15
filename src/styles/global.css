@@ -93,22 +93,18 @@ html {
   border-bottom: 3px solid var(--ink);
 }
 
-/* Inner: content-width centered, relative for tool positioning */
+/* Inner: content-width centered */
 .masthead {
   @apply mx-auto max-w-content;
   padding: 20px var(--space-page) 14px;
-  position: relative;
 }
 
-/* Tool icons — aligned to content area right edge */
+/* Tool icons — inline in masthead-bottom, pushed to right */
 .masthead-tools {
-  position: absolute;
-  top: 50%;
-  right: var(--space-page);
-  transform: translateY(-50%);
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
+  margin-left: auto;
 }
 
 .tool-btn {
@@ -147,12 +143,11 @@ html {
   color: var(--accent);
 }
 
-/* Bottom row: tagline left | separator | nav right */
+/* Bottom row: tagline | sep | nav ... tools (right) */
 .masthead-bottom {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 16px;
+  gap: 12px;
   margin-top: 8px;
 }
 
@@ -824,20 +819,15 @@ html.dark .theme-icon-dark { display: inline; }
 /* Typography is handled by clamp() — no font-size overrides needed.
    This section only controls LAYOUT changes (dual→single column). */
 @media (max-width: 767px) {
-  /* Masthead: stack on mobile */
-  .masthead-tools {
-    top: 10px;
-    gap: 2px;
+  /* Masthead: wrap on mobile */
+  .masthead-bottom {
+    flex-wrap: wrap;
+    gap: 8px;
   }
 
   .tool-btn {
     width: 26px;
     height: 26px;
-  }
-
-  .masthead-bottom {
-    flex-wrap: wrap;
-    gap: 8px;
   }
 
   /* Footer: stack */
