@@ -42,6 +42,19 @@
   --z-progress: 999;
 }
 
+/* ── Quality Colors ── */
+:root {
+  --color-quality-high: #15803D;
+  --color-quality-medium: #CA8A04;
+  --color-quality-low: #B91C1C;
+}
+
+/* ── Code Font Size ── */
+:root {
+  --font-code: 0.85em;
+  --font-xs: 0.625rem;
+}
+
 /* ── Typography Scale (fluid: mobile → desktop) ── */
 :root {
   --font-masthead: clamp(1.75rem, 1.5rem + 1.25vw, 2.25rem);

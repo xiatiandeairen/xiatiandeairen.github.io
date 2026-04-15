@@ -63,56 +63,34 @@ function readingTime(content: string): number {
 
 <style>
   .series-header {
-    margin-bottom: 1.5em;
-    padding-bottom: 1em;
+    margin-bottom: var(--space-5);
+    padding-bottom: var(--space-4);
     border-bottom: 1px solid var(--rule-light);
   }
   .series-subtitle { color: var(--ink-muted); }
-  .series-empty { color: var(--ink-muted); text-align: center; padding: 4em 0; }
-  .series-group {
-    margin-bottom: 3em;
-  }
-  .series-group-title {
-    color: var(--ink);
-    margin-bottom: 4px;
-  }
-  .series-group-meta {
-    color: var(--ink-muted);
-    margin-bottom: 1em;
-  }
-  .series-list {
-    border-top: 1px solid var(--rule-light);
-  }
+  .series-empty { color: var(--ink-muted); text-align: center; padding: var(--space-7) 0; }
+  .series-group { margin-bottom: var(--space-7); }
+  .series-group-title { color: var(--ink); margin-bottom: var(--space-1); }
+  .series-group-meta { color: var(--ink-muted); margin-bottom: var(--space-4); }
+  .series-list { border-top: 1px solid var(--rule-light); }
   .series-item {
     display: flex;
     align-items: flex-start;
-    gap: 16px;
-    padding: 14px 0;
+    gap: var(--space-4);
+    padding: var(--space-3) 0;
     border-bottom: 1px solid var(--rule-faint);
     text-decoration: none;
     color: inherit;
-    transition: all 0.2s;
+    transition: all var(--transition-color);
   }
-  .series-item:hover {
-    padding-left: 6px;
-    color: inherit;
-  }
+  .series-item:hover { padding-left: var(--space-2); color: inherit; }
   .series-num {
-    font-size: 0.8125rem;
+    font-size: var(--font-small);
     font-weight: 600;
     color: var(--rule);
-    min-width: 24px;
-    padding-top: 2px;
+    min-width: var(--space-5);
+    padding-top: var(--space-1);
   }
-  .series-item-title {
-    font-size: 0.9375rem;
-    font-weight: 600;
-    line-height: 1.35;
-    color: var(--ink);
-  }
-  .series-item-meta {
-    font-size: 0.8125rem;
-    color: var(--ink-ghost);
-    margin-top: 2px;
-  }
+  .series-item-title { font-size: var(--font-body); font-weight: 600; line-height: 1.35; color: var(--ink); }
+  .series-item-meta { font-size: var(--font-caption); color: var(--ink-ghost); margin-top: var(--space-1); }
 </style>

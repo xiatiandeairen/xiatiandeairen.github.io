@@ -225,7 +225,7 @@ const seriesNext = seriesIndex < seriesNotes.length - 1 ? seriesNotes[seriesInde
   <a href="#main-content" class="back-to-top">{'回到顶部 ↑'}</a>
 
   <style>
-    .article-meta { font-size: 0.8125rem; color: var(--ink-faint); }
+    .article-meta { font-size: var(--font-caption); color: var(--ink-faint); }
     .tag-chip { color: var(--ink-muted); }
     .topic-link { color: var(--ink-muted); }
     .prev-next-title { color: var(--ink); }
@@ -234,30 +234,30 @@ const seriesNext = seriesIndex < seriesNotes.length - 1 ? seriesNotes[seriesInde
     .series-banner {
       display: flex;
       align-items: center;
-      gap: 10px;
-      padding: 10px 16px;
-      margin-bottom: 24px;
+      gap: var(--space-3);
+      padding: var(--space-3) var(--space-4);
+      margin-bottom: var(--space-5);
       border: 1px solid var(--rule-light);
-      border-radius: 4px;
+      border-radius: var(--radius-md);
       background: var(--bg-subtle);
-      font-size: 0.8125rem;
+      font-size: var(--font-small);
     }
-    .series-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-faint); }
+    .series-label { font-size: var(--font-label); text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-faint); }
     .series-name { color: var(--ink); font-weight: 600; }
-    .series-pos { color: var(--ink-muted); margin-left: auto; font-size: 0.75rem; }
+    .series-pos { color: var(--ink-muted); margin-left: auto; font-size: var(--font-caption); }
 
     /* TOC */
     .toc-item {
       display: block;
       font-family: Inter, sans-serif;
-      font-size: 0.75rem;
+      font-size: var(--font-caption);
       color: var(--ink-muted);
-      padding: 4px 0;
+      padding: var(--space-1) 0;
       border-left: 2px solid transparent;
-      padding-left: 10px;
-      margin-left: -10px;
+      padding-left: var(--space-3);
+      margin-left: calc(-1 * var(--space-3));
       text-decoration: none;
-      transition: all 0.15s;
+      transition: all var(--duration-fast);
       line-height: 1.4;
     }
     .toc-item:hover { color: var(--ink); }
@@ -266,33 +266,30 @@ const seriesNext = seriesIndex < seriesNotes.length - 1 ? seriesNotes[seriesInde
       border-left-color: var(--accent);
       font-weight: 500;
     }
-    .toc-sub { padding-left: 22px; margin-left: -10px; font-size: 0.8125rem; }
+    .toc-sub { padding-left: calc(var(--space-3) + var(--space-3)); margin-left: calc(-1 * var(--space-3)); font-size: var(--font-caption); }
 
     /* Related */
     .related-section {
-      margin-top: 2.5em;
-      padding-top: 1.5em;
+      margin-top: var(--space-7);
+      padding-top: var(--space-5);
       border-top: 1px solid var(--rule);
     }
     .related-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 12px;
+      gap: var(--space-3);
     }
     .related-card {
-      padding: 14px;
+      padding: var(--space-3);
       border: 1px solid var(--rule-faint);
-      border-radius: 4px;
+      border-radius: var(--radius-md);
       text-decoration: none;
-      transition: all 0.2s;
+      transition: all var(--transition-color);
       color: inherit;
     }
-    .related-card:hover {
-      border-color: var(--rule);
-      color: inherit;
-    }
+    .related-card:hover { border-color: var(--rule); color: inherit; }
     .related-card-title {
-      font-size: 0.875rem;
+      font-size: var(--font-small);
       font-weight: 600;
       line-height: 1.35;
       color: var(--ink);
@@ -302,15 +299,15 @@ const seriesNext = seriesIndex < seriesNotes.length - 1 ? seriesNotes[seriesInde
     .series-nav {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 16px;
-      margin-top: 2em;
-      padding-top: 1.5em;
+      gap: var(--space-4);
+      margin-top: var(--space-6);
+      padding-top: var(--space-5);
       border-top: 1px solid var(--rule);
     }
     .series-nav-link { text-decoration: none; color: inherit; }
     .series-nav-link:hover { color: inherit; }
     .series-nav-next { text-align: right; }
-    .series-nav-title { font-size: 0.9375rem; font-weight: 600; color: var(--ink); margin-top: 2px; }
+    .series-nav-title { font-size: var(--font-body); font-weight: 600; color: var(--ink); margin-top: var(--space-1); }
 
     @media (max-width: 767px) {
       .article-sidebar .toc-nav { display: none; }
