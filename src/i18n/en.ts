@@ -1,8 +1,8 @@
 export default {
   site: {
-    title: '夏天的爱人',
+    title: 'Lover of Summer',
     tagline: 'AI Engineering · Tech Writing · Dev Notes',
-    copyright: '© {year} 夏天的爱人',
+    copyright: '© {year} Lover of Summer',
     builtWith: 'Built with Astro',
   },
   nav: {
@@ -40,7 +40,7 @@ export default {
   },
   about: {
     title: 'About',
-    subtitle: 'About 夏天的爱人是绿色',
+    subtitle: 'About Lover of Summer is Green',
     contact: 'Contact',
     aboutSite: 'About This Site',
   },

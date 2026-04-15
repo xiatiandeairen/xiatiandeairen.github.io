@@ -1,0 +1,97 @@
+/* ═══════════════════════════════════════
+   Dropdown — Hover-triggered menu
+   Desktop only via @media (hover: hover)
+   ═══════════════════════════════════════ */
+
+.has-dropdown {
+  position: relative;
+}
+
+.dropdown {
+  position: absolute;
+  top: calc(100% + var(--space-1));
+  right: 0;
+  min-width: 80px;
+  padding: var(--space-1) 0;
+  background: var(--paper);
+  border: 1px solid var(--rule-light);
+  border-radius: var(--radius-md);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+  transition: opacity var(--duration-normal) var(--ease-default),
+              transform var(--duration-normal) var(--ease-default),
+              visibility var(--duration-normal);
+  z-index: var(--z-sticky);
+}
+
+@media (hover: hover) {
+  .has-dropdown:hover .dropdown {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+}
+
+/* ── Dropdown Item States ──
+   normal:       ink-muted, transparent bg, no indicator
+   hover:        ink, rule-faint bg, no indicator
+   active:       accent, transparent bg, left accent bar, font-weight 600
+   active:hover: accent, rule-faint bg, left accent bar, font-weight 600
+*/
+
+/* State: normal */
+.dropdown-item {
+  display: block;
+  width: 100%;
+  padding: var(--space-1) var(--space-3);
+  border: none;
+  background: transparent;
+  font-family: Inter, sans-serif;
+  font-size: var(--font-caption);
+  color: var(--ink-muted);
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+  position: relative;
+  transition: color var(--transition-color),
+              background var(--transition-color);
+}
+
+/* Left accent indicator (active only) */
+.dropdown-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2px;
+  height: 0;
+  background: var(--accent);
+  transition: height var(--transition-all);
+}
+
+/* State: hover */
+.dropdown-item:hover {
+  color: var(--ink);
+  background: var(--rule-faint);
+}
+
+/* State: active (selected) */
+.dropdown-item.active {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.dropdown-item.active::before {
+  height: 40%;
+}
+
+/* State: active + hover */
+.dropdown-item.active:hover {
+  color: var(--accent);
+  background: var(--rule-faint);
+}

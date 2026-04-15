@@ -86,13 +86,25 @@ const matchPath = currentPath.replace(/^\/en/, '') || '/';
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
                 <kbd class="icon-label">{'⌘K'}</kbd>
               </button>
-              <a href={switchPath} class="icon-button" aria-label={lang === 'zh' ? 'English' : '中文'} title={lang === 'zh' ? 'English' : '中文'}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-              </a>
-              <button id="theme-toggle" class="icon-button" aria-label={lang === 'zh' ? '切换主题' : 'Toggle theme'}>
-                <span class="theme-icon-light"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg></span>
-                <span class="theme-icon-dark"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
-              </button>
+              <div class="has-dropdown">
+                <a href={switchPath} class="icon-button" aria-label={lang === 'zh' ? 'English' : '中文'} title={lang === 'zh' ? 'English' : '中文'}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                </a>
+                <div class="dropdown">
+                  <a href={lang === 'zh' ? currentPath : currentPath.replace(/^\/en/, '') || '/'} class:list={['dropdown-item', lang === 'zh' && 'active']}>中文</a>
+                  <a href={lang === 'en' ? currentPath : `/en${currentPath}`} class:list={['dropdown-item', lang === 'en' && 'active']}>English</a>
+                </div>
+              </div>
+              <div class="has-dropdown">
+                <button id="theme-toggle" class="icon-button" aria-label={lang === 'zh' ? '切换主题' : 'Toggle theme'}>
+                  <span class="theme-icon-light"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg></span>
+                  <span class="theme-icon-dark"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
+                </button>
+                <div class="dropdown" id="theme-dropdown">
+                  <button class="dropdown-item theme-option" data-theme="light">{lang === 'zh' ? '浅色' : 'Light'}</button>
+                  <button class="dropdown-item theme-option" data-theme="dark">{lang === 'zh' ? '深色' : 'Dark'}</button>
+                </div>
+              </div>
             </div>
           </div><!-- masthead-meta -->
         </header>
@@ -123,10 +135,35 @@ const matchPath = currentPath.replace(/^\/en/, '') || '/';
 
     <script is:inline>
       (function() {
+        // Theme toggle: click cycles light/dark
         document.getElementById('theme-toggle').addEventListener('click', function() {
           var isDark = document.documentElement.classList.toggle('dark');
           localStorage.setItem('theme', isDark ? 'dark' : 'light');
+          updateThemeDropdown();
         });
+
+        // Theme dropdown: option click
+        document.querySelectorAll('.theme-option').forEach(function(btn) {
+          btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            var theme = this.getAttribute('data-theme');
+            if (theme === 'dark') {
+              document.documentElement.classList.add('dark');
+            } else {
+              document.documentElement.classList.remove('dark');
+            }
+            localStorage.setItem('theme', theme);
+            updateThemeDropdown();
+          });
+        });
+
+        function updateThemeDropdown() {
+          var isDark = document.documentElement.classList.contains('dark');
+          document.querySelectorAll('.theme-option').forEach(function(btn) {
+            btn.classList.toggle('active', btn.getAttribute('data-theme') === (isDark ? 'dark' : 'light'));
+          });
+        }
+        updateThemeDropdown();
 
         var overlay = document.getElementById('search-overlay');
         var input = document.getElementById('search-input');
