@@ -143,26 +143,21 @@ html {
   color: var(--accent);
 }
 
-/* Bottom row: tagline | sep | nav ... tools (right) */
-.masthead-bottom {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-top: 8px;
-}
-
+/* Tagline — always centered */
 .masthead-tagline {
+  text-align: center;
   font-size: var(--font-caption);
   font-weight: 500;
   color: var(--ink-muted);
   letter-spacing: 0.04em;
+  margin-top: 6px;
 }
 
-.masthead-sep {
-  width: 1px;
-  height: 12px;
-  background: var(--rule);
-  flex-shrink: 0;
+/* Nav + tools bar */
+.masthead-bar {
+  display: flex;
+  align-items: center;
+  margin-top: 8px;
 }
 
 .masthead-nav {
@@ -819,8 +814,8 @@ html.dark .theme-icon-dark { display: inline; }
 /* Typography is handled by clamp() — no font-size overrides needed.
    This section only controls LAYOUT changes (dual→single column). */
 @media (max-width: 767px) {
-  /* Masthead: wrap on mobile */
-  .masthead-bottom {
+  /* Masthead bar: wrap on mobile */
+  .masthead-bar {
     flex-wrap: wrap;
     gap: 8px;
   }
