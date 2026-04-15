@@ -86,30 +86,30 @@ html {
   color: var(--paper);
 }
 
-/* ═══════════ Masthead (杂志式对称) ═══════════ */
+/* ═══════════ Masthead ═══════════ */
 .masthead {
   @apply mx-auto max-w-content;
-  padding: 24px var(--space-page) 16px;
+  padding: 20px var(--space-page) 14px;
   border-bottom: 3px solid var(--ink);
   position: relative;
 }
 
-/* Tool icons: top-right corner */
+/* Tool icons — far right, vertically centered with title */
 .masthead-tools {
   position: absolute;
-  top: 16px;
+  top: 20px;
   right: var(--space-page);
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
 }
 
 .tool-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
+  width: 28px;
+  height: 28px;
   border: none;
   background: transparent;
   color: var(--ink-ghost);
@@ -124,11 +124,9 @@ html {
   background: var(--bg-subtle);
 }
 
-.masthead-row {
-  display: flex;
-  align-items: baseline;
-  justify-content: center;
-  gap: clamp(20px, 4vw, 48px);
+/* Site title — centered */
+.masthead-title-row {
+  text-align: center;
 }
 
 .masthead-brand {
@@ -136,23 +134,50 @@ html {
   font-size: var(--font-masthead);
   color: var(--ink);
   transition: color var(--transition-color);
-  text-align: center;
 }
 
 .masthead-brand:hover {
   color: var(--accent);
 }
 
-.masthead-nav-link {
+/* Bottom row: tagline left | separator | nav right */
+.masthead-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.masthead-tagline {
+  font-size: var(--font-caption);
+  font-weight: 500;
+  color: var(--ink-muted);
+  letter-spacing: 0.04em;
+}
+
+.masthead-sep {
+  width: 1px;
+  height: 12px;
+  background: var(--rule);
+  flex-shrink: 0;
+}
+
+.masthead-nav {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.masthead-nav a {
   @apply font-serif no-underline;
-  font-size: var(--font-small);
+  font-size: var(--font-caption);
   color: var(--ink-muted);
   transition: color var(--transition-color);
   position: relative;
-  white-space: nowrap;
 }
 
-.masthead-nav-link::after {
+.masthead-nav a::after {
   content: '';
   position: absolute;
   bottom: -2px;
@@ -163,23 +188,14 @@ html {
   transition: width 0.25s ease;
 }
 
-.masthead-nav-link:hover::after,
-.masthead-nav-link.active::after {
+.masthead-nav a:hover::after,
+.masthead-nav a.active::after {
   width: 100%;
 }
 
-.masthead-nav-link:hover,
-.masthead-nav-link.active {
+.masthead-nav a:hover,
+.masthead-nav a.active {
   color: var(--ink);
-}
-
-.masthead-tagline {
-  text-align: center;
-  font-size: var(--font-caption);
-  font-weight: 500;
-  color: var(--ink-muted);
-  margin-top: 6px;
-  letter-spacing: 0.04em;
 }
 
 /* ═══════════ Theme toggle (in footer) ═══════════ */
@@ -801,19 +817,20 @@ html.dark .theme-icon-dark { display: inline; }
 /* Typography is handled by clamp() — no font-size overrides needed.
    This section only controls LAYOUT changes (dual→single column). */
 @media (max-width: 767px) {
-  /* Masthead: tighter on mobile */
-  .masthead-row {
-    gap: 16px;
-  }
-
+  /* Masthead: stack on mobile */
   .masthead-tools {
-    top: 12px;
+    top: 10px;
     gap: 2px;
   }
 
   .tool-btn {
-    width: 28px;
-    height: 28px;
+    width: 26px;
+    height: 26px;
+  }
+
+  .masthead-bottom {
+    flex-wrap: wrap;
+    gap: 8px;
   }
 
   /* Footer: stack */
