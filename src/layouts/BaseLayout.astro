@@ -60,8 +60,8 @@ const matchPath = currentPath.replace(/^\/en/, '') || '/';
     <a href="#main-content" class="skip-link">{lang === 'zh' ? '跳到主内容' : 'Skip to content'}</a>
     <div class="min-h-screen flex flex-col">
 
-      <header class="masthead">
-        {/* Tool icons — far right */}
+      <div class="masthead-outer">
+        {/* Tool icons — outer right */}
         <div class="masthead-tools">
           <button id="search-trigger" class="tool-btn" aria-label={lang === 'zh' ? '搜索' : 'Search'} title={lang === 'zh' ? '搜索 ⌘K' : 'Search ⌘K'}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
@@ -75,25 +75,24 @@ const matchPath = currentPath.replace(/^\/en/, '') || '/';
           </button>
         </div>
 
-        {/* Site title — centered */}
-        <div class="masthead-title-row">
-          <a href={localePath('/', lang)} class="masthead-brand">{t('site.title')}</a>
-        </div>
-
-        {/* Tagline left + Nav right — same line, separated */}
-        <div class="masthead-bottom" aria-label={lang === 'zh' ? '主导航' : 'Main navigation'}>
-          <span class="masthead-tagline">{t('site.tagline')}</span>
-          <span class="masthead-sep"></span>
-          <nav class="masthead-nav">
-            <a href={localePath('/archive', lang)} class:list={[matchPath.startsWith('/archive') && 'active']}>
-              {t('nav.blog')}
-            </a>
-            <a href={localePath('/about', lang)} class:list={[matchPath.startsWith('/about') && 'active']}>
-              {t('nav.about')}
-            </a>
-          </nav>
-        </div>
-      </header>
+        <header class="masthead">
+          <div class="masthead-title-row">
+            <a href={localePath('/', lang)} class="masthead-brand">{t('site.title')}</a>
+          </div>
+          <div class="masthead-bottom" aria-label={lang === 'zh' ? '主导航' : 'Main navigation'}>
+            <span class="masthead-tagline">{t('site.tagline')}</span>
+            <span class="masthead-sep"></span>
+            <nav class="masthead-nav">
+              <a href={localePath('/archive', lang)} class:list={[matchPath.startsWith('/archive') && 'active']}>
+                {t('nav.blog')}
+              </a>
+              <a href={localePath('/about', lang)} class:list={[matchPath.startsWith('/about') && 'active']}>
+                {t('nav.about')}
+              </a>
+            </nav>
+          </div>
+        </header>
+      </div>
 
       <main id="main-content" class="site-main">
         <slot />
