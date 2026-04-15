@@ -79,12 +79,12 @@
 .masthead-nav a::after {
   content: '';
   position: absolute;
-  bottom: -3px;
+  bottom: -2px;
   left: 0;
   width: 0;
-  height: 2px;
-  background: var(--ink);
-  transition: width var(--duration-normal) ease;
+  height: 1px;
+  background: var(--accent);
+  transition: width var(--duration-slow) ease;
 }
 
 .masthead-nav a:hover::after,
@@ -95,23 +95,6 @@
 .masthead-nav a:hover,
 .masthead-nav a.active {
   color: var(--ink);
-}
-
-/* ── Search shortcut hint ── */
-.search-hint {
-  font-family: Inter, sans-serif;
-  font-size: var(--font-xs);
-  color: var(--ink-ghost);
-  border: 1px solid var(--rule-light);
-  border-radius: var(--radius-sm);
-  padding: 1px var(--space-1);
-  margin-left: var(--space-1);
-  line-height: 1.6;
-  pointer-events: none;
-}
-
-@media (max-width: 767px) {
-  .search-hint { display: none; }
 }
 
 /* ── Tool icons ── */
@@ -141,7 +124,6 @@
 .icon-button:hover {
   color: var(--ink);
   background: var(--bg-subtle);
-  transform: translateY(-1px);
 }
 
 /* ── Theme toggle icons ── */
