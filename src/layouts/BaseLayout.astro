@@ -61,12 +61,12 @@ const matchPath = currentPath.replace(/^\/en/, '') || '/';
     <div class="min-h-screen flex flex-col">
 
       <header class="masthead">
-        {/* Tool icons: top-right */}
+        {/* Tool icons — far right */}
         <div class="masthead-tools">
           <button id="search-trigger" class="tool-btn" aria-label={lang === 'zh' ? '搜索' : 'Search'} title={lang === 'zh' ? '搜索 ⌘K' : 'Search ⌘K'}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
           </button>
-          <a href={switchPath} class="tool-btn" aria-label={lang === 'zh' ? '切换英文' : 'Switch to Chinese'} title={lang === 'zh' ? 'English' : '中文'}>
+          <a href={switchPath} class="tool-btn" aria-label={lang === 'zh' ? 'English' : '中文'} title={lang === 'zh' ? 'English' : '中文'}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
           </a>
           <button id="theme-toggle" class="tool-btn" aria-label={lang === 'zh' ? '切换主题' : 'Toggle theme'}>
@@ -75,19 +75,24 @@ const matchPath = currentPath.replace(/^\/en/, '') || '/';
           </button>
         </div>
 
-        {/* Symmetric navigation */}
-        <nav class="masthead-row" aria-label={lang === 'zh' ? '主导航' : 'Main navigation'}>
-          <a href={localePath('/archive', lang)} class:list={['masthead-nav-link', matchPath.startsWith('/archive') && 'active']}>
-            {t('nav.blog')}
-          </a>
-          <a href={localePath('/', lang)} class="masthead-brand">
-            {t('site.title')}
-          </a>
-          <a href={localePath('/about', lang)} class:list={['masthead-nav-link', matchPath.startsWith('/about') && 'active']}>
-            {t('nav.about')}
-          </a>
-        </nav>
-        <div class="masthead-tagline">{t('site.tagline')}</div>
+        {/* Site title — centered */}
+        <div class="masthead-title-row">
+          <a href={localePath('/', lang)} class="masthead-brand">{t('site.title')}</a>
+        </div>
+
+        {/* Tagline left + Nav right — same line, separated */}
+        <div class="masthead-bottom" aria-label={lang === 'zh' ? '主导航' : 'Main navigation'}>
+          <span class="masthead-tagline">{t('site.tagline')}</span>
+          <span class="masthead-sep"></span>
+          <nav class="masthead-nav">
+            <a href={localePath('/archive', lang)} class:list={[matchPath.startsWith('/archive') && 'active']}>
+              {t('nav.blog')}
+            </a>
+            <a href={localePath('/about', lang)} class:list={[matchPath.startsWith('/about') && 'active']}>
+              {t('nav.about')}
+            </a>
+          </nav>
+        </div>
       </header>
 
       <main id="main-content" class="site-main">
@@ -115,30 +120,25 @@ const matchPath = currentPath.replace(/^\/en/, '') || '/';
 
     <script is:inline>
       (function() {
-        // Theme
         document.getElementById('theme-toggle').addEventListener('click', function() {
           var isDark = document.documentElement.classList.toggle('dark');
           localStorage.setItem('theme', isDark ? 'dark' : 'light');
         });
 
-        // Search
         var overlay = document.getElementById('search-overlay');
         var input = document.getElementById('search-input');
         var results = document.getElementById('search-results');
-        var searchIndex = null;
-        var timer = null;
+        var searchIndex = null, timer = null;
 
         function openSearch() { overlay.style.display = ''; input.focus(); input.value = ''; results.innerHTML = ''; document.body.style.overflow = 'hidden'; }
         function closeSearch() { overlay.style.display = 'none'; document.body.style.overflow = ''; }
 
         document.getElementById('search-trigger').addEventListener('click', openSearch);
         document.getElementById('search-backdrop').addEventListener('click', closeSearch);
-
         document.addEventListener('keydown', function(e) {
           if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); overlay.style.display === 'none' ? openSearch() : closeSearch(); }
           if (e.key === 'Escape' && overlay.style.display !== 'none') closeSearch();
         });
-
         input.addEventListener('input', function() { clearTimeout(timer); timer = setTimeout(doSearch, 200); });
 
         async function doSearch() {
