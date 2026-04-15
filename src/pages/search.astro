@@ -94,14 +94,10 @@ const query = Astro.url.searchParams.get('q') || '';
                   const tagsStr = note.tags.length > 0 ? note.tags.join(' · ') : '';
 
                   return `
-                    <article class="archive-item" style="display:block;padding:12px 0;border-bottom:1px solid var(--rule-faint);transition:padding-left 0.15s;" onmouseover="this.style.paddingLeft='6px'" onmouseout="this.style.paddingLeft='0'">
+                    <article class="search-result-card">
                       <div class="cat-label">${dateStr}${tagsStr ? ' · ' + tagsStr : ''}</div>
-                      <h3 style="font-size:0.9375rem;font-weight:700;line-height:1.35;margin-bottom:4px;">
-                        <a href="/notes/${note.slug}" style="color:var(--ink);text-decoration:none;">${escapedTitle}</a>
-                      </h3>
-                      <p style="font-family:Inter,sans-serif;font-size:0.8125rem;color:var(--ink-muted);line-height:1.6;">
-                        ${escapedContent}${note.content.length > 150 ? '…' : ''}
-                      </p>
+                      <h3><a href="/notes/${note.slug}">${escapedTitle}</a></h3>
+                      <p>${escapedContent}${note.content.length > 150 ? '…' : ''}</p>
                     </article>
                   `;
                 }).join('')}

@@ -38,7 +38,9 @@ const matchPath = currentPath.replace(/^\/en/, '') || '/';
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Noto+Serif+SC:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    {/* Critical fonts: preload display + body serif */}
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Noto+Serif+SC:wght@500;700&display=swap" as="style" />
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Noto+Serif+SC:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
     <link rel="alternate" type="application/rss+xml" title={t('site.title')} href="/rss.xml" />
 
     {seoData.ogTitle && <meta property="og:title" content={seoData.ogTitle} />}
@@ -65,7 +67,7 @@ const matchPath = currentPath.replace(/^\/en/, '') || '/';
           <div class="masthead-title-row">
             <a href={localePath('/', lang)} class="masthead-brand">{t('site.title')}</a>
           </div>
-          <div class="masthead-bottom-row">
+          <div class="masthead-meta">
             <div class="masthead-spacer"></div>
             <div class="masthead-center">
               <span class="masthead-tagline">{t('site.tagline')}</span>
@@ -91,7 +93,7 @@ const matchPath = currentPath.replace(/^\/en/, '') || '/';
                 <span class="theme-icon-dark"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
               </button>
             </div>
-          </div><!-- masthead-bottom-row -->
+          </div><!-- masthead-meta -->
         </header>
       </div>
 

@@ -8,7 +8,7 @@ export default {
         'display': ['"Playfair Display"', 'Georgia', 'serif'],
         'serif': ['"Noto Serif SC"', 'Georgia', 'serif'],
         'sans': ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
-        'mono': ['"JetBrains Mono"', 'Menlo', 'monospace'],
+        'mono': ['ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
       },
       colors: {
         'paper': 'var(--paper)',

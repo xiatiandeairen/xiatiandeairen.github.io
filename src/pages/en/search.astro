@@ -45,7 +45,7 @@ const query = Astro.url.searchParams.get('q') || '';
             });
             if (results.length === 0) { c.innerHTML = '<p class="font-sans text-small text-ink-muted text-center py-8">No matching notes found</p>'; return; }
             c.innerHTML = '<p class="font-sans text-small text-ink-muted mb-4">' + results.length + ' results found</p><div>' + results.map(function(note) {
-              return '<article class="archive-item" style="display:block;padding:12px 0;border-bottom:1px solid var(--rule-faint);transition:padding-left 0.15s;" onmouseover="this.style.paddingLeft=\'6px\'" onmouseout="this.style.paddingLeft=\'0\'"><div class="cat-label">' + new Date(note.date).toLocaleDateString('en-US') + '</div><h3 style="font-size:var(--font-body);font-weight:700;line-height:1.35;margin-bottom:4px;"><a href="/notes/' + note.slug + '" style="color:var(--ink);text-decoration:none;">' + note.title.replace(/</g,'&lt;') + '</a></h3><p style="font-family:Inter,sans-serif;font-size:var(--font-small);color:var(--ink-muted);line-height:1.6;">' + note.content.substring(0,150).replace(/</g,'&lt;') + '…</p></article>';
+              return '<article class="search-result-card"><div class="cat-label">' + new Date(note.date).toLocaleDateString('en-US') + '</div><h3><a href="/notes/' + note.slug + '">' + note.title.replace(/</g,'&lt;') + '</a></h3><p>' + note.content.substring(0,150).replace(/</g,'&lt;') + '…</p></article>';
             }).join('') + '</div>';
           } catch(e) { c.innerHTML = '<p class="font-sans text-small text-ink-muted text-center py-8">Search error</p>'; }
         }
