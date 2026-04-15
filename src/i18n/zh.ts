@@ -6,10 +6,8 @@ export default {
     builtWith: '基于 Astro 构建',
   },
   nav: {
-    home: '首页',
-    archive: '归档',
+    blog: '文章',
     about: '关于',
-    search: '搜索',
   },
   article: {
     featured: '近期文章',
