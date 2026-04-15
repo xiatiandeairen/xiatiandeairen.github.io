@@ -31,7 +31,7 @@
 }
 
 /* ── Bottom row: [spacer] [center: tagline | sep | nav] [tools] ── */
-.masthead-bottom-row {
+.masthead-meta {
   display: flex;
   align-items: center;
   margin-top: var(--space-2);
@@ -133,7 +133,7 @@ html.dark .theme-icon-dark { display: inline; }
 
 /* ── Mobile ── */
 @media (max-width: 767px) {
-  .masthead-bottom-row {
+  .masthead-meta {
     flex-wrap: wrap;
     justify-content: center;
     gap: var(--space-2);
