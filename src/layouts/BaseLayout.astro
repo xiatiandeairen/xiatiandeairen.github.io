@@ -65,16 +65,20 @@ const matchPath = currentPath.replace(/^\/en/, '') || '/';
           <div class="masthead-title-row">
             <a href={localePath('/', lang)} class="masthead-brand">{t('site.title')}</a>
           </div>
-          <div class="masthead-tagline">{t('site.tagline')}</div>
-          <div class="masthead-bar">
-            <nav class="masthead-nav" aria-label={lang === 'zh' ? '主导航' : 'Main navigation'}>
-              <a href={localePath('/archive', lang)} class:list={[matchPath.startsWith('/archive') && 'active']}>
-                {t('nav.blog')}
-              </a>
-              <a href={localePath('/about', lang)} class:list={[matchPath.startsWith('/about') && 'active']}>
-                {t('nav.about')}
-              </a>
-            </nav>
+          <div class="masthead-bottom-row">
+            <div class="masthead-spacer"></div>
+            <div class="masthead-center">
+              <span class="masthead-tagline">{t('site.tagline')}</span>
+              <span class="masthead-sep"></span>
+              <nav class="masthead-nav" aria-label={lang === 'zh' ? '主导航' : 'Main navigation'}>
+                <a href={localePath('/archive', lang)} class:list={[matchPath.startsWith('/archive') && 'active']}>
+                  {t('nav.blog')}
+                </a>
+                <a href={localePath('/about', lang)} class:list={[matchPath.startsWith('/about') && 'active']}>
+                  {t('nav.about')}
+                </a>
+              </nav>
+            </div>
             <div class="masthead-tools">
               <button id="search-trigger" class="tool-btn" aria-label={lang === 'zh' ? '搜索' : 'Search'} title={lang === 'zh' ? '搜索 ⌘K' : 'Search ⌘K'}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
@@ -87,7 +91,7 @@ const matchPath = currentPath.replace(/^\/en/, '') || '/';
                 <span class="theme-icon-dark"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
               </button>
             </div>
-          </div><!-- masthead-bar -->
+          </div><!-- masthead-bottom-row -->
         </header>
       </div>
 
