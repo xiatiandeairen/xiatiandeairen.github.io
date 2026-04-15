@@ -131,23 +131,30 @@
   background: var(--bg-subtle);
 }
 
-/* ── Search shortcut hint (GitHub style) ── */
-.search-trigger-btn {
+/* ── Expandable icon button (reusable pattern) ──
+   Usage: .icon-button.expandable > svg + .icon-label
+   Default: 28px square icon, label hidden.
+   Hover: expands right, label slides in. */
+
+.icon-button.expandable {
+  overflow: hidden;
   gap: var(--space-2);
-  width: auto;
-  padding: 0 var(--space-2);
-  height: 28px;
+  /* width stays 28px from .icon-button */
+  transition: width var(--duration-slow) var(--ease-default),
+              padding var(--duration-slow) var(--ease-default),
+              color var(--transition-color),
+              background var(--transition-color);
 }
 
-.search-trigger-btn .search-kbd {
+.icon-button.expandable .icon-label {
   display: inline-block;
   font-family: Inter, sans-serif;
-  font-size: 0.6rem;
+  font-size: var(--font-xs);
   letter-spacing: 0.02em;
   color: var(--ink-ghost);
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
-  padding: 1px var(--space-2);
+  padding: 1px 0;
   line-height: 1.5;
   white-space: nowrap;
   max-width: 0;
@@ -159,7 +166,12 @@
               border-color var(--duration-normal);
 }
 
-.search-trigger-btn:hover .search-kbd {
+.icon-button.expandable:hover {
+  width: auto;
+  padding: 0 var(--space-2);
+}
+
+.icon-button.expandable:hover .icon-label {
   max-width: 50px;
   opacity: 1;
   padding: 1px var(--space-2);
@@ -167,8 +179,8 @@
 }
 
 @media (max-width: 767px) {
-  .search-trigger-btn .search-kbd { display: none; }
-  .search-trigger-btn { padding: 0; width: 28px; }
+  .icon-button.expandable .icon-label { display: none; }
+  .icon-button.expandable:hover { width: 28px; padding: 0; }
 }
 
 /* ── Theme toggle icons ── */
