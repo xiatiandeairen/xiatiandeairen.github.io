@@ -106,25 +106,25 @@
 }
 
 /* ── Color: Dark Mode ──
-   Background: #151312
+   Background: #211e1b (warm brown, newspaper dark side)
    Contrast ratios:
-     ink:       13.0:1
-     ink-light:  9.0:1
-     ink-muted:  6.0:1
-     ink-faint:  4.7:1
-     ink-ghost:  3.2:1
+     ink:       11.5:1
+     ink-light:  8.0:1
+     ink-muted:  5.3:1
+     ink-faint:  4.1:1
+     ink-ghost:  2.8:1
 */
 html.dark {
-  --color-paper: #151312;
+  --color-paper: #211e1b;
   --color-ink: #ede8e2;
   --color-ink-light: #ccc6be;
   --color-ink-muted: #a8a298;
   --color-ink-faint: #8e8880;
   --color-ink-ghost: #706a62;
-  --color-rule: #383430;
-  --color-rule-light: #2a2826;
-  --color-rule-faint: #201e1c;
-  --color-surface: #1e1c1a;
+  --color-rule: #3d3832;
+  --color-rule-light: #302c28;
+  --color-rule-faint: #292622;
+  --color-surface: #282420;
   --color-accent: #d4a574;
 }
 

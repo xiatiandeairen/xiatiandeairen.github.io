@@ -22,6 +22,7 @@
 .masthead-brand {
   @apply font-display no-underline;
   font-size: var(--font-masthead);
+  font-weight: 700;
   color: var(--ink);
   transition: color var(--transition-color);
 }
@@ -71,6 +72,7 @@
 .masthead-nav a {
   @apply font-serif no-underline;
   font-size: var(--font-caption);
+  font-weight: 700;
   color: var(--ink-muted);
   transition: color var(--transition-color), background var(--transition-color);
   position: relative;
@@ -117,18 +119,22 @@
   justify-content: center;
   width: 28px;
   height: 28px;
-  border: none;
+  border: 1px solid transparent;
   background: transparent;
   color: var(--ink-ghost);
   cursor: pointer;
   border-radius: var(--radius-md);
-  transition: all var(--transition-all);
+  transition: color var(--transition-color),
+              background var(--transition-color),
+              border-color var(--transition-color);
   text-decoration: none;
 }
 
-.icon-button:hover {
+.icon-button:hover,
+.has-dropdown:hover > .icon-button {
   color: var(--ink);
   background: var(--bg-subtle);
+  border-color: var(--rule);
 }
 
 /* ── Expandable icon button (reusable pattern) ──
@@ -137,13 +143,16 @@
    Hover: expands right, label slides in. */
 
 .icon-button.expandable {
+  width: auto;
+  min-width: 28px;
+  max-width: 28px;
   overflow: hidden;
   gap: var(--space-2);
-  /* width stays 28px from .icon-button */
-  transition: width var(--duration-slow) var(--ease-default),
-              padding var(--duration-slow) var(--ease-default),
+  transition: max-width 0.6s var(--ease-default),
+              padding 0.6s var(--ease-default),
               color var(--transition-color),
-              background var(--transition-color);
+              background var(--transition-color),
+              border-color var(--transition-color);
 }
 
 .icon-button.expandable .icon-label {
@@ -160,27 +169,24 @@
   max-width: 0;
   overflow: hidden;
   opacity: 0;
-  transition: max-width var(--duration-slow) var(--ease-default),
-              opacity var(--duration-normal),
-              padding var(--duration-slow),
-              border-color var(--duration-normal);
+  transition: max-width 0.6s var(--ease-default),
+              opacity 0.5s 0.1s,
+              padding 0.6s,
+              border-color 0.5s 0.1s;
 }
 
-.icon-button.expandable:hover {
-  width: auto;
-  padding: 0 var(--space-2);
-}
+@media (hover: hover) {
+  .icon-button.expandable:hover {
+    max-width: 90px;
+    padding: 0 var(--space-2);
+  }
 
-.icon-button.expandable:hover .icon-label {
-  max-width: 50px;
-  opacity: 1;
-  padding: 1px var(--space-2);
-  border-color: var(--rule-light);
-}
-
-@media (max-width: 767px) {
-  .icon-button.expandable .icon-label { display: none; }
-  .icon-button.expandable:hover { width: 28px; padding: 0; }
+  .icon-button.expandable:hover .icon-label {
+    max-width: 50px;
+    opacity: 1;
+    padding: 1px var(--space-2);
+    border-color: var(--rule-light);
+  }
 }
 
 /* ── Theme toggle icons ── */
