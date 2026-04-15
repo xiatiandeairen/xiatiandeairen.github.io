@@ -72,15 +72,19 @@
   @apply font-serif no-underline;
   font-size: var(--font-caption);
   color: var(--ink-muted);
-  transition: color var(--transition-color);
+  transition: color var(--transition-color), background var(--transition-color);
   position: relative;
+  padding: var(--space-1) var(--space-2);
+  margin: calc(-1 * var(--space-1)) calc(-1 * var(--space-2));
+  border-radius: var(--radius-md);
 }
 
 .masthead-nav a::after {
   content: '';
   position: absolute;
-  bottom: -2px;
-  left: 0;
+  bottom: 0;
+  left: var(--space-2);
+  right: var(--space-2);
   width: 0;
   height: 1px;
   background: var(--accent);
@@ -89,12 +93,13 @@
 
 .masthead-nav a:hover::after,
 .masthead-nav a.active::after {
-  width: 100%;
+  width: calc(100% - var(--space-2) - var(--space-2));
 }
 
 .masthead-nav a:hover,
 .masthead-nav a.active {
   color: var(--ink);
+  background: var(--bg-subtle);
 }
 
 /* ── Tool icons ── */
@@ -124,6 +129,37 @@
 .icon-button:hover {
   color: var(--ink);
   background: var(--bg-subtle);
+}
+
+/* ── Search tooltip ── */
+.search-trigger-btn {
+  position: relative;
+}
+
+.search-trigger-btn::after {
+  content: '⌘K';
+  position: absolute;
+  top: calc(100% + var(--space-2));
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: Inter, sans-serif;
+  font-size: var(--font-xs);
+  color: var(--paper);
+  background: var(--ink);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--duration-fast);
+}
+
+.search-trigger-btn:hover::after {
+  opacity: 1;
+}
+
+@media (max-width: 767px) {
+  .search-trigger-btn::after { display: none; }
 }
 
 /* ── Theme toggle icons ── */

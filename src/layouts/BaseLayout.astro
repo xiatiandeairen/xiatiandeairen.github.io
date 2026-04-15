@@ -82,7 +82,7 @@ const matchPath = currentPath.replace(/^\/en/, '') || '/';
               </nav>
             </div>
             <div class="masthead-tools">
-              <button id="search-trigger" class="icon-button" aria-label={lang === 'zh' ? '搜索' : 'Search'} title={lang === 'zh' ? '搜索 ⌘K' : 'Search ⌘K'}>
+              <button id="search-trigger" class="icon-button search-trigger-btn" aria-label={lang === 'zh' ? '搜索' : 'Search'}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
               </button>
               <a href={switchPath} class="icon-button" aria-label={lang === 'zh' ? 'English' : '中文'} title={lang === 'zh' ? 'English' : '中文'}>
