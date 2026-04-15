@@ -65,9 +65,8 @@ const matchPath = currentPath.replace(/^\/en/, '') || '/';
           <div class="masthead-title-row">
             <a href={localePath('/', lang)} class="masthead-brand">{t('site.title')}</a>
           </div>
-          <div class="masthead-bottom">
-            <span class="masthead-tagline">{t('site.tagline')}</span>
-            <span class="masthead-sep"></span>
+          <div class="masthead-tagline">{t('site.tagline')}</div>
+          <div class="masthead-bar">
             <nav class="masthead-nav" aria-label={lang === 'zh' ? '主导航' : 'Main navigation'}>
               <a href={localePath('/archive', lang)} class:list={[matchPath.startsWith('/archive') && 'active']}>
                 {t('nav.blog')}
@@ -88,7 +87,7 @@ const matchPath = currentPath.replace(/^\/en/, '') || '/';
                 <span class="theme-icon-dark"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
               </button>
             </div>
-          </div>
+          </div><!-- masthead-bar -->
         </header>
       </div>
 
