@@ -22,18 +22,8 @@ export default {
         'rule-faint': 'var(--rule-faint)',
         'bg-subtle': 'var(--bg-subtle)',
         'accent': 'var(--accent)',
-        'text-primary': 'var(--ink)',
-        'text-secondary': 'var(--ink-light)',
-        'text-tertiary': 'var(--ink-muted)',
-        'text-muted': 'var(--ink-faint)',
-        'border': 'var(--rule)',
-        'border-light': 'var(--rule-light)',
-        'bg-page': 'var(--paper)',
         'link': 'var(--ink)',
         'link-hover': 'var(--accent)',
-        'quality-high': '#059669',
-        'quality-medium': '#d97706',
-        'quality-low': '#dc2626'
       },
       fontSize: {
         'masthead': ['var(--font-masthead)', { lineHeight: '1.1', fontWeight: '900', letterSpacing: '-0.025em' }],
@@ -48,14 +38,6 @@ export default {
       maxWidth: {
         'content': '900px',
         'reading': '65ch'
-      },
-      spacing: {
-        '18': '4.5rem',
-        '88': '22rem',
-      },
-      borderWidth: {
-        '3': '3px',
-        '4': '4px',
       },
     }
   },

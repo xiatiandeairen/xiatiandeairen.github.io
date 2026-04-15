@@ -1,0 +1,116 @@
+/* ═══════════════════════════════════════
+   Base Styles — HTML element resets + typography
+   ═══════════════════════════════════════ */
+
+@layer base {
+  * { border-color: var(--rule); }
+
+  html { background: var(--paper); }
+
+  body {
+    @apply antialiased font-serif;
+    background: var(--paper);
+    color: var(--ink);
+    font-size: var(--font-body);
+    font-weight: 500;
+    line-height: 1.8;
+    font-feature-settings: 'kern' 1, 'liga' 1;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    transition: background var(--transition-color), color var(--transition-color);
+  }
+
+  /* ── Headings ── */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold;
+    color: var(--ink);
+    margin-top: 0;
+  }
+
+  h1 { @apply font-display; margin-bottom: 0.6em; }
+  h2 { margin-top: 2em; margin-bottom: 0.5em; }
+  h3 { margin-top: 1.5em; margin-bottom: 0.4em; }
+
+  /* ── Body text ── */
+  p { margin-bottom: 1.2em; max-width: 65ch; }
+
+  /* ── Links ── */
+  a {
+    color: var(--ink);
+    text-decoration: none;
+    transition: color var(--transition-color);
+  }
+  a:hover { color: var(--accent); }
+
+  /* ── Code ── */
+  code {
+    @apply font-mono px-1.5 py-0.5 rounded;
+    font-size: 0.85em;
+    background: var(--bg-subtle);
+  }
+
+  pre {
+    @apply overflow-x-auto rounded;
+    padding: var(--space-5) var(--space-5);
+    font-size: 0.85em;
+    line-height: 1.65;
+    background: var(--bg-subtle);
+    border: 1px solid var(--rule-light);
+    margin-bottom: var(--space-5);
+  }
+
+  pre code { background: transparent; padding: 0; }
+
+  /* ── Blockquote ── */
+  blockquote {
+    @apply italic;
+    padding-left: var(--space-5);
+    border-left: 2px solid var(--ink);
+    color: var(--ink-light);
+    margin: var(--space-5) 0;
+    max-width: 65ch;
+  }
+
+  /* ── Horizontal rule ── */
+  hr {
+    border: none;
+    border-top: 1px solid var(--rule-light);
+    margin: var(--space-7) 0;
+  }
+
+  /* ── Lists ── */
+  ul, ol { margin-bottom: 1.2em; max-width: 65ch; }
+  li { margin-bottom: var(--space-1); }
+
+  /* ── Media ── */
+  img { @apply max-w-full h-auto; margin-bottom: 1.2em; }
+
+  /* ── Tables ── */
+  table { @apply w-full border-collapse; margin-bottom: 1.2em; }
+
+  th, td {
+    @apply px-4 py-2 text-left;
+    border: 1px solid var(--rule-light);
+    font-size: var(--font-small);
+  }
+
+  th {
+    @apply font-semibold;
+    background: var(--bg-subtle);
+  }
+}
+
+/* ── Page fade-in animation ── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Skip link ── */
+.skip-link {
+  @apply absolute left-0 top-0 -translate-y-full z-[100] focus:translate-y-0 focus:outline-none transition-transform;
+  padding: var(--space-2) var(--space-4);
+  background: var(--ink);
+  color: var(--paper);
+}

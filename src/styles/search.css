@@ -1,0 +1,110 @@
+/* ═══════════════════════════════════════
+   Search Overlay
+   ═══════════════════════════════════════ */
+
+.search-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 15vh;
+}
+
+.search-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+}
+
+.search-dialog {
+  position: relative;
+  width: 90%;
+  max-width: 520px;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+}
+
+.search-input-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--rule-light);
+}
+
+.search-icon {
+  flex-shrink: 0;
+  color: var(--ink-muted);
+}
+
+.search-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-family: 'Noto Serif SC', Georgia, serif;
+  font-size: var(--font-body);
+  font-weight: 500;
+  color: var(--ink);
+  outline: none;
+}
+
+.search-input::placeholder {
+  color: var(--ink-ghost);
+}
+
+.search-esc {
+  font-family: Inter, sans-serif;
+  font-size: 0.625rem;
+  color: var(--ink-ghost);
+  border: 1px solid var(--rule-light);
+  border-radius: var(--radius-sm);
+  padding: 1px var(--space-2);
+  flex-shrink: 0;
+}
+
+.search-results {
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.search-result-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-3) var(--space-4);
+  text-decoration: none;
+  color: var(--ink);
+  transition: background var(--transition-color);
+  border-bottom: 1px solid var(--rule-faint);
+}
+
+.search-result-item:hover {
+  background: var(--bg-subtle);
+  color: var(--ink);
+}
+
+.search-result-title {
+  font-size: var(--font-small);
+  font-weight: 600;
+}
+
+.search-result-date {
+  font-family: Inter, sans-serif;
+  font-size: var(--font-caption);
+  color: var(--ink-ghost);
+  flex-shrink: 0;
+  margin-left: var(--space-4);
+}
+
+.search-empty {
+  padding: var(--space-5) var(--space-4);
+  text-align: center;
+  font-size: var(--font-small);
+  color: var(--ink-muted);
+}
