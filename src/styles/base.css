@@ -41,7 +41,7 @@
     text-decoration: none;
     transition: color var(--transition-color);
   }
-  a:hover { color: var(--accent); }
+  a:hover { color: var(--ink-hover); }
 
   /* ── Code ── */
   code {

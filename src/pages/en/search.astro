@@ -43,9 +43,11 @@ const query = Astro.url.searchParams.get('q') || '';
             var results = index.notes.filter(function(n) {
               return n.title.toLowerCase().includes(term) || n.content.toLowerCase().includes(term) || n.tags.some(function(t){return t.toLowerCase().includes(term)}) || n.topics.some(function(t){return t.toLowerCase().includes(term)});
             });
-            if (results.length === 0) { c.innerHTML = '<p class="font-sans text-small text-ink-muted text-center py-8">No matching notes found</p>'; return; }
+            if (results.length === 0) { c.innerHTML = '<div class="py-8 text-center"><p class="font-sans text-small text-ink-muted mb-3">No results for "' + query.replace(/</g,'&lt;') + '"</p><p class="font-sans text-caption text-ink-ghost">Try searching by title, tags, or content keywords</p></div>'; return; }
+            function hl(text, t) { var re = new RegExp('(' + t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi'); return text.replace(re, '<mark>$1</mark>'); }
             c.innerHTML = '<p class="font-sans text-small text-ink-muted mb-4">' + results.length + ' results found</p><div>' + results.map(function(note) {
-              return '<article class="search-result-card"><div class="cat-label">' + new Date(note.date).toLocaleDateString('en-US') + '</div><h3><a href="/notes/' + note.slug + '">' + note.title.replace(/</g,'&lt;') + '</a></h3><p>' + note.content.substring(0,150).replace(/</g,'&lt;') + '…</p></article>';
+              var title = note.title.replace(/</g,'&lt;'); var snippet = note.content.substring(0,150).replace(/</g,'&lt;');
+              return '<a href="/notes/' + note.slug + '" class="archive-item"><div><div class="archive-item-title">' + hl(title, term) + '</div><div class="cat-label">' + new Date(note.date).toLocaleDateString('en-US') + '</div></div><div class="archive-item-meta font-sans"><p>' + hl(snippet, term) + '…</p></div></a>';
             }).join('') + '</div>';
           } catch(e) { c.innerHTML = '<p class="font-sans text-small text-ink-muted text-center py-8">Search error</p>'; }
         }

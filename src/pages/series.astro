@@ -26,7 +26,7 @@ for (const [, notes] of seriesMap) {
 const seriesList = Array.from(seriesMap.entries());
 
 function readingTime(content: string): number {
-  return Math.max(1, Math.round(content.replace(/\s+/g, ' ').trim().length / 400));
+  return Math.max(1, Math.round(content.replace(/\s+/g, ' ').trim().length / 300));
 }
 ---
 

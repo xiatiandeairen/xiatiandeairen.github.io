@@ -6,9 +6,17 @@ import { getLang, useT } from '../i18n';
 const lang = getLang(Astro.url.pathname);
 const t = useT(lang);
 const seo = generatePageMeta({ title: t('about.title'), description: t('about.subtitle'), path: '/about' });
+
+const personJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: '夏天的爱人',
+  url: 'https://xiatiandeairen.github.io',
+  sameAs: ['https://github.com/xiatiandeairen'],
+};
 ---
 
-<BaseLayout title={t('about.title')} seo={seo} lang={lang}>
+<BaseLayout title={t('about.title')} seo={seo} lang={lang} jsonLd={personJsonLd}>
   <div class="layout-dual-wide">
     <main>
       <h1 class="font-display text-h1 mb-5">关于这里</h1>

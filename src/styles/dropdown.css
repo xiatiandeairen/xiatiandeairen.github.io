@@ -72,7 +72,7 @@
   transform: translateY(-50%);
   width: 2px;
   height: 0;
-  background: var(--accent);
+  background: var(--ink-hover);
   transition: height var(--transition-all);
 }
 
@@ -84,7 +84,7 @@
 
 /* State: active (selected) */
 .dropdown-item.active {
-  color: var(--accent);
+  color: var(--ink-hover);
   font-weight: 600;
 }
 
@@ -94,6 +94,6 @@
 
 /* State: active + hover */
 .dropdown-item.active:hover {
-  color: var(--accent);
+  color: var(--ink-hover);
   background: var(--rule-faint);
 }

@@ -1,17 +1,32 @@
 ---
+/* Category: Layout
+   Patterns: text-hierarchy, card-divider
+   Tokens: --font-caption, --font-small, --ink, --ink-muted, --rule-faint
+   See: src/styles/DESIGN_SYSTEM.md §3.6 */
 import { getAllNotes, sortNotes } from '../utils/notes';
 import { useT, localePath, type Lang } from '../i18n';
 
 interface Props {
-  lang: Lang;
+  lang?: Lang;
 }
 
-const { lang } = Astro.props;
+const { lang = 'zh' } = Astro.props;
 const t = useT(lang);
 
 // Popular: top 5 most recent
 const allNotes = getAllNotes();
 const popular = sortNotes(allNotes, 'date', 'desc').slice(0, 3);
+
+// Hot tags: top 5 by note count
+const tagCountMap = new Map<string, number>();
+for (const note of allNotes) {
+  for (const tag of note.tags) {
+    tagCountMap.set(tag.name, (tagCountMap.get(tag.name) || 0) + 1);
+  }
+}
+const hotTags = Array.from(tagCountMap.entries())
+  .sort((a, b) => b[1] - a[1])
+  .slice(0, 5);
 
 // Series: unique series names
 const seriesMap = new Map<string, number>();
@@ -50,6 +65,20 @@ const hasMoreSeries = seriesMap.size > 3;
       {hasMoreSeries && (
         <a href={localePath('/series', lang)} class="sidebar-more font-sans">{lang === 'zh' ? '全部系列 →' : 'All series →'}</a>
       )}
+    </div>
+  )}
+
+  {/* Hot Tags */}
+  {hotTags.length > 0 && (
+    <div class="sidebar-section">
+      <div class="section-label">{lang === 'zh' ? '热门标签' : 'Tags'}</div>
+      <div class="sidebar-tags">
+        {hotTags.map(([name, count]) => (
+          <a href={`/tags/${name}`} class="sidebar-tag-chip font-sans">
+            {name} <span class="sidebar-tag-count">{count}</span>
+          </a>
+        ))}
+      </div>
     </div>
   )}
 
@@ -151,6 +180,35 @@ const hasMoreSeries = seriesMap.size > 3;
 
   .sidebar-more:hover {
     color: var(--accent);
+  }
+
+  /* Tags */
+  .sidebar-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1);
+  }
+
+  .sidebar-tag-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    padding: 2px var(--space-2);
+    font-size: var(--font-label);
+    color: var(--ink-muted);
+    border: 1px solid var(--rule-faint);
+    text-decoration: none;
+    transition: all var(--duration-fast);
+  }
+
+  .sidebar-tag-chip:hover {
+    color: var(--ink);
+    border-color: var(--rule);
+  }
+
+  .sidebar-tag-count {
+    font-size: var(--font-label);
+    color: var(--ink-ghost);
   }
 
   /* RSS */

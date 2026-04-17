@@ -25,10 +25,27 @@
   font-weight: 700;
   color: var(--ink);
   transition: color var(--transition-color);
+  position: relative;
+  display: inline-block;
+}
+
+.masthead-brand::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: var(--ink-hover);
+  transition: width var(--duration-slow) ease;
 }
 
 .masthead-brand:hover {
-  color: var(--accent);
+  color: var(--ink-hover);
+}
+
+.masthead-brand:hover::after {
+  width: 100%;
 }
 
 /* ── Bottom row: [spacer] [center: tagline | sep | nav] [tools] ── */
@@ -89,7 +106,7 @@
   right: var(--space-2);
   width: 0;
   height: 1px;
-  background: var(--accent);
+  background: var(--ink-hover);
   transition: width var(--duration-slow) ease;
 }
 
