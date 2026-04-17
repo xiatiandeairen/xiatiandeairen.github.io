@@ -207,6 +207,20 @@
   .layout-featured-divider { display: none; }
   .layout-featured-main { padding-right: 0; }
 
+  /* Secondary dual → single column */
+  .layout-featured-secondary {
+    grid-template-columns: 1fr;
+  }
+  .layout-featured-secondary::before { display: none; }
+  .article-card-secondary:first-child { padding-right: 0; }
+  .article-card-secondary:last-child {
+    padding-left: 0;
+    grid-column: auto;
+    grid-row: auto;
+    border-top: 1px solid var(--rule-light);
+    padding-top: var(--space-3);
+  }
+
   .layout-featured-side {
     padding-left: 0;
     border-top: 1px solid var(--rule-light);

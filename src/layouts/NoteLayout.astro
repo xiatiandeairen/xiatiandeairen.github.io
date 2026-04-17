@@ -6,12 +6,13 @@ interface Props {
   note: any;
   seo?: SEOData;
   mode?: 'public' | 'audit';
+  jsonLd?: Record<string, any>;
 }
 
-const { note, seo, mode = 'public' } = Astro.props;
+const { note, seo, mode = 'public', jsonLd } = Astro.props;
 ---
 
-<BaseLayout seo={seo}>
+<BaseLayout seo={seo} jsonLd={jsonLd}>
   <article>
     <slot />
   </article>

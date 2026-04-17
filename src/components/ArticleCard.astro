@@ -1,0 +1,101 @@
+---
+/* Category: Content
+   Patterns: hover-indicator, hover-shift, card-divider, text-hierarchy
+   Tokens: --font-h3, --font-small, --ink-muted, --ink-hover, --space-2, --space-3
+   Variants: headline | sidebar | secondary | list
+   See: src/styles/DESIGN_SYSTEM.md §2, §3.1 */
+import type { Note } from '../utils/notes';
+import { formatDate } from '../utils/notes';
+import { useT, type Lang } from '../i18n';
+
+interface Props {
+  note: Note;
+  variant: 'headline' | 'sidebar' | 'secondary' | 'list';
+  lang?: Lang;
+}
+
+const { note, variant, lang = 'zh' } = Astro.props;
+const t = useT(lang);
+const url = `/notes/${note.slug}`;
+
+function plainText(content: string): string {
+  return content
+    .replace(/```[\s\S]*?```/g, '')
+    .replace(/`[^`]+`/g, '')
+    .replace(/#{1,6}\s/g, '')
+    .replace(/\*\*?|__?/g, '')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/[<>]/g, '')
+    .replace(/\n+/g, ' ')
+    .trim();
+}
+
+const excerptLen = variant === 'headline' ? 500 : variant === 'sidebar' ? 50 : variant === 'secondary' ? 80 : 120;
+const excerpt = plainText(note.content).slice(0, excerptLen) + '…';
+
+const dateFormatted = variant === 'list' ? formatDate(note.date, lang === 'en' ? 'en-US' : 'zh-CN') : '';
+const charCount = note.content.replace(/\s+/g, '').length;
+const readingMinutes = Math.max(1, Math.round(charCount / 300));
+---
+
+{variant === 'headline' && (
+  <a href={url} class="article-card article-card-headline">
+    <h2 class="article-card-title font-display">
+      {note.title}
+    </h2>
+    <p class="article-card-excerpt">{excerpt}</p>
+    <div class="article-card-comments">
+      <div class="reader-letter">
+        <span class="reader-letter-quote">"</span>
+        <blockquote class="reader-letter-text font-serif">
+          {lang === 'zh' ? '热门评论即将上线，敬请期待…' : 'Hot comments coming soon…'}
+        </blockquote>
+        <cite class="reader-letter-author">— {lang === 'zh' ? '读者' : 'A Reader'}</cite>
+      </div>
+      <div class="reader-letter">
+        <blockquote class="reader-letter-text font-serif">
+          {lang === 'zh' ? '这篇关于任务编排的思路很有启发性' : 'Great insights on task orchestration'}
+        </blockquote>
+        <cite class="reader-letter-author">— {lang === 'zh' ? '读者' : 'A Reader'}</cite>
+      </div>
+    </div>
+  </a>
+)}
+
+{variant === 'sidebar' && (
+  <article class="article-card article-card-sidebar">
+    <h4 class="article-card-title">
+      <a href={url}>{note.title}</a>
+    </h4>
+    <p class="article-card-excerpt font-sans">{excerpt}</p>
+  </article>
+)}
+
+{variant === 'secondary' && (
+  <article class="article-card article-card-secondary">
+    <h3 class="article-card-title font-serif">
+      <a href={url}>{note.title}</a>
+    </h3>
+    <p class="article-card-excerpt font-sans">{excerpt}</p>
+  </article>
+)}
+
+{variant === 'list' && (
+  <article class="article-card article-card-list">
+    <h2 class="article-card-title font-serif">
+      <a href={url}>{note.title}</a>
+    </h2>
+    <p class="article-card-excerpt font-sans">{excerpt}</p>
+    <div class="article-card-meta font-sans">
+      <time datetime={note.date}>{dateFormatted}</time>
+      <span>·</span>
+      <span>{t('article.readingTime', { min: readingMinutes })}</span>
+      {note.tags.length > 0 && (
+        <>
+          <span>·</span>
+          <span>{note.tags.slice(0, 3).map(tag => tag.name).join(' · ')}</span>
+        </>
+      )}
+    </div>
+  </article>
+)}

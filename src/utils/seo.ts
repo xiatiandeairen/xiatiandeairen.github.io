@@ -24,6 +24,7 @@ export function generateSEOMeta(note: Note, siteConfig = SITE_CONFIG): SEOData {
     ogTitle: note.title,
     ogDescription: description,
     ogType: 'article',
+    ogImage: `${siteConfig.url}/og/${note.slug}.png`,
     canonical: url
   };
 }

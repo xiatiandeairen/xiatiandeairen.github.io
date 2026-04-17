@@ -1,6 +1,6 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import NoteCard from '../../components/NoteCard.astro';
+import ArticleCard from '../../components/ArticleCard.astro';
 import Pagination from '../../components/Pagination.astro';
 import { getAllNotes, sortNotes, paginateNotes } from '../../utils/notes';
 import { generatePageMeta } from '../../utils/seo';
@@ -14,13 +14,11 @@ const sortedNotes = sortNotes(allNotes, 'date', 'desc');
 const { notes, pagination } = paginateNotes(sortedNotes, 1);
 const seo = generatePageMeta({ title: t('site.title'), description: t('site.tagline'), path: '/en' });
 
-const featured = notes[0];
-const sidebarNotes = notes.slice(1, 5);
-const remainingNotes = notes.slice(5);
-
-function plainText(content: string): string {
-  return content.replace(/```[\s\S]*?```/g, '').replace(/`[^`]+`/g, '').replace(/#{1,6}\s/g, '').replace(/\*\*?|__?/g, '').replace(/\[([^\]]+)\]\([^)]+\)/g, '$1').replace(/[<>]/g, '').replace(/\n+/g, ' ').trim();
-}
+const featuredNote = sortedNotes.find((n: any) => n.featured === true);
+const featured = featuredNote || notes[0];
+const sidebarNotes = notes.slice(1, 4);
+const secondaryNotes = notes.slice(4, 6);
+const remainingNotes = notes.slice(6);
 ---
 
 <BaseLayout title={t('site.title')} description={t('site.tagline')} seo={seo} lang={lang}>
@@ -29,29 +27,34 @@ function plainText(content: string): string {
   ) : (
     <>
       <div class="layout-featured">
-        <article class="layout-featured-main">
-          <div class="cat-label">{featured.question.type}{featured.question.subType ? ` · ${featured.question.subType}` : ''}</div>
-          <h2 class="font-display leading-tight featured-heading"><a href={`/notes/${featured.slug}`}>{featured.title}</a></h2>
-          <p class="featured-lead italic max-w-reading">{plainText(featured.content).slice(0, 180)}…</p>
-          <div class="featured-body font-sans">{plainText(featured.content).slice(180, 450)}…</div>
-          <a href={`/notes/${featured.slug}`} class="featured-link font-sans">{t('article.readMore')}</a>
-        </article>
+        <div class="layout-featured-main">
+          <ArticleCard note={featured} variant="headline" lang={lang} />
+        </div>
+
         <div class="layout-featured-divider"></div>
+
         <aside class="layout-featured-side">
           <div class="section-label">{t('article.featured')}</div>
           {sidebarNotes.map((note) => (
-            <div class="sidebar-item">
-              <div class="cat-label">{note.question.type}</div>
-              <h4 class="sidebar-item-title"><a href={`/notes/${note.slug}`}>{note.title}</a></h4>
-              <p class="sidebar-item-excerpt font-sans">{plainText(note.content).slice(0, 70)}…</p>
-            </div>
+            <ArticleCard note={note} variant="sidebar" lang={lang} />
           ))}
         </aside>
+        {secondaryNotes.length > 0 && (
+          <div class="layout-featured-secondary">
+            {secondaryNotes.map((note) => (
+              <ArticleCard note={note} variant="secondary" lang={lang} />
+            ))}
+          </div>
+        )}
       </div>
+
       {remainingNotes.length > 0 && (
         <div class="remaining-section">
-          <div class="section-label">{t('article.more')}</div>
-          <div class="post-list">{remainingNotes.map((note) => (<NoteCard note={note} showExcerpt={true} lang={lang} />))}</div>
+          <div class="post-list">
+            {remainingNotes.map((note) => (
+              <ArticleCard note={note} variant="list" lang={lang} />
+            ))}
+          </div>
         </div>
       )}
       <Pagination currentPage={pagination.currentPage} totalPages={pagination.totalPages} baseUrl="/en" lang={lang} />

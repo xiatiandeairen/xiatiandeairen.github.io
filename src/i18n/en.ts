@@ -6,7 +6,9 @@ export default {
     builtWith: 'Built with Astro',
   },
   nav: {
-    blog: 'Blog',
+    topics: 'Topics',
+    series: 'Series',
+    archive: 'Archive',
     about: 'About',
   },
   article: {

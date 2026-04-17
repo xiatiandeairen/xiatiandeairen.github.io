@@ -91,7 +91,7 @@
     transform: translateY(-50%);
     width: 2px;
     height: 0;
-    background: var(--accent);
+    background: var(--ink-hover);
     transition: height var(--transition-all);
   }
 
@@ -111,35 +111,8 @@
     text-decoration: none;
     transition: color var(--transition-color);
   }
-  .post-card-title a:hover { color: var(--accent); }
+  .post-card-title a:hover { color: var(--ink-hover); }
 
-  /* ── Sidebar item ── */
-  .sidebar-item {
-    padding: var(--space-3) 0;
-    border-bottom: 1px solid var(--rule-faint);
-    position: relative;
-    transition: all var(--transition-all);
-  }
-
-  .sidebar-item::before {
-    content: '';
-    position: absolute;
-    left: calc(-1 * var(--space-3));
-    top: 50%;
-    transform: translateY(-50%);
-    width: 2px;
-    height: 0;
-    background: var(--accent);
-    transition: height var(--transition-all);
-  }
-
-  .sidebar-item:hover::before { height: 50%; }
-  .sidebar-item:last-child { border-bottom: none; }
-
-  .sidebar-item-title { font-size: var(--font-body); font-weight: 700; line-height: 1.35; margin-bottom: 2px; }
-  .sidebar-item-title a { color: var(--ink); text-decoration: none; transition: color var(--transition-color); }
-  .sidebar-item-title a:hover { color: var(--accent); }
-  .sidebar-item-excerpt { font-size: var(--font-caption); color: var(--ink-muted); line-height: 1.55; }
 
   /* ── Archive item ── */
   .archive-item {
@@ -180,26 +153,294 @@
     line-height: 1.6;
   }
 
-  /* ── Featured article (index) ── */
-  .featured-heading { margin-bottom: var(--space-2); }
-  .featured-heading a { color: var(--ink); text-decoration: none; transition: color var(--transition-color); }
-  .featured-heading a:hover { color: var(--accent); }
-  .featured-lead { font-size: var(--font-body); line-height: 1.75; color: var(--ink-muted); margin-bottom: 1em; }
-  .featured-body { font-size: var(--font-small); line-height: 1.75; color: var(--ink-light); }
-  .featured-link {
-    display: inline-block;
+
+  /* ── Secondary dual-column (inside featured area) ──
+     States:
+       normal               default           → two columns with divider, spans full featured width
+       mobile               ≤767px            → single column, divider hidden
+  */
+  .layout-featured-secondary {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: 1fr 1px 1fr;
+    gap: 0;
+    border-top: 1px solid var(--rule);
+    padding-top: var(--space-4);
     margin-top: var(--space-4);
-    font-size: var(--font-caption);
-    color: var(--ink);
-    border-bottom: 1px solid var(--ink);
-    padding-bottom: var(--space-1);
-    text-decoration: none;
-    transition: color var(--transition-color), border-color var(--transition-color);
   }
-  .featured-link:hover { color: var(--accent); border-color: var(--accent); }
+
+  .layout-featured-secondary::before {
+    content: '';
+    grid-column: 2;
+    grid-row: 1;
+    background: var(--rule);
+  }
+
+
+  /* ── Article card ──
+     States:
+       headline           default           → large title, excerpt, comment placeholder
+       sidebar             default           → compact: title + short excerpt
+       secondary           default           → medium: title + excerpt, inside dual-column
+       list                default           → full row: title + excerpt + meta line
+     Platform: hover: hover (link colors)
+  */
+
+  /* Base */
+  .article-card-title a {
+    color: var(--ink);
+    text-decoration: none;
+    transition: color var(--transition-color);
+  }
+  .article-card-title a:hover { color: var(--ink-hover); }
+
+
+  .article-card-excerpt {
+    font-size: var(--font-small);
+    line-height: 1.65;
+    color: var(--ink-muted);
+  }
+
+  /* ── Headline variant ──
+     States:
+       normal    default       → large title with negative letter-spacing, italic excerpt
+       hover     mouse enter   → title underline reveal, color shift
+       active    mouse down    → subtle press (translateY)
+       focus     keyboard      → outline ring
+  */
+  a.article-card-headline {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+    transition: transform 0.05s ease;
+  }
+
+  a.article-card-headline:hover { color: inherit; }
+  a.article-card-headline:hover .article-card-title { color: var(--ink-hover); text-decoration: underline; text-underline-offset: 0.15em; text-decoration-thickness: 1px; }
+  a.article-card-headline:active { transform: translateY(0.5px); }
+  a.article-card-headline:focus-visible { outline: 2px solid var(--ink-hover); outline-offset: 3px; border-radius: 2px; }
+  a.article-card-headline:focus:not(:focus-visible) { outline: none; }
+
+  .article-card-headline .article-card-title {
+    font-size: var(--font-h2);
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    margin-top: 0;
+    margin-left: -0.04em;
+    margin-bottom: var(--space-3);
+    color: var(--ink);
+    transition: color var(--transition-color);
+  }
+
+  .article-card-headline .article-card-excerpt {
+    flex: 1;
+    overflow: hidden;
+    font-size: var(--font-body);
+    line-height: 1.75;
+    font-style: italic;
+    color: var(--ink-light);
+    margin-bottom: 0;
+  }
+
+  /* Reader letters (comment section) */
+  .article-card-comments {
+    flex-shrink: 0;
+    margin-top: var(--space-3);
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--rule-light);
+  }
+
+  .reader-letter {
+    position: relative;
+    padding: var(--space-2) 0;
+  }
+
+  .reader-letter + .reader-letter {
+    border-top: 1px solid var(--rule-faint);
+  }
+
+  .reader-letter-quote {
+    position: absolute;
+    top: -0.3rem;
+    left: -0.4rem;
+    font-family: Georgia, serif;
+    font-size: 3.5rem;
+    line-height: 1;
+    color: var(--rule-light);
+    pointer-events: none;
+  }
+
+  .reader-letter-text {
+    font-style: italic;
+    font-size: var(--font-small);
+    line-height: 1.6;
+    color: var(--ink-muted);
+    margin: 0;
+    padding-left: var(--space-4);
+  }
+
+  .reader-letter-author {
+    display: block;
+    font-family: Inter, sans-serif;
+    font-size: var(--font-caption);
+    font-variant: small-caps;
+    letter-spacing: 0.05em;
+    color: var(--ink-ghost);
+    font-style: normal;
+    padding-left: var(--space-4);
+    margin-top: var(--space-1);
+  }
+
+  /* ── Sidebar variant ──
+     States:
+       normal    default       → compact, tight spacing
+       hover     mouse enter   → row background tint, title color shift
+       active    mouse down    → background deepen
+       focus     keyboard      → outline ring
+  */
+  .article-card-sidebar {
+    padding: var(--space-2) var(--space-3);
+    margin: 0 calc(-1 * var(--space-3));
+    border-bottom: 1px solid var(--rule-faint);
+    border-radius: var(--radius-sm);
+    transition: background var(--transition-color);
+  }
+
+  .article-card-sidebar:hover { background: rgba(0, 0, 0, 0.02); }
+  .article-card-sidebar:hover .article-card-title a { color: var(--ink-hover); }
+  .article-card-sidebar:active { background: rgba(0, 0, 0, 0.04); }
+  .article-card-sidebar:focus-within { outline: 2px solid var(--ink-hover); outline-offset: 2px; }
+  .article-card-sidebar:last-child { border-bottom: none; }
+
+  .article-card-sidebar .article-card-title {
+    font-size: var(--font-body);
+    font-weight: 700;
+    line-height: 1.35;
+    margin-bottom: 2px;
+  }
+
+  .article-card-sidebar .article-card-excerpt {
+    font-size: var(--font-caption);
+    line-height: 1.5;
+    color: var(--ink-faint);
+  }
+
+  /* ── Secondary variant ──
+     States:
+       normal    default       → medium depth, rule under title
+       hover     mouse enter   → left indicator + title underline
+       active    mouse down    → subtle press
+       focus     keyboard      → outline ring
+  */
+  .article-card-secondary {
+    padding: var(--space-3) 0;
+    position: relative;
+    transition: padding-left var(--transition-all), transform 0.05s ease;
+  }
+
+  .article-card-secondary::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 2px;
+    height: 0;
+    background: var(--ink-hover);
+    transition: height var(--transition-all);
+  }
+
+  .article-card-secondary:hover::before { height: 50%; }
+  .article-card-secondary:hover { padding-left: var(--space-1); }
+  .article-card-secondary:hover .article-card-title a { color: var(--ink-hover); text-decoration: underline; text-underline-offset: 0.12em; text-decoration-thickness: 1px; }
+  .article-card-secondary:active { transform: translateY(0.5px); }
+  .article-card-secondary:focus-within { outline: 2px solid var(--ink-hover); outline-offset: 3px; border-radius: 2px; }
+
+  .article-card-secondary:first-child {
+    padding-right: var(--space-5);
+  }
+
+  .article-card-secondary:last-child {
+    padding-left: var(--space-5);
+    grid-column: 3;
+    grid-row: 1;
+  }
+
+  .article-card-secondary .article-card-title {
+    font-size: var(--font-h3);
+    font-weight: 700;
+    line-height: 1.35;
+    margin-bottom: var(--space-1);
+    padding-bottom: var(--space-1);
+    border-bottom: 1px solid var(--rule-faint);
+  }
+
+  .article-card-secondary .article-card-excerpt {
+    margin-top: var(--space-1);
+  }
+
+  /* ── List variant ──
+     States:
+       normal    default       → rhythmic, meta with letter-spacing contrast
+       hover     mouse enter   → row background + left indicator + title color
+       active    mouse down    → background deepen
+       focus     keyboard      → outline ring
+  */
+  .article-card-list {
+    padding: var(--space-3) var(--space-3);
+    margin: 0 calc(-1 * var(--space-3));
+    border-bottom: 1px solid var(--rule-faint);
+    border-radius: var(--radius-sm);
+    position: relative;
+    transition: background var(--transition-color);
+  }
+
+  .article-card-list::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 2px;
+    height: 0;
+    background: var(--ink-hover);
+    transition: height var(--transition-all);
+  }
+
+  .article-card-list:hover { background: rgba(0, 0, 0, 0.02); }
+  .article-card-list:hover::before { height: 60%; }
+  .article-card-list:hover .article-card-title a { color: var(--ink-hover); }
+  .article-card-list:active { background: rgba(0, 0, 0, 0.04); }
+  .article-card-list:focus-within { outline: 2px solid var(--ink-hover); outline-offset: 2px; }
+
+  .article-card-list .article-card-title {
+    font-size: var(--font-h3);
+    font-weight: 700;
+    line-height: 1.35;
+    margin-bottom: var(--space-1);
+  }
+
+  .article-card-list .article-card-excerpt {
+    margin: var(--space-1) 0 var(--space-2);
+  }
+
+  .article-card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+    font-family: Inter, sans-serif;
+    font-size: var(--font-caption);
+    letter-spacing: 0.04em;
+    color: var(--ink-ghost);
+  }
 
   /* ── Remaining section ── */
-  .remaining-section { margin-top: var(--space-6); padding-top: var(--space-5); border-top: 1px solid var(--rule); }
+  .remaining-section { margin-top: var(--space-6); padding-top: var(--space-5); border-top: 3px solid var(--ink); }
 
   /* ── Back to top ── */
   .back-to-top {

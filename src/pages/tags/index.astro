@@ -21,45 +21,39 @@ const seo = generatePageMeta({
   {rootTags.length === 0 ? (
     <p class="text-ink-muted text-center py-16 font-sans">暂无标签</p>
   ) : (
-    <div class="space-y-0">
+    <div>
       {rootTags.map((rootTag) => {
         const noteCount = allNotes.filter(note =>
           note.tags.some(tag => tag.name === rootTag.name || tag.parent === rootTag.name)
         ).length;
 
         return (
-          <div class="border-b border-rule-light py-4 last:border-b-0">
-            <div class="flex items-center justify-between">
-              <a
-                href={`/tags/${rootTag.name}`}
-                class="text-h3 text-ink no-underline hover:text-link-hover transition-colors"
-              >
-                {rootTag.name}
-              </a>
-              <span class="font-sans text-caption text-ink-ghost">
-                {noteCount} 篇
-              </span>
-            </div>
+          <div>
+            <a href={`/tags/${rootTag.name}`} class="archive-item">
+              <div>
+                <div class="archive-item-title">{rootTag.name}</div>
+              </div>
+              <div class="archive-item-meta font-sans">
+                <span>{noteCount} 篇</span>
+              </div>
+            </a>
 
             {rootTag.children.length > 0 && (
-              <div class="ml-4 mt-2 space-y-1.5">
+              <div class="ml-6">
                 {rootTag.children.map((childTag) => {
                   const childNoteCount = allNotes.filter(note =>
                     note.tags.some(tag => tag.name === childTag.name)
                   ).length;
 
                   return (
-                    <div class="flex items-center justify-between">
-                      <a
-                        href={`/tags/${childTag.name}`}
-                        class="font-serif text-body text-ink-light no-underline hover:text-ink transition-colors"
-                      >
-                        {childTag.name}
-                      </a>
-                      <span class="font-sans text-caption text-ink-ghost">
-                        {childNoteCount} 篇
-                      </span>
-                    </div>
+                    <a href={`/tags/${childTag.name}`} class="archive-item">
+                      <div>
+                        <div class="archive-item-title" style="font-weight:400">{childTag.name}</div>
+                      </div>
+                      <div class="archive-item-meta font-sans">
+                        <span>{childNoteCount} 篇</span>
+                      </div>
+                    </a>
                   );
                 })}
               </div>

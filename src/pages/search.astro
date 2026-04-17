@@ -80,29 +80,22 @@ const query = Astro.url.searchParams.get('q') || '';
             });
 
             if (results.length === 0) {
-              resultsContainer.innerHTML = '<p class="font-sans text-small text-ink-muted text-center py-8">未找到匹配的笔记</p>';
+              resultsContainer.innerHTML = '<div class="py-8 text-center"><p class="font-sans text-small text-ink-muted mb-3">未找到「' + query.replace(/</g,'&lt;') + '」的匹配结果</p><p class="font-sans text-caption text-ink-ghost">试试搜索文章标题、标签或内容关键词</p></div>';
               return;
             }
 
-            resultsContainer.innerHTML = `
-              <p class="font-sans text-small text-ink-muted mb-4">找到 ${results.length} 条结果</p>
-              <div>
-                ${results.map(note => {
-                  const escapedTitle = note.title.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-                  const escapedContent = note.content.substring(0, 150).replace(/</g, '&lt;').replace(/>/g, '&gt;');
-                  const dateStr = new Date(note.date).toLocaleDateString('zh-CN');
-                  const tagsStr = note.tags.length > 0 ? note.tags.join(' · ') : '';
+            function highlight(text, term) {
+              var re = new RegExp('(' + term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+              return text.replace(re, '<mark>$1</mark>');
+            }
 
-                  return `
-                    <article class="search-result-card">
-                      <div class="cat-label">${dateStr}${tagsStr ? ' · ' + tagsStr : ''}</div>
-                      <h3><a href="/notes/${note.slug}">${escapedTitle}</a></h3>
-                      <p>${escapedContent}${note.content.length > 150 ? '…' : ''}</p>
-                    </article>
-                  `;
-                }).join('')}
-              </div>
-            `;
+            resultsContainer.innerHTML = '<p class="font-sans text-small text-ink-muted mb-4">找到 ' + results.length + ' 条结果</p><div>' + results.map(function(note) {
+              var escapedTitle = note.title.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+              var snippet = note.content.substring(0, 150).replace(/</g, '&lt;').replace(/>/g, '&gt;');
+              var dateStr = new Date(note.date).toLocaleDateString('zh-CN');
+              var tagsStr = note.tags.length > 0 ? note.tags.join(' · ') : '';
+              return '<a href="/notes/' + note.slug + '" class="archive-item"><div><div class="archive-item-title">' + highlight(escapedTitle, searchTerm) + '</div><div class="cat-label">' + dateStr + (tagsStr ? ' · ' + tagsStr : '') + '</div></div><div class="archive-item-meta font-sans"><p>' + highlight(snippet, searchTerm) + (note.content.length > 150 ? '…' : '') + '</p></div></a>';
+            }).join('') + '</div>';
           } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
             resultsContainer.innerHTML = `

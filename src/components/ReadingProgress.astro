@@ -1,0 +1,19 @@
+---
+/* Reading progress bar — fixed 1px top bar that fills as user scrolls.
+   CSS defined in components.css (.reading-progress).
+   Scroll listener uses passive event for performance. */
+---
+
+<div class="reading-progress" id="reading-progress"></div>
+
+<script is:inline>
+  (function() {
+    var bar = document.getElementById('reading-progress');
+    if (bar) {
+      window.addEventListener('scroll', function() {
+        var h = document.documentElement.scrollHeight - window.innerHeight;
+        if (h > 0) bar.style.width = (window.scrollY / h * 100) + '%';
+      }, { passive: true });
+    }
+  })();
+</script>

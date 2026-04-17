@@ -1,0 +1,107 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { generatePageMeta } from '../utils/seo';
+import { getLang, useT } from '../i18n';
+
+const lang = getLang(Astro.url.pathname);
+const t = useT(lang);
+const seo = generatePageMeta({ title: '订阅', description: '通过 RSS 订阅夏天的爱人', path: '/subscribe' });
+const rssUrl = 'https://xiatiandeairen.github.io/rss.xml';
+---
+
+<BaseLayout title="订阅" seo={seo} lang={lang}>
+  <header class="mb-8 pb-6 border-b border-rule-light">
+    <h1 class="font-display text-h1 mb-2">订阅</h1>
+    <p class="font-sans text-small text-ink-muted">通过 RSS 获取最新文章更新，无需注册、无广告、无算法推荐。</p>
+  </header>
+
+  <div class="subscribe-content">
+    <section class="mb-8">
+      <h2 class="font-display text-h3 mb-3">什么是 RSS？</h2>
+      <p class="font-serif text-body text-ink-light mb-4">
+        RSS（Really Simple Syndication）是一种内容订阅协议。你可以用 RSS 阅读器订阅多个网站，所有新文章会自动汇聚���一个地方——像是你的个人报纸。
+      </p>
+    </section>
+
+    <section class="mb-8">
+      <h2 class="font-display text-h3 mb-3">订阅地址</h2>
+      <div class="rss-url-box">
+        <code class="rss-url font-sans">{rssUrl}</code>
+        <button id="copy-rss" class="copy-btn font-sans" data-url={rssUrl}>复制</button>
+      </div>
+    </section>
+
+    <section class="mb-8">
+      <h2 class="font-display text-h3 mb-3">推荐阅读器</h2>
+      <div class="reader-list">
+        <div class="reader-item">
+          <div class="archive-item-title">NetNewsWire</div>
+          <div class="font-sans text-caption text-ink-ghost">macOS / iOS · 免费开源</div>
+        </div>
+        <div class="reader-item">
+          <div class="archive-item-title">Reeder</div>
+          <div class="font-sans text-caption text-ink-ghost">macOS / iOS · 付费</div>
+        </div>
+        <div class="reader-item">
+          <div class="archive-item-title">Feedly</div>
+          <div class="font-sans text-caption text-ink-ghost">Web / iOS / Android · 免费 + 付费</div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script is:inline>
+    document.getElementById('copy-rss').addEventListener('click', function() {
+      var btn = this;
+      navigator.clipboard.writeText(btn.dataset.url).then(function() {
+        btn.textContent = '已复制';
+        setTimeout(function() { btn.textContent = '复制'; }, 2000);
+      });
+    });
+  </script>
+</BaseLayout>
+
+<style>
+  .subscribe-content {
+    max-width: 640px;
+  }
+  .rss-url-box {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--rule);
+    background: var(--bg-subtle);
+  }
+  .rss-url {
+    flex: 1;
+    font-size: var(--font-small);
+    color: var(--ink);
+    word-break: break-all;
+  }
+  .copy-btn {
+    padding: var(--space-1) var(--space-3);
+    font-size: var(--font-caption);
+    color: var(--ink-muted);
+    border: 1px solid var(--rule-light);
+    background: var(--paper);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color var(--transition-color), border-color var(--transition-color);
+  }
+  .copy-btn:hover {
+    color: var(--ink);
+    border-color: var(--rule);
+  }
+  .reader-list {
+    display: flex;
+    flex-direction: column;
+  }
+  .reader-item {
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid var(--rule-faint);
+  }
+  .reader-item:last-child {
+    border-bottom: none;
+  }
+</style>

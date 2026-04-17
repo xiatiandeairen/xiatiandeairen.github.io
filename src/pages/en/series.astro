@@ -19,7 +19,7 @@ for (const note of allNotes) {
 for (const [, notes] of seriesMap) notes.sort((a: any, b: any) => ((a as any).series?.order || 0) - ((b as any).series?.order || 0));
 const seriesList = Array.from(seriesMap.entries());
 
-function readingTime(content: string): number { return Math.max(1, Math.round(content.replace(/\s+/g, ' ').trim().length / 400)); }
+function readingTime(content: string): number { return Math.max(1, Math.round(content.replace(/\s+/g, ' ').trim().length / 300)); }
 ---
 
 <BaseLayout title={t('series.title')} seo={seo} lang={lang}>

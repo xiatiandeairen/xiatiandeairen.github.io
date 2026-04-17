@@ -24,7 +24,7 @@ for (const note of sorted) {
   if (month !== currentMonth) { yearGroups[yearGroups.length - 1].months.push({ label: month, notes: [] }); currentMonth = month; }
   yearGroups[yearGroups.length - 1].months[yearGroups[yearGroups.length - 1].months.length - 1].notes.push(note);
 }
-function readingTime(content: string): number { return Math.max(1, Math.round(content.replace(/\s+/g, ' ').trim().length / 400)); }
+function readingTime(content: string): number { return Math.max(1, Math.round(content.replace(/\s+/g, ' ').trim().length / 300)); }
 const types = [...new Set(sorted.map(n => n.question.type))].sort();
 ---
 
@@ -74,16 +74,27 @@ const types = [...new Set(sorted.map(n => n.question.type))].sort();
     </aside>
   </div>
   <script is:inline>
-    document.querySelectorAll('.filter-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        const filter = btn.dataset.filter;
-        document.querySelectorAll('.archive-item').forEach(item => {
+    (function() {
+      function applyFilter(filter) {
+        document.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active'); });
+        var active = document.querySelector('.filter-btn[data-filter="' + filter + '"]') || document.querySelector('.filter-btn[data-filter="all"]');
+        if (active) active.classList.add('active');
+        document.querySelectorAll('.archive-item').forEach(function(item) {
           item.style.display = (filter === 'all' || item.dataset.type === filter) ? '' : 'none';
         });
+      }
+      var initial = new URLSearchParams(window.location.search).get('category') || 'all';
+      applyFilter(initial);
+      document.querySelectorAll('.filter-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          var filter = btn.dataset.filter;
+          applyFilter(filter);
+          var url = new URL(window.location);
+          if (filter === 'all') { url.searchParams.delete('category'); } else { url.searchParams.set('category', filter); }
+          history.replaceState(null, '', url);
+        });
       });
-    });
+    })();
   </script>
 </BaseLayout>
 

@@ -28,19 +28,16 @@ const seo = generatePageMeta({
   {topics.length === 0 ? (
     <p class="text-ink-muted text-center py-16 font-sans">暂无主题</p>
   ) : (
-    <div class="space-y-0">
+    <div>
       {topics.map((topic) => (
-        <div class="flex items-center justify-between border-b border-rule-light py-4 last:border-b-0">
-          <a
-            href={`/topics/${topic.name}`}
-            class="text-h3 text-ink no-underline hover:text-link-hover transition-colors"
-          >
-            {topic.name}
-          </a>
-          <span class="font-sans text-caption text-ink-ghost">
-            {topic.count} 篇笔记
-          </span>
-        </div>
+        <a href={`/topics/${topic.name}`} class="archive-item">
+          <div>
+            <div class="archive-item-title">{topic.name}</div>
+          </div>
+          <div class="archive-item-meta font-sans">
+            <span>{topic.count} 篇笔记</span>
+          </div>
+        </a>
       ))}
     </div>
   )}

@@ -41,7 +41,8 @@ export async function getStaticPaths() {
   return notes.map((note) => {
     const seo = generateSEOMeta(note);
     const mode = 'public';
-    const htmlContent = marked.parse(note.content);
+    const contentWithoutH1 = note.content.replace(/^#\s+.+\n*/m, '');
+    const htmlContent = marked.parse(contentWithoutH1);
     const toc = extractToc(note.content);
     const related = getRelated(note, notes);
 
@@ -61,7 +62,7 @@ const urlMode = Astro.url.searchParams.get('mode');
 const displayMode = urlMode === 'audit' ? 'audit' : mode;
 
 const charCount = note.content.replace(/\s+/g, '').length;
-const readingMinutes = Math.max(1, Math.round(charCount / 400));
+const readingMinutes = Math.max(1, Math.round(charCount / 300));
 const wordCount = note.content.replace(/\s+/g, ' ').trim().length;
 
 // Series detection from frontmatter
@@ -73,9 +74,20 @@ const seriesNotes = series ? getAllNotes()
 const seriesIndex = seriesNotes.findIndex((n: any) => n.slug === note.slug);
 const seriesPrev = seriesIndex > 0 ? seriesNotes[seriesIndex - 1] : null;
 const seriesNext = seriesIndex < seriesNotes.length - 1 ? seriesNotes[seriesIndex + 1] : null;
+
+const articleJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: note.title,
+  datePublished: note.date,
+  description: note.content.slice(0, 160).replace(/\n/g, ' ').trim(),
+  author: { '@type': 'Person', name: '夏天的爱人', url: 'https://xiatiandeairen.github.io/about' },
+  url: `https://xiatiandeairen.github.io/notes/${note.slug}`,
+  image: `https://xiatiandeairen.github.io/og/${note.slug}.png`,
+};
 ---
 
-<NoteLayout note={note} seo={seo} mode={displayMode}>
+<NoteLayout note={note} seo={seo} mode={displayMode} jsonLd={articleJsonLd}>
   <div class="reading-progress" id="reading-progress"></div>
 
   {/* Series banner */}
@@ -87,7 +99,7 @@ const seriesNext = seriesIndex < seriesNotes.length - 1 ? seriesNotes[seriesInde
     </div>
   )}
 
-  <header class="mb-8 pb-6 border-b border-rule">
+  <header class="article-header">
     <div class="cat-label mb-2">
       {note.question.type}
       {note.question.subType ? ` · ${note.question.subType}` : ''}
@@ -100,76 +112,55 @@ const seriesNext = seriesIndex < seriesNotes.length - 1 ? seriesNotes[seriesInde
       <span>{'·'}</span>
       <span>{wordCount.toLocaleString() + ' 字'}</span>
     </div>
+
+    {/* Tags + Topics inline */}
+    {(note.tags.length > 0 || note.topics.length > 0) && (
+      <div class="article-taxonomy">
+        {note.tags.map((tag) => (
+          <a href={`/tags/${encodeURIComponent(tag.name)}`} class="taxonomy-chip font-sans">{tag.name}</a>
+        ))}
+        {note.topics.map((topic) => (
+          <a href={`/topics/${encodeURIComponent(topic.name)}`} class="taxonomy-chip taxonomy-topic font-sans">{topic.name}</a>
+        ))}
+      </div>
+    )}
   </header>
 
-  <div class="layout-dual">
-    <article id="article-body" class="prose prose-lg max-w-reading
-      prose-headings:font-display prose-headings:text-ink prose-headings:font-bold
-      prose-h2:text-xl prose-h2:mt-10 prose-h2:mb-3
-      prose-h3:text-lg prose-h3:mt-8 prose-h3:mb-2
-      prose-p:text-ink-light prose-p:leading-relaxed prose-p:text-body
-      prose-strong:text-ink prose-strong:font-semibold
-      prose-a:text-ink prose-a:underline prose-a:decoration-rule prose-a:underline-offset-2 hover:prose-a:decoration-ink
-      prose-code:text-ink prose-code:bg-bg-subtle prose-code:font-mono prose-code:text-[0.875em]
-      prose-pre:bg-bg-subtle prose-pre:border prose-pre:border-rule-light
-      prose-blockquote:border-ink prose-blockquote:border-l-3 prose-blockquote:text-ink-light prose-blockquote:italic
-      prose-li:text-ink-light prose-li:leading-relaxed"
-    >
-      <div set:html={htmlContent} />
-    </article>
+  <article id="article-body" class="prose prose-lg max-w-none
+    prose-headings:font-display prose-headings:text-ink prose-headings:font-bold
+    prose-h2:text-xl prose-h2:mt-10 prose-h2:mb-3
+    prose-h3:text-lg prose-h3:mt-8 prose-h3:mb-2
+    prose-p:text-ink-light prose-p:leading-relaxed prose-p:text-body
+    prose-strong:text-ink prose-strong:font-semibold
+    prose-a:text-ink prose-a:underline prose-a:decoration-rule prose-a:underline-offset-2 hover:prose-a:decoration-ink
+    prose-code:text-ink prose-code:bg-bg-subtle prose-code:font-mono prose-code:text-[0.875em]
+    prose-pre:bg-bg-subtle prose-pre:border prose-pre:border-rule-light
+    prose-blockquote:border-ink prose-blockquote:border-l-3 prose-blockquote:text-ink-light prose-blockquote:italic
+    prose-li:text-ink-light prose-li:leading-relaxed"
+  >
+    <div set:html={htmlContent} />
+  </article>
 
-    <aside class="article-sidebar sticky top-8 self-start space-y-7">
-      {/* TOC */}
-      {toc.length > 0 && (
-        <nav class="toc-nav">
-          <div class="section-label">{'目录'}</div>
-          {toc.map((item) => (
-            <a
-              href={`#${item.id}`}
-              class:list={['toc-item', item.level === 3 && 'toc-sub']}
-              data-id={item.id}
-            >
-              {item.text}
-            </a>
-          ))}
-        </nav>
-      )}
-
-      {/* Tags */}
-      {note.tags.length > 0 && (
-        <div>
-          <div class="section-label">{'标签'}</div>
-          <div class="flex flex-wrap gap-1.5">
-            {note.tags.map((tag) => (
-              <a
-                href={`/tags/${encodeURIComponent(tag.name)}`}
-                class="font-sans text-caption px-2.5 py-1 border border-rule-light rounded no-underline hover:border-ink hover:text-ink transition-all tag-chip"
-              >
-                {tag.name}
-              </a>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Topics */}
-      {note.topics.length > 0 && (
-        <div>
-          <div class="section-label">{'主题'}</div>
-          <div class="space-y-1">
-            {note.topics.map((topic) => (
-              <a
-                href={`/topics/${encodeURIComponent(topic.name)}`}
-                class="block font-sans text-small no-underline hover:text-ink transition-colors topic-link"
-              >
-                {topic.name}
-              </a>
-            ))}
-          </div>
-        </div>
-      )}
-    </aside>
-  </div>
+  {/* Floating TOC button + overlay */}
+  {toc.length > 0 && (
+    <div class="toc-float" id="toc-float">
+      <button class="toc-float-btn" id="toc-toggle" aria-label="目录">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="11" y2="18"/></svg>
+      </button>
+      <nav class="toc-panel" id="toc-panel">
+        <div class="section-label">{'目录'}</div>
+        {toc.map((item) => (
+          <a
+            href={`#${item.id}`}
+            class:list={['toc-item', item.level === 3 && 'toc-sub']}
+            data-id={item.id}
+          >
+            {item.text}
+          </a>
+        ))}
+      </nav>
+    </div>
+  )}
 
   {/* Related articles */}
   {related.length > 0 && (
@@ -185,6 +176,28 @@ const seriesNext = seriesIndex < seriesNotes.length - 1 ? seriesNotes[seriesInde
       </div>
     </div>
   )}
+
+  {/* Comments (giscus) */}
+  <section class="giscus-section">
+    <div class="section-label">评论</div>
+    <script
+      src="https://giscus.app/client.js"
+      data-repo="xiatiandeairen/xiatiandeairen.github.io"
+      data-repo-id=""
+      data-category="Comments"
+      data-category-id=""
+      data-mapping="pathname"
+      data-strict="0"
+      data-reactions-enabled="1"
+      data-emit-metadata="0"
+      data-input-position="top"
+      data-theme="preferred_color_scheme"
+      data-lang="zh-CN"
+      data-loading="lazy"
+      crossorigin="anonymous"
+      async
+    ></script>
+  </section>
 
   {/* Series navigation */}
   {series && (seriesPrev || seriesNext) && (
@@ -225,10 +238,90 @@ const seriesNext = seriesIndex < seriesNotes.length - 1 ? seriesNotes[seriesInde
   <a href="#main-content" class="back-to-top">{'回到顶部 ↑'}</a>
 
   <style>
+    /* ── Article body: override prose + base.css max-width ── */
+    :global(#article-body) {
+      max-width: none;
+    }
+    :global(#article-body p),
+    :global(#article-body ul),
+    :global(#article-body ol),
+    :global(#article-body blockquote) {
+      max-width: none;
+    }
+
+    /* ── Article header ── */
+    .article-header {
+      margin-bottom: var(--space-7);
+      padding-bottom: var(--space-5);
+      border-bottom: 1px solid var(--rule);
+    }
     .article-meta { font-size: var(--font-caption); color: var(--ink-faint); }
-    .tag-chip { color: var(--ink-muted); }
-    .topic-link { color: var(--ink-muted); }
+    .article-taxonomy {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-1);
+      margin-top: var(--space-3);
+    }
+    .taxonomy-chip {
+      font-size: var(--font-label);
+      padding: 2px var(--space-2);
+      border: 1px solid var(--rule-light);
+      color: var(--ink-muted);
+      text-decoration: none;
+      transition: all var(--duration-fast);
+    }
+    .taxonomy-chip:hover {
+      border-color: var(--rule);
+      color: var(--ink);
+    }
+    .taxonomy-topic {
+      border-style: dashed;
+    }
     .prev-next-title { color: var(--ink); }
+
+    /* ── Floating TOC ── */
+    .toc-float {
+      position: fixed;
+      bottom: var(--space-6);
+      right: var(--space-6);
+      z-index: 40;
+    }
+    .toc-float-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--paper);
+      border: 1px solid var(--rule);
+      color: var(--ink-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      transition: all var(--duration-fast);
+    }
+    .toc-float-btn:hover {
+      color: var(--ink);
+      border-color: var(--ink-muted);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    }
+    .toc-panel {
+      display: none;
+      position: absolute;
+      bottom: 56px;
+      right: 0;
+      width: 260px;
+      max-height: 60vh;
+      overflow-y: auto;
+      background: var(--paper);
+      border: 1px solid var(--rule);
+      border-radius: var(--radius-md);
+      padding: var(--space-4);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    }
+    .toc-panel.open {
+      display: block;
+    }
 
     /* Series banner */
     .series-banner {
@@ -309,11 +402,18 @@ const seriesNext = seriesIndex < seriesNotes.length - 1 ? seriesNotes[seriesInde
     .series-nav-next { text-align: right; }
     .series-nav-title { font-size: var(--font-body); font-weight: 600; color: var(--ink); margin-top: var(--space-1); }
 
+    /* Giscus comments */
+    .giscus-section {
+      margin-top: var(--space-7);
+      padding-top: var(--space-5);
+      border-top: 1px solid var(--rule);
+    }
+
     @media (max-width: 767px) {
-      .article-sidebar .toc-nav { display: none; }
       .series-nav { grid-template-columns: 1fr; }
       .series-nav-next { text-align: left; }
       .related-grid { grid-template-columns: 1fr; }
+      .toc-float { bottom: var(--space-4); right: var(--space-4); }
     }
   </style>
 
@@ -326,6 +426,34 @@ const seriesNext = seriesIndex < seriesNotes.length - 1 ? seriesNotes[seriesInde
           var h = document.documentElement.scrollHeight - window.innerHeight;
           if (h > 0) bar.style.width = (window.scrollY / h * 100) + '%';
         }, { passive: true });
+      }
+
+      // Giscus theme sync on toggle
+      var observer = new MutationObserver(function() {
+        var iframe = document.querySelector('iframe.giscus-frame');
+        if (iframe) {
+          var theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+          iframe.contentWindow.postMessage({ giscus: { setConfig: { theme: theme } } }, 'https://giscus.app');
+        }
+      });
+      observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+
+      // TOC toggle
+      var tocToggle = document.getElementById('toc-toggle');
+      var tocPanel = document.getElementById('toc-panel');
+      if (tocToggle && tocPanel) {
+        tocToggle.addEventListener('click', function(e) {
+          e.stopPropagation();
+          tocPanel.classList.toggle('open');
+        });
+        document.addEventListener('click', function(e) {
+          if (tocPanel.classList.contains('open') && !tocPanel.contains(e.target)) {
+            tocPanel.classList.remove('open');
+          }
+        });
+        tocPanel.querySelectorAll('a').forEach(function(a) {
+          a.addEventListener('click', function() { tocPanel.classList.remove('open'); });
+        });
       }
 
       // TOC scroll spy

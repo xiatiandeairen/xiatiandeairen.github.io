@@ -76,7 +76,8 @@ export const NoteFrontmatterSchema = z.object({
   analysis: AnalysisSchema,
   review: ReviewSchema,
   tags: z.array(TagSchema),
-  topics: z.array(TopicSchema)
+  topics: z.array(TopicSchema),
+  featured: z.boolean().optional()
 }).passthrough();
 
 export type NoteFrontmatter = z.infer<typeof NoteFrontmatterSchema>;
