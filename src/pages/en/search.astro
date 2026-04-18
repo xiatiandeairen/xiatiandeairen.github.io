@@ -19,11 +19,11 @@ const query = Astro.url.searchParams.get('q') || '';
       <div id="search-results"><p class="font-sans text-small text-ink-muted">{t('search.loading')}</p></div>
     ) : (
       <div class="py-8 border-t border-rule-light">
-        <p class="font-sans text-small text-ink-muted mb-3">{t('search.supports')}</p>
+        <p class="font-sans text-small text-ink-muted mb-3">Supports:</p>
         <ul class="list-disc list-inside space-y-1 font-sans text-small text-ink-muted">
-          <li>{t('search.supportTitle')}</li>
-          <li>{t('search.supportContent')}</li>
-          <li>{t('search.supportTags')}</li>
+          <li>Title, content, tags, topics, series</li>
+          <li>Aliases (tag &amp; topic synonyms)</li>
+          <li>Field prefixes: <code>tag:AI</code> · <code>topic:方法论</code> · <code>type:system-design</code> · <code>series:Skills</code></li>
         </ul>
       </div>
     )}
@@ -31,25 +31,93 @@ const query = Astro.url.searchParams.get('q') || '';
   {query && (
     <script is:inline>
       (function() {
+        var PREFIX_RE = /\b(tag|topic|type|series):([^\s]+)/gi;
+        function escapeHtml(s) { return String(s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+        function escapeRe(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+        function highlight(text, term) {
+          if (!term) return escapeHtml(text);
+          return escapeHtml(text).replace(new RegExp(escapeRe(escapeHtml(term)), 'gi'), '<mark>$&</mark>');
+        }
+        function parseQuery(raw) {
+          var out = { free: '' }; var free = raw || ''; var m;
+          PREFIX_RE.lastIndex = 0;
+          while ((m = PREFIX_RE.exec(raw || '')) !== null) { out[m[1].toLowerCase()] = m[2].toLowerCase(); free = free.replace(m[0], ''); }
+          out.free = free.trim().toLowerCase();
+          return out;
+        }
+        function snippetOf(content, term) {
+          if (!content) return ''; if (!term) return content.slice(0, 160);
+          var idx = content.toLowerCase().indexOf(term);
+          if (idx < 0) return content.slice(0, 160);
+          var start = Math.max(0, idx - 60); var end = Math.min(content.length, idx + term.length + 100);
+          return (start > 0 ? '…' : '') + content.slice(start, end) + (end < content.length ? '…' : '');
+        }
+        function searchNotes(rawQuery, index) {
+          var q = parseQuery(rawQuery);
+          if (!q.free && !q.tag && !q.topic && !q.type && !q.series) return [];
+          var hits = [];
+          for (var i = 0; i < index.notes.length; i++) {
+            var n = index.notes[i];
+            if (q.tag) {
+              var tHit = n.tags.some(function(t){ return t.toLowerCase().includes(q.tag); });
+              var taHit = (n.tagAliases || []).some(function(a){ return a.toLowerCase().includes(q.tag); });
+              if (!tHit && !taHit) continue;
+            }
+            if (q.topic) {
+              var tpHit = n.topics.some(function(t){ return t.toLowerCase().includes(q.topic); });
+              var tpaHit = (n.topicAliases || []).some(function(a){ return a.toLowerCase().includes(q.topic); });
+              if (!tpHit && !tpaHit) continue;
+            }
+            if (q.type && !(n.questionType || '').toLowerCase().includes(q.type)) continue;
+            if (q.series && !((n.series || '').toLowerCase().includes(q.series))) continue;
+
+            var score = 0, matched = 'content', free = q.free;
+            if (!free) { score = 50; matched = q.tag ? 'tag' : q.topic ? 'topic' : q.series ? 'series' : q.type ? 'type' : 'content'; }
+            else {
+              var title = n.title.toLowerCase(); var content = (n.content || '').toLowerCase();
+              var tagsLow = n.tags.map(function(t){return t.toLowerCase();});
+              var topicsLow = n.topics.map(function(t){return t.toLowerCase();});
+              var aliasesLow = ((n.tagAliases || []).concat(n.topicAliases || [])).map(function(a){return a.toLowerCase();});
+              var sLow = (n.series || '').toLowerCase();
+              if (title === free) { score = 100; matched = 'title'; }
+              else if (title.includes(free)) { score = 60; matched = 'title'; }
+              else if (tagsLow.indexOf(free) >= 0) { score = 55; matched = 'tag'; }
+              else if (topicsLow.indexOf(free) >= 0) { score = 55; matched = 'topic'; }
+              else if (sLow === free) { score = 50; matched = 'series'; }
+              else if (tagsLow.some(function(t){return t.includes(free);})) { score = 35; matched = 'tag'; }
+              else if (topicsLow.some(function(t){return t.includes(free);})) { score = 35; matched = 'topic'; }
+              else if (sLow.includes(free)) { score = 30; matched = 'series'; }
+              else if (aliasesLow.some(function(a){return a.includes(free);})) { score = 25; matched = 'alias'; }
+              else if (content.includes(free)) { score = 10; matched = 'content'; }
+              else if (q.tag || q.topic || q.type || q.series) { score = 20; }
+              else { continue; }
+            }
+            hits.push({ note: n, score: score, matchedField: matched, snippet: snippetOf(n.content || '', free || q.tag || q.topic || q.series || q.type || '') });
+          }
+          hits.sort(function(a, b) { if (b.score !== a.score) return b.score - a.score; return a.note.date < b.note.date ? 1 : a.note.date > b.note.date ? -1 : 0; });
+          return hits;
+        }
+
         async function performSearch() {
-          var query = new URLSearchParams(window.location.search).get('q') || '';
-          if (!query.trim()) return;
-          var c = document.getElementById('search-results');
-          if (!c) return;
+          var raw = new URLSearchParams(window.location.search).get('q') || '';
+          if (!raw.trim()) return;
+          var c = document.getElementById('search-results'); if (!c) return;
           try {
-            var r = await fetch('/search-index.json');
-            var index = await r.json();
-            var term = query.toLowerCase().trim();
-            var results = index.notes.filter(function(n) {
-              return n.title.toLowerCase().includes(term) || n.content.toLowerCase().includes(term) || n.tags.some(function(t){return t.toLowerCase().includes(term)}) || n.topics.some(function(t){return t.toLowerCase().includes(term)});
-            });
-            if (results.length === 0) { c.innerHTML = '<div class="py-8 text-center"><p class="font-sans text-small text-ink-muted mb-3">No results for "' + query.replace(/</g,'&lt;') + '"</p><p class="font-sans text-caption text-ink-ghost">Try searching by title, tags, or content keywords</p></div>'; return; }
-            function hl(text, t) { var re = new RegExp('(' + t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi'); return text.replace(re, '<mark>$1</mark>'); }
-            c.innerHTML = '<p class="font-sans text-small text-ink-muted mb-4">' + results.length + ' results found</p><div>' + results.map(function(note) {
-              var title = note.title.replace(/</g,'&lt;'); var snippet = note.content.substring(0,150).replace(/</g,'&lt;');
-              return '<a href="/notes/' + note.slug + '" class="archive-item"><div><div class="archive-item-title">' + hl(title, term) + '</div><div class="cat-label">' + new Date(note.date).toLocaleDateString('en-US') + '</div></div><div class="archive-item-meta font-sans"><p>' + hl(snippet, term) + '…</p></div></a>';
+            var index = await (await fetch('/search-index.json')).json();
+            var hits = searchNotes(raw, index);
+            if (!hits.length) { c.innerHTML = '<div class="py-8 text-center"><p class="font-sans text-small text-ink-muted mb-3">No results for "' + escapeHtml(raw) + '"</p><p class="font-sans text-caption text-ink-ghost">Try other terms or prefixes tag:/topic:/type:/series:</p></div>'; return; }
+            var parsed = parseQuery(raw);
+            var term = parsed.free || parsed.tag || parsed.topic || parsed.series || parsed.type || '';
+            var fieldLabel = { title: 'title', tag: 'tag', topic: 'topic', series: 'series', type: 'type', alias: 'alias', content: 'content' };
+            c.innerHTML = '<p class="font-sans text-small text-ink-muted mb-4">' + hits.length + ' results found</p><div>' + hits.map(function(h) {
+              var label = fieldLabel[h.matchedField] || '';
+              return '<a href="/notes/' + h.note.slug + '" class="archive-item">' +
+                '<div><div class="archive-item-title">' + highlight(h.note.title, term) + '</div>' +
+                '<div class="cat-label">' + (label ? '['+label+'] · ' : '') + new Date(h.note.date).toLocaleDateString('en-US') + '</div></div>' +
+                '<div class="archive-item-meta font-sans"><p>' + highlight(h.snippet, term) + '</p></div>' +
+              '</a>';
             }).join('') + '</div>';
-          } catch(e) { c.innerHTML = '<p class="font-sans text-small text-ink-muted text-center py-8">Search error</p>'; }
+          } catch(e) { c.innerHTML = '<p class="font-sans text-small text-ink-muted text-center py-8">Search error</p>'; console.error(e); }
         }
         if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', performSearch); else performSearch();
       })();

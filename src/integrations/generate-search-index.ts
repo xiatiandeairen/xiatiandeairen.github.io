@@ -6,6 +6,10 @@ import matter from 'gray-matter';
 import { validateNoteFrontmatter, validateSlugUniqueness } from '../utils/schema';
 import { generateSearchIndex } from '../utils/search';
 
+// Index schema (v1.1) — per-note fields emitted:
+//   slug, title, content, tags, tagAliases, topics, topicAliases, questionType, series, date
+// Top-level: tags[], topics[], tagCounts{}, topicCounts{}
+
 export default function generateSearchIndexIntegration(): AstroIntegration {
   return {
     name: 'generate-search-index',
