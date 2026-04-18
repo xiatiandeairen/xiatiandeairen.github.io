@@ -14,7 +14,14 @@ export type SortOrder = 'asc' | 'desc';
 
 const notesDir = join(process.cwd(), 'src/content/notes');
 
+// Module-level cache: getAllNotes is called by many pages/components per build;
+// the file system + frontmatter parsing is deterministic within a single build,
+// so we memoize. cachedNotes is invalidated only across builds (process restart).
+let cachedNotes: Note[] | null = null;
+
 export function getAllNotes(): Note[] {
+  if (cachedNotes !== null) return cachedNotes;
+
   let files: string[];
   try {
     files = readdirSync(notesDir);
@@ -31,7 +38,7 @@ export function getAllNotes(): Note[] {
       const filePath = join(notesDir, file);
       const fileContents = readFileSync(filePath, 'utf-8');
       const { data, content } = matter(fileContents);
-      
+
       const frontmatter = validateNoteFrontmatter(data);
       notes.push({
         ...frontmatter,
@@ -45,6 +52,7 @@ export function getAllNotes(): Note[] {
   }
 
   validateSlugUniqueness(notes);
+  cachedNotes = notes;
   return notes;
 }
 
