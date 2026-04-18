@@ -2,6 +2,7 @@
 import NoteLayout from '../../layouts/NoteLayout.astro';
 import MetaFields from '../../components/MetaFields.astro';
 import { getAllNotes, sortNotes } from '../../utils/notes';
+import { getRelated as rankGetRelated } from '../../utils/rank';
 import { generateSEOMeta } from '../../utils/seo';
 import { marked } from 'marked';
 
@@ -32,20 +33,10 @@ export async function getStaticPaths() {
     return toc;
   }
 
-  function getRelated(current: any, allNotes: any[], max: number = 3) {
-    const currentTags = new Set(current.tags.map((t: any) => t.name));
-    if (currentTags.size === 0) return [];
-    return allNotes
-      .filter(n => n.slug !== current.slug)
-      .map(n => {
-        const overlap = n.tags.filter((t: any) => currentTags.has(t.name)).length;
-        return { note: n, overlap };
-      })
-      .filter(r => r.overlap > 0)
-      .sort((a, b) => b.overlap - a.overlap)
-      .slice(0, max)
-      .map(r => r.note);
-  }
+  // Multi-signal related: tag + topic + series + question.type weighted overlap.
+  // See src/utils/rank.ts for the scoring weights.
+  const getRelated = (current: any, allNotes: any[], max: number = 3) =>
+    rankGetRelated(current, allNotes, { max });
 
   const notes = getAllNotes();
   const sortedNotes = sortNotes(notes, 'date', 'desc');
@@ -1270,6 +1261,22 @@ const articleJsonLd = {
           }
         }
       });
+
+      // Track visit for "最近浏览" widget (localStorage FIFO max 5)
+      (function trackVisit() {
+        try {
+          var key = 'recentlyViewed';
+          var slug = location.pathname.replace(/^\/notes\//, '').replace(/\/$/, '');
+          var titleEl = document.querySelector('.article-title');
+          var entry = { slug: slug, title: titleEl ? titleEl.textContent.trim() : slug, ts: Date.now() };
+          var list;
+          try { list = JSON.parse(localStorage.getItem(key) || '[]'); } catch (e) { list = []; }
+          list = list.filter(function(x) { return x.slug !== slug; });
+          list.unshift(entry);
+          list = list.slice(0, 5);
+          localStorage.setItem(key, JSON.stringify(list));
+        } catch (e) {}
+      })();
 
       // Resume reading position (per-slug, saved on scroll-idle)
       var posKey = 'read-pos:' + location.pathname;
