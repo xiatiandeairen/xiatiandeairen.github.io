@@ -4,9 +4,19 @@
 // so pages can inject page-specific shortcuts at runtime.
 //
 // Trigger: `?` or Shift+/ or click the masthead icon. Close: Esc / click backdrop / × btn.
+
+import { getLang, useT, type Lang } from '../i18n';
+
+interface Props {
+  lang?: Lang;
+}
+
+const { lang: propLang } = Astro.props;
+const lang = propLang || getLang(Astro.url.pathname);
+const t = useT(lang);
 ---
 
-<button id="shortcuts-trigger" class="icon-button" aria-label="键盘快捷键" title="键盘快捷键 (?)">
+<button id="shortcuts-trigger" class="icon-button" aria-label={t('shortcuts.triggerLabel')} title={t('shortcuts.triggerLabel') + ' (?)'}>
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
     <circle cx="12" cy="12" r="10"/>
     <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
@@ -18,16 +28,16 @@
   <div class="shortcuts-backdrop" id="shortcuts-backdrop"></div>
   <div class="shortcuts-panel">
     <header class="shortcuts-header">
-      <h2 id="shortcuts-title">键盘快捷键</h2>
-      <button class="shortcuts-close" id="shortcuts-close" aria-label="关闭">×</button>
+      <h2 id="shortcuts-title">{t('shortcuts.title')}</h2>
+      <button class="shortcuts-close" id="shortcuts-close" aria-label={t('shortcuts.close')}>×</button>
     </header>
     <div class="shortcuts-body" id="shortcuts-body">
       <section class="shortcuts-section">
-        <h3>全站</h3>
+        <h3>{t('shortcuts.sectionGlobal')}</h3>
         <dl>
-          <dt><kbd>?</kbd></dt><dd>打开 / 关闭此面板</dd>
-          <dt><kbd>⌘</kbd> <kbd>K</kbd></dt><dd>搜索</dd>
-          <dt><kbd>Esc</kbd></dt><dd>关闭弹窗 / 退出特殊模式</dd>
+          <dt><kbd>?</kbd></dt><dd>{t('shortcuts.toggleHelp')}</dd>
+          <dt><kbd>⌘</kbd> <kbd>K</kbd></dt><dd>{t('shortcuts.search')}</dd>
+          <dt><kbd>Esc</kbd></dt><dd>{t('shortcuts.closeOrExit')}</dd>
         </dl>
       </section>
       {/* page-specific sections appended here by window.__registerShortcuts */}
@@ -92,6 +102,9 @@
     grid-template-columns: repeat(2, 1fr);
     gap: var(--space-4);
     align-items: start;
+  }
+  @media (max-width: 600px) {
+    .shortcuts-body { grid-template-columns: 1fr; }
   }
   .shortcuts-body > section,
   :global(#shortcuts-body .shortcuts-section) {
@@ -160,13 +173,34 @@
     var extras = document.getElementById('shortcuts-extras');
     if (!modal || !trigger) return;
 
-    function open() { modal.hidden = false; }
-    function close() { modal.hidden = true; }
+    var lastFocusedBeforeOpen = null;
+    function focusablesIn(el) {
+      return el.querySelectorAll('a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])');
+    }
+    function open() {
+      lastFocusedBeforeOpen = document.activeElement;
+      modal.hidden = false;
+      if (closeBtn) closeBtn.focus();
+    }
+    function close() {
+      modal.hidden = true;
+      if (lastFocusedBeforeOpen && lastFocusedBeforeOpen.focus) lastFocusedBeforeOpen.focus();
+    }
     function toggle() { modal.hidden ? open() : close(); }
 
     trigger.addEventListener('click', toggle);
     if (closeBtn) closeBtn.addEventListener('click', close);
     if (backdrop) backdrop.addEventListener('click', close);
+
+    // Tab trap inside open modal
+    modal.addEventListener('keydown', function(e) {
+      if (e.key !== 'Tab' || modal.hidden) return;
+      var items = focusablesIn(modal);
+      if (!items.length) return;
+      var first = items[0], last = items[items.length - 1];
+      if (e.shiftKey && document.activeElement === first) { last.focus(); e.preventDefault(); }
+      else if (!e.shiftKey && document.activeElement === last) { first.focus(); e.preventDefault(); }
+    });
 
     document.addEventListener('keydown', function(e) {
       if (e.ctrlKey || e.metaKey || e.altKey) return;

@@ -82,7 +82,7 @@ export function generateSearchIndex(notes: Note[]): SearchIndex {
       topics: note.topics.map(t => t.name),
       topicAliases: noteTopicAliases,
       questionType: note.question.type,
-      series: (note as any).series?.name || '',
+      series: note.series?.name || '',
       date: note.date,
     };
   });
