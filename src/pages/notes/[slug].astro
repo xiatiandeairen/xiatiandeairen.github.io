@@ -85,12 +85,14 @@ const articleJsonLd = {
   description: note.content.slice(0, 160).replace(/\n/g, ' ').trim(),
   author: { '@type': 'Person', name: '夏天的爱人', url: 'https://xiatiandeairen.github.io/about' },
   url: `https://xiatiandeairen.github.io/notes/${note.slug}`,
-  image: `https://xiatiandeairen.github.io/og/${note.slug}.png`,
+  // Per-slug OG image generation is v2; use og-default.svg as static fallback.
+  image: `https://xiatiandeairen.github.io/og-default.svg`,
 };
 ---
 
 <NoteLayout note={note} seo={seo} mode={displayMode} jsonLd={articleJsonLd}>
   <div class="reading-progress" id="reading-progress"></div>
+  <div class="chapter-progress" id="chapter-progress" aria-hidden="true"></div>
 
   {/* Series banner */}
   {series && (
@@ -260,7 +262,37 @@ const articleJsonLd = {
     </div>
   </section>
 
-  {/* Series navigation */}
+  {/* Series continue block: progress + remaining + next-card emphasis */}
+  {series && seriesNotes.length > 1 && (
+    <section class="series-continue" aria-label="系列阅读">
+      <header class="series-continue-head">
+        <div class="series-continue-meta">
+          <span class="series-continue-label">系列 · {series.name}</span>
+          <span class="series-continue-progress">{(seriesIndex + 1) + ' / ' + seriesNotes.length}</span>
+        </div>
+        <div class="series-continue-bar" aria-hidden="true">
+          <span style={`width:${((seriesIndex + 1) / seriesNotes.length) * 100}%`}></span>
+        </div>
+      </header>
+      {seriesNext && (
+        <a href={`/notes/${seriesNext.slug}`} class="series-continue-next">
+          <div class="series-continue-tag">下一篇 · 第 {seriesIndex + 2} 篇 →</div>
+          <div class="series-continue-title font-serif">{seriesNext.title}</div>
+        </a>
+      )}
+      {seriesNotes.length - (seriesIndex + 1) > 1 && (
+        <div class="series-continue-remaining">系列剩余 {seriesNotes.length - (seriesIndex + 1)} 篇 · <a href={`/series`}>查看全部</a></div>
+      )}
+      {seriesPrev && !seriesNext && (
+        <a href={`/notes/${seriesPrev.slug}`} class="series-continue-next">
+          <div class="series-continue-tag">← 上一篇 · 第 {seriesIndex} 篇</div>
+          <div class="series-continue-title font-serif">{seriesPrev.title}</div>
+        </a>
+      )}
+    </section>
+  )}
+
+  {/* Series navigation (compact prev/next) */}
   {series && (seriesPrev || seriesNext) && (
     <nav class="series-nav" aria-label="系列导航">
       {seriesPrev ? (
@@ -539,6 +571,69 @@ const articleJsonLd = {
       line-height: 1.35;
       color: var(--ink);
     }
+
+    /* Series continue (emphasized end-of-article block) */
+    .series-continue {
+      margin-top: var(--space-7);
+      padding: var(--space-5) var(--space-5);
+      background: color-mix(in srgb, var(--accent) 5%, var(--paper));
+      border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+      border-radius: var(--radius-md);
+    }
+    .series-continue-head { margin-bottom: var(--space-4); }
+    .series-continue-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-family: Inter, sans-serif;
+      font-size: var(--font-caption);
+      color: var(--ink-muted);
+      margin-bottom: var(--space-2);
+    }
+    .series-continue-label { font-weight: 600; letter-spacing: 0.04em; }
+    .series-continue-progress { color: var(--accent); font-weight: 600; }
+    .series-continue-bar {
+      height: 4px;
+      background: color-mix(in srgb, var(--ink) 8%, transparent);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .series-continue-bar > span {
+      display: block;
+      height: 100%;
+      background: var(--accent);
+      transition: width 0.3s;
+    }
+    .series-continue-next {
+      display: block;
+      padding: var(--space-3) 0;
+      text-decoration: none;
+      color: inherit;
+      transition: padding-left var(--duration-fast);
+    }
+    .series-continue-next:hover { padding-left: var(--space-2); color: inherit; }
+    .series-continue-tag {
+      font-family: Inter, sans-serif;
+      font-size: var(--font-label);
+      color: var(--accent);
+      letter-spacing: 0.05em;
+      margin-bottom: var(--space-1);
+    }
+    .series-continue-title {
+      font-size: var(--font-h3);
+      font-weight: 600;
+      color: var(--ink);
+      line-height: 1.3;
+    }
+    .series-continue-remaining {
+      font-family: Inter, sans-serif;
+      font-size: var(--font-caption);
+      color: var(--ink-muted);
+      padding-top: var(--space-3);
+      border-top: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
+    }
+    .series-continue-remaining a { color: var(--accent); text-decoration: none; }
+    .series-continue-remaining a:hover { text-decoration: underline; }
 
     /* Series nav */
     .series-nav {
@@ -1146,7 +1241,7 @@ const articleJsonLd = {
         }
       });
 
-      // Reading progress
+      // Reading progress (single bar fallback)
       var bar = document.getElementById('reading-progress');
       if (bar) {
         window.addEventListener('scroll', function() {
@@ -1154,6 +1249,71 @@ const articleJsonLd = {
           if (h > 0) bar.style.width = (window.scrollY / h * 100) + '%';
         }, { passive: true });
       }
+
+      // Chapter progress: segmented bar by h2 boundaries
+      (function setupChapterProgress() {
+        var container = document.getElementById('chapter-progress');
+        var bodyEl = document.getElementById('article-body');
+        if (!container || !bodyEl) return;
+        var headings = Array.prototype.slice.call(bodyEl.querySelectorAll('h2'));
+        if (!headings.length) return;
+
+        // Compute segments: each section spans from its h2 to next h2 (or end).
+        var bodyTop = bodyEl.getBoundingClientRect().top + window.scrollY;
+        var bodyBottom = bodyTop + bodyEl.offsetHeight;
+        var sections = headings.map(function(h, i) {
+          var start = h.getBoundingClientRect().top + window.scrollY;
+          var end = (i < headings.length - 1)
+            ? headings[i + 1].getBoundingClientRect().top + window.scrollY
+            : bodyBottom;
+          return { id: h.id, title: h.textContent || '', start: start, end: end };
+        });
+        // Prepend implicit intro section (article top → first h2)
+        if (sections.length && sections[0].start > bodyTop + 50) {
+          sections.unshift({ id: '', title: '引言', start: bodyTop, end: sections[0].start });
+        }
+        var totalLen = sections.reduce(function(s, x){ return s + (x.end - x.start); }, 0);
+        if (totalLen <= 0) return;
+
+        // Render segments
+        container.innerHTML = sections.map(function(s) {
+          var ratio = (s.end - s.start) / totalLen;
+          var anchor = s.id ? ('#' + s.id) : '';
+          return '<a class="cp-seg" href="' + anchor + '" data-start="' + s.start + '" data-end="' + s.end + '" style="flex: ' + ratio.toFixed(4) + '" title="' + s.title.replace(/"/g, '&quot;') + '"><span class="cp-fill"></span></a>';
+        }).join('');
+        var segs = container.querySelectorAll('.cp-seg');
+
+        function updateProgress() {
+          var y = window.scrollY + window.innerHeight * 0.4; // reader's eye
+          for (var i = 0; i < sections.length; i++) {
+            var s = sections[i], seg = segs[i];
+            if (!seg) continue;
+            var fill;
+            if (y <= s.start) fill = 0;
+            else if (y >= s.end) fill = 100;
+            else fill = ((y - s.start) / (s.end - s.start)) * 100;
+            seg.style.setProperty('--fill', fill + '%');
+            seg.classList.toggle('cp-current', y > s.start && y < s.end);
+            seg.classList.toggle('cp-done', y >= s.end);
+          }
+        }
+        window.addEventListener('scroll', updateProgress, { passive: true });
+        window.addEventListener('resize', function() {
+          // Recompute section bounds
+          for (var i = 0; i < sections.length; i++) {
+            if (!sections[i].id) continue;
+            var el = document.getElementById(sections[i].id);
+            if (el) {
+              sections[i].start = el.getBoundingClientRect().top + window.scrollY;
+              sections[i].end = (i < sections.length - 1 && sections[i+1].id)
+                ? document.getElementById(sections[i+1].id).getBoundingClientRect().top + window.scrollY
+                : (bodyEl.getBoundingClientRect().top + window.scrollY + bodyEl.offsetHeight);
+            }
+          }
+          updateProgress();
+        });
+        updateProgress();
+      })();
 
       // Giscus theme sync on toggle — custom paper-matched themes
       var giscusThemeUrl = function() {

@@ -36,7 +36,7 @@
   }
   .card:hover { border-color: var(--rule); }
 
-  /* ── Reading progress bar ── */
+  /* ── Reading progress bar (single fallback) ── */
   .reading-progress {
     position: fixed;
     top: 0;
@@ -47,6 +47,39 @@
     z-index: var(--z-progress);
     transition: width 0.08s linear;
   }
+
+  /* ── Chapter progress: segmented bar by h2 ── */
+  .chapter-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    display: flex;
+    gap: 1px;
+    z-index: var(--z-progress);
+    pointer-events: none;
+  }
+  .cp-seg {
+    position: relative;
+    height: 100%;
+    background: color-mix(in srgb, var(--ink) 8%, transparent);
+    overflow: hidden;
+    pointer-events: auto;
+    transition: background 0.15s;
+  }
+  .cp-seg:hover { background: color-mix(in srgb, var(--accent) 15%, transparent); }
+  .cp-seg.cp-current { background: color-mix(in srgb, var(--accent) 18%, transparent); }
+  .cp-seg.cp-done    { background: color-mix(in srgb, var(--accent) 35%, transparent); }
+  .cp-fill {
+    position: absolute;
+    inset: 0;
+    background: var(--accent);
+    width: var(--fill, 0%);
+    transition: width 0.1s linear;
+  }
+  /* When chapter segments rendered, hide the single-bar fallback */
+  .chapter-progress:not(:empty) ~ .reading-progress { display: none; }
 
   /* ── Post list ── */
   .post-list { @apply space-y-0; }

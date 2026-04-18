@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f4ecd8"/>
+      <stop offset="100%" stop-color="#ede2c8"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <line x1="80" y1="120" x2="1120" y2="120" stroke="#9c4221" stroke-width="2"/>
+  <line x1="80" y1="510" x2="1120" y2="510" stroke="#9c4221" stroke-width="1" stroke-dasharray="3,3"/>
+  <text x="80" y="100" font-family="Inter, sans-serif" font-size="22" fill="#7a5e44" letter-spacing="6">XIATIANDEAIREN</text>
+  <text x="600" y="320" font-family="Georgia, 'Songti SC', serif" font-size="80" font-weight="700" fill="#4b3621" text-anchor="middle">夏天的爱人</text>
+  <text x="600" y="400" font-family="Inter, sans-serif" font-size="28" fill="#7a5e44" text-anchor="middle">AI 工程化 · 技术写作 · 开发者手记</text>
+  <text x="80" y="565" font-family="Inter, sans-serif" font-size="18" fill="#97785a" letter-spacing="2">xiatiandeairen.github.io</text>
+</svg>

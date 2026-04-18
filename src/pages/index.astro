@@ -3,6 +3,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import ArticleCard from '../components/ArticleCard.astro';
 import Pagination from '../components/Pagination.astro';
 import { getAllNotes, sortNotes, paginateNotes } from '../utils/notes';
+import { getRelated } from '../utils/rank';
 import { generatePageMeta } from '../utils/seo';
 import { getLang, useT } from '../i18n';
 
@@ -35,6 +36,18 @@ const featured = featuredNote || notes[0];
 const sidebarNotes = notes.slice(1, 4);
 const secondaryNotes = notes.slice(4, 6);
 const remainingNotes = notes.slice(6);
+
+// Build slug → related-slugs map (top 6 each) for client-side suggestions.
+const relatedMap: Record<string, string[]> = {};
+const titleMap: Record<string, string> = {};
+const dateMap: Record<string, string> = {};
+const typeMap: Record<string, string> = {};
+for (const n of allNotes) {
+  titleMap[n.slug] = n.title;
+  dateMap[n.slug] = n.date;
+  typeMap[n.slug] = n.question.type;
+  relatedMap[n.slug] = getRelated(n, allNotes, { max: 6 }).map(r => r.slug);
+}
 ---
 
 <BaseLayout title={t('site.title')} description={t('site.tagline')} seo={seo} lang={lang} jsonLd={websiteJsonLd}>
@@ -64,6 +77,12 @@ const remainingNotes = notes.slice(6);
         )}
       </div>
 
+      {/* Personalized suggestions (client-rendered from recentlyViewed × related map) */}
+      <section class="suggestions-section" id="home-suggestions" hidden>
+        <div class="section-label">{lang === 'zh' ? '猜你想读' : 'You may also like'}</div>
+        <div class="suggestions-grid" id="home-suggestions-grid"></div>
+      </section>
+
       {remainingNotes.length > 0 && (
         <div class="remaining-section">
           <div class="post-list">
@@ -74,6 +93,48 @@ const remainingNotes = notes.slice(6);
         </div>
       )}
 
+      <script type="application/json" id="home-suggest-data" set:html={JSON.stringify({ related: relatedMap, titles: titleMap, dates: dateMap, types: typeMap })}></script>
+      <script is:inline>
+        (function() {
+          var section = document.getElementById('home-suggestions');
+          var grid = document.getElementById('home-suggestions-grid');
+          var dataEl = document.getElementById('home-suggest-data');
+          if (!section || !grid || !dataEl) return;
+          var data;
+          try { data = JSON.parse(dataEl.textContent || '{}'); } catch (e) { return; }
+          var recent;
+          try { recent = JSON.parse(localStorage.getItem('recentlyViewed') || '[]'); } catch (e) { return; }
+          if (!recent.length) return;
+          // Aggregate related slugs across recent visits, score by frequency.
+          var scores = {};
+          var seenRecent = {};
+          recent.forEach(function(r) { seenRecent[r.slug] = true; });
+          recent.forEach(function(r) {
+            var rel = (data.related || {})[r.slug] || [];
+            rel.forEach(function(slug, i) {
+              if (seenRecent[slug]) return; // skip already-read
+              scores[slug] = (scores[slug] || 0) + (6 - i); // earlier-ranked weighs more
+            });
+          });
+          var picks = Object.keys(scores)
+            .sort(function(a, b) {
+              if (scores[b] !== scores[a]) return scores[b] - scores[a];
+              return (data.dates[b] || '') < (data.dates[a] || '') ? -1 : 1;
+            })
+            .slice(0, 4);
+          if (!picks.length) return;
+          grid.innerHTML = picks.map(function(slug) {
+            var title = (data.titles[slug] || slug).replace(/[<>&]/g, function(c){ return {'<':'&lt;','>':'&gt;','&':'&amp;'}[c]; });
+            var type = (data.types[slug] || '').replace(/[<>&]/g, function(c){ return {'<':'&lt;','>':'&gt;','&':'&amp;'}[c]; });
+            return '<a href="/notes/' + encodeURIComponent(slug) + '" class="suggestion-card">' +
+              (type ? '<div class="suggestion-card-kicker">' + type + '</div>' : '') +
+              '<div class="suggestion-card-title">' + title + '</div>' +
+            '</a>';
+          }).join('');
+          section.hidden = false;
+        })();
+      </script>
+
       <Pagination
         currentPage={pagination.currentPage}
         totalPages={pagination.totalPages}
@@ -83,3 +144,48 @@ const remainingNotes = notes.slice(6);
     </>
   )}
 </BaseLayout>
+
+<style>
+  .suggestions-section {
+    margin: var(--space-7) 0 var(--space-6);
+    padding-top: var(--space-5);
+    border-top: 1px solid var(--rule);
+  }
+  .suggestions-section[hidden] { display: none !important; }
+  .suggestions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--space-3);
+    margin-top: var(--space-3);
+  }
+  .suggestion-card {
+    display: block;
+    padding: var(--space-3) var(--space-4);
+    background: var(--paper);
+    border: 1px solid var(--rule-light);
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    color: inherit;
+    transition: border-color var(--duration-fast), box-shadow var(--duration-fast);
+  }
+  .suggestion-card:hover {
+    border-color: var(--ink-muted);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    color: inherit;
+  }
+  .suggestion-card-kicker {
+    font-family: Inter, sans-serif;
+    font-size: var(--font-label);
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .suggestion-card-title {
+    font-family: var(--font-display, Georgia, serif);
+    font-size: var(--font-small);
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1.35;
+  }
+</style>
