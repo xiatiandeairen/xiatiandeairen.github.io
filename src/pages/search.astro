@@ -2,7 +2,6 @@
 import IndexLayout from '../layouts/IndexLayout.astro';
 import { generatePageMeta } from '../utils/seo';
 import { getLang, useT } from '../i18n';
-import type { SearchIndex } from '../utils/search';
 
 const lang = getLang(Astro.url.pathname);
 const t = useT(lang);
@@ -41,13 +40,11 @@ const query = Astro.url.searchParams.get('q') || '';
       </div>
     ) : (
       <div class="py-8 border-t border-rule-light">
-        <p class="font-sans text-small text-ink-muted mb-3">
-          支持搜索：
-        </p>
+        <p class="font-sans text-small text-ink-muted mb-3">支持搜索：</p>
         <ul class="list-disc list-inside space-y-1 font-sans text-small text-ink-muted">
-          <li>笔记标题</li>
-          <li>笔记内容全文</li>
-          <li>标签和主题</li>
+          <li>笔记标题、正文、标签、主题、系列名</li>
+          <li>同义词（tag 和 topic 的 alias）</li>
+          <li>字段前缀：<code>tag:AI</code> · <code>topic:方法论</code> · <code>type:系统设计</code> · <code>series:Skills</code></li>
         </ul>
       </div>
     )}
@@ -56,61 +53,116 @@ const query = Astro.url.searchParams.get('q') || '';
   {query && (
     <script is:inline>
       (function() {
-        async function performSearch() {
-          const query = new URLSearchParams(window.location.search).get('q') || '';
-          if (!query.trim()) return;
-
-          const resultsContainer = document.getElementById('search-results');
-          if (!resultsContainer) return;
-
-          try {
-            const response = await fetch('/search-index.json');
-            if (!response.ok) {
-              throw new Error(`HTTP error! status: ${response.status}`);
+        var PREFIX_RE = /\b(tag|topic|type|series):([^\s]+)/gi;
+        function escapeHtml(s) { return String(s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+        function escapeRe(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+        function highlight(text, term) {
+          if (!term) return escapeHtml(text);
+          return escapeHtml(text).replace(new RegExp(escapeRe(escapeHtml(term)), 'gi'), '<mark>$&</mark>');
+        }
+        function parseQuery(raw) {
+          var out = { free: '' }; var free = raw || ''; var m;
+          PREFIX_RE.lastIndex = 0;
+          while ((m = PREFIX_RE.exec(raw || '')) !== null) {
+            out[m[1].toLowerCase()] = m[2].toLowerCase();
+            free = free.replace(m[0], '');
+          }
+          out.free = free.trim().toLowerCase();
+          return out;
+        }
+        function snippetOf(content, term) {
+          if (!content) return '';
+          if (!term) return content.slice(0, 160);
+          var idx = content.toLowerCase().indexOf(term);
+          if (idx < 0) return content.slice(0, 160);
+          var start = Math.max(0, idx - 60);
+          var end = Math.min(content.length, idx + term.length + 100);
+          return (start > 0 ? '…' : '') + content.slice(start, end) + (end < content.length ? '…' : '');
+        }
+        function searchNotes(rawQuery, index) {
+          var q = parseQuery(rawQuery);
+          if (!q.free && !q.tag && !q.topic && !q.type && !q.series) return [];
+          var hits = [];
+          for (var i = 0; i < index.notes.length; i++) {
+            var n = index.notes[i];
+            if (q.tag) {
+              var tHit = n.tags.some(function(t){ return t.toLowerCase().includes(q.tag); });
+              var taHit = (n.tagAliases || []).some(function(a){ return a.toLowerCase().includes(q.tag); });
+              if (!tHit && !taHit) continue;
             }
-            const index = await response.json();
+            if (q.topic) {
+              var tpHit = n.topics.some(function(t){ return t.toLowerCase().includes(q.topic); });
+              var tpaHit = (n.topicAliases || []).some(function(a){ return a.toLowerCase().includes(q.topic); });
+              if (!tpHit && !tpaHit) continue;
+            }
+            if (q.type && !(n.questionType || '').toLowerCase().includes(q.type)) continue;
+            if (q.series && !((n.series || '').toLowerCase().includes(q.series))) continue;
 
-            const searchTerm = query.toLowerCase().trim();
-            const results = index.notes.filter(note => {
-              const titleMatch = note.title.toLowerCase().includes(searchTerm);
-              const contentMatch = note.content.toLowerCase().includes(searchTerm);
-              const tagMatch = note.tags.some(tag => tag.toLowerCase().includes(searchTerm));
-              const topicMatch = note.topics.some(topic => topic.toLowerCase().includes(searchTerm));
-              return titleMatch || contentMatch || tagMatch || topicMatch;
-            });
+            var score = 0, matched = 'content', free = q.free;
+            if (!free) {
+              score = 50;
+              matched = q.tag ? 'tag' : q.topic ? 'topic' : q.series ? 'series' : q.type ? 'type' : 'content';
+            } else {
+              var title = n.title.toLowerCase();
+              var content = (n.content || '').toLowerCase();
+              var tagsLow = n.tags.map(function(t){return t.toLowerCase();});
+              var topicsLow = n.topics.map(function(t){return t.toLowerCase();});
+              var aliasesLow = ((n.tagAliases || []).concat(n.topicAliases || [])).map(function(a){return a.toLowerCase();});
+              var sLow = (n.series || '').toLowerCase();
+              if (title === free) { score = 100; matched = 'title'; }
+              else if (title.includes(free)) { score = 60; matched = 'title'; }
+              else if (tagsLow.indexOf(free) >= 0) { score = 55; matched = 'tag'; }
+              else if (topicsLow.indexOf(free) >= 0) { score = 55; matched = 'topic'; }
+              else if (sLow === free) { score = 50; matched = 'series'; }
+              else if (tagsLow.some(function(t){return t.includes(free);})) { score = 35; matched = 'tag'; }
+              else if (topicsLow.some(function(t){return t.includes(free);})) { score = 35; matched = 'topic'; }
+              else if (sLow.includes(free)) { score = 30; matched = 'series'; }
+              else if (aliasesLow.some(function(a){return a.includes(free);})) { score = 25; matched = 'alias'; }
+              else if (content.includes(free)) { score = 10; matched = 'content'; }
+              else if (q.tag || q.topic || q.type || q.series) { score = 20; }
+              else { continue; }
+            }
+            hits.push({ note: n, score: score, matchedField: matched, snippet: snippetOf(n.content || '', free || q.tag || q.topic || q.series || q.type || '') });
+          }
+          hits.sort(function(a, b) {
+            if (b.score !== a.score) return b.score - a.score;
+            return a.note.date < b.note.date ? 1 : a.note.date > b.note.date ? -1 : 0;
+          });
+          return hits;
+        }
 
-            if (results.length === 0) {
-              resultsContainer.innerHTML = '<div class="py-8 text-center"><p class="font-sans text-small text-ink-muted mb-3">未找到「' + query.replace(/</g,'&lt;') + '」的匹配结果</p><p class="font-sans text-caption text-ink-ghost">试试搜索文章标题、标签或内容关键词</p></div>';
+        async function performSearch() {
+          var raw = new URLSearchParams(window.location.search).get('q') || '';
+          if (!raw.trim()) return;
+          var box = document.getElementById('search-results');
+          if (!box) return;
+          try {
+            var index = await (await fetch('/search-index.json')).json();
+            var hits = searchNotes(raw, index);
+            if (!hits.length) {
+              box.innerHTML = '<div class="py-8 text-center"><p class="font-sans text-small text-ink-muted mb-3">未找到「' + escapeHtml(raw) + '」的匹配结果</p><p class="font-sans text-caption text-ink-ghost">试试其他关键词或用 tag:/topic:/type:/series: 前缀</p></div>';
               return;
             }
-
-            function highlight(text, term) {
-              var re = new RegExp('(' + term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
-              return text.replace(re, '<mark>$1</mark>');
-            }
-
-            resultsContainer.innerHTML = '<p class="font-sans text-small text-ink-muted mb-4">找到 ' + results.length + ' 条结果</p><div>' + results.map(function(note) {
-              var escapedTitle = note.title.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-              var snippet = note.content.substring(0, 150).replace(/</g, '&lt;').replace(/>/g, '&gt;');
-              var dateStr = new Date(note.date).toLocaleDateString('zh-CN');
-              var tagsStr = note.tags.length > 0 ? note.tags.join(' · ') : '';
-              return '<a href="/notes/' + note.slug + '" class="archive-item"><div><div class="archive-item-title">' + highlight(escapedTitle, searchTerm) + '</div><div class="cat-label">' + dateStr + (tagsStr ? ' · ' + tagsStr : '') + '</div></div><div class="archive-item-meta font-sans"><p>' + highlight(snippet, searchTerm) + (note.content.length > 150 ? '…' : '') + '</p></div></a>';
+            var parsed = parseQuery(raw);
+            var term = parsed.free || parsed.tag || parsed.topic || parsed.series || parsed.type || '';
+            var fieldLabel = { title: '标题', tag: '标签', topic: '主题', series: '系列', type: '类型', alias: '同义词', content: '正文' };
+            box.innerHTML = '<p class="font-sans text-small text-ink-muted mb-4">找到 ' + hits.length + ' 条结果</p><div>' + hits.map(function(h) {
+              var tagsStr = h.note.tags.length > 0 ? h.note.tags.join(' · ') : '';
+              var dateStr = new Date(h.note.date).toLocaleDateString('zh-CN');
+              var label = fieldLabel[h.matchedField] || '';
+              return '<a href="/notes/' + h.note.slug + '" class="archive-item">' +
+                '<div><div class="archive-item-title">' + highlight(h.note.title, term) + '</div>' +
+                '<div class="cat-label">' + (label ? '['+label+'] · ' : '') + dateStr + (tagsStr ? ' · ' + tagsStr : '') + '</div></div>' +
+                '<div class="archive-item-meta font-sans"><p>' + highlight(h.snippet, term) + '</p></div>' +
+              '</a>';
             }).join('') + '</div>';
           } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : String(error);
-            resultsContainer.innerHTML = `
-              <p class="font-sans text-small text-ink-muted text-center py-8">搜索时发生错误，请稍后重试</p>
-              <p class="font-sans text-caption text-ink-ghost text-center mt-2">${errorMessage}</p>
-            `;
+            box.innerHTML = '<p class="font-sans text-small text-ink-muted text-center py-8">搜索时发生错误，请稍后重试</p>';
             console.error('Search error:', error);
           }
         }
-
-        if (document.readyState === 'loading') {
-          document.addEventListener('DOMContentLoaded', performSearch);
-        } else {
-          performSearch();
-        }
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', performSearch);
+        else performSearch();
       })();
     </script>
   )}

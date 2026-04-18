@@ -195,27 +195,229 @@ const matchPath = currentPath.replace(/^\/en/, '') || '/';
         var input = document.getElementById('search-input');
         var results = document.getElementById('search-results');
         var searchIndex = null, timer = null;
+        var selectedIdx = -1;
+        var RECENT_KEY = 'search.recentQueries';
+        var RECENT_MAX = 5;
 
-        function openSearch() { overlay.style.display = ''; input.focus(); input.value = ''; results.innerHTML = ''; document.body.style.overflow = 'hidden'; }
-        function closeSearch() { overlay.style.display = 'none'; document.body.style.overflow = ''; }
+        function escapeHtml(s) { return String(s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+        function escapeRe(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+        function highlight(text, term) {
+          if (!term) return escapeHtml(text);
+          var esc = escapeHtml(text);
+          return esc.replace(new RegExp(escapeRe(escapeHtml(term)), 'gi'), '<mark>$&</mark>');
+        }
+        function getRecent() {
+          try { return JSON.parse(localStorage.getItem(RECENT_KEY) || '[]'); } catch(e) { return []; }
+        }
+        function pushRecent(q) {
+          if (!q) return;
+          var list = getRecent().filter(function(x){ return x !== q; });
+          list.unshift(q);
+          list = list.slice(0, RECENT_MAX);
+          try { localStorage.setItem(RECENT_KEY, JSON.stringify(list)); } catch(e) {}
+        }
+        function clearRecent(q) {
+          var list = getRecent().filter(function(x){ return x !== q; });
+          try { localStorage.setItem(RECENT_KEY, JSON.stringify(list)); } catch(e) {}
+        }
+
+        // Query parser + scorer (mirror of src/utils/search.ts searchNotes)
+        var PREFIX_RE = /\b(tag|topic|type|series):([^\s]+)/gi;
+        function parseQuery(raw) {
+          var out = { free: '' };
+          var free = raw || '';
+          var m;
+          PREFIX_RE.lastIndex = 0;
+          while ((m = PREFIX_RE.exec(raw || '')) !== null) {
+            out[m[1].toLowerCase()] = m[2].toLowerCase();
+            free = free.replace(m[0], '');
+          }
+          out.free = free.trim().toLowerCase();
+          return out;
+        }
+        function snippetOf(content, term) {
+          if (!content) return '';
+          if (!term) return content.slice(0, 160);
+          var idx = content.toLowerCase().indexOf(term);
+          if (idx < 0) return content.slice(0, 160);
+          var start = Math.max(0, idx - 60);
+          var end = Math.min(content.length, idx + term.length + 100);
+          return (start > 0 ? '…' : '') + content.slice(start, end) + (end < content.length ? '…' : '');
+        }
+        function searchNotes(rawQuery, index, limit) {
+          var q = parseQuery(rawQuery);
+          if (!q.free && !q.tag && !q.topic && !q.type && !q.series) return [];
+          var hits = [];
+          for (var i = 0; i < index.notes.length; i++) {
+            var n = index.notes[i];
+            if (q.tag) {
+              var tHit = n.tags.some(function(t){ return t.toLowerCase().includes(q.tag); });
+              var taHit = (n.tagAliases || []).some(function(a){ return a.toLowerCase().includes(q.tag); });
+              if (!tHit && !taHit) continue;
+            }
+            if (q.topic) {
+              var tpHit = n.topics.some(function(t){ return t.toLowerCase().includes(q.topic); });
+              var tpaHit = (n.topicAliases || []).some(function(a){ return a.toLowerCase().includes(q.topic); });
+              if (!tpHit && !tpaHit) continue;
+            }
+            if (q.type && !(n.questionType || '').toLowerCase().includes(q.type)) continue;
+            if (q.series && !((n.series || '').toLowerCase().includes(q.series))) continue;
+
+            var score = 0, matched = 'content', free = q.free;
+            if (!free) {
+              score = 50;
+              matched = q.tag ? 'tag' : q.topic ? 'topic' : q.series ? 'series' : q.type ? 'type' : 'content';
+            } else {
+              var title = n.title.toLowerCase();
+              var content = (n.content || '').toLowerCase();
+              var tagsLow = n.tags.map(function(t){return t.toLowerCase();});
+              var topicsLow = n.topics.map(function(t){return t.toLowerCase();});
+              var aliasesLow = ((n.tagAliases || []).concat(n.topicAliases || [])).map(function(a){return a.toLowerCase();});
+              var sLow = (n.series || '').toLowerCase();
+
+              if (title === free) { score = 100; matched = 'title'; }
+              else if (title.includes(free)) { score = 60; matched = 'title'; }
+              else if (tagsLow.indexOf(free) >= 0) { score = 55; matched = 'tag'; }
+              else if (topicsLow.indexOf(free) >= 0) { score = 55; matched = 'topic'; }
+              else if (sLow === free) { score = 50; matched = 'series'; }
+              else if (tagsLow.some(function(t){return t.includes(free);})) { score = 35; matched = 'tag'; }
+              else if (topicsLow.some(function(t){return t.includes(free);})) { score = 35; matched = 'topic'; }
+              else if (sLow.includes(free)) { score = 30; matched = 'series'; }
+              else if (aliasesLow.some(function(a){return a.includes(free);})) { score = 25; matched = 'alias'; }
+              else if (content.includes(free)) { score = 10; matched = 'content'; }
+              else if (q.tag || q.topic || q.type || q.series) { score = 20; }
+              else { continue; }
+            }
+            hits.push({
+              note: n,
+              score: score,
+              matchedField: matched,
+              snippet: snippetOf(n.content || '', free || q.tag || q.topic || q.series || q.type || '')
+            });
+          }
+          hits.sort(function(a, b) {
+            if (b.score !== a.score) return b.score - a.score;
+            return a.note.date < b.note.date ? 1 : a.note.date > b.note.date ? -1 : 0;
+          });
+          return limit ? hits.slice(0, limit) : hits;
+        }
+
+        async function loadIndex() {
+          if (searchIndex) return searchIndex;
+          try { searchIndex = await (await fetch('/search-index.json')).json(); } catch(e) { searchIndex = null; }
+          return searchIndex;
+        }
+
+        function renderEmpty() {
+          selectedIdx = -1;
+          var recent = getRecent();
+          var topTags = [];
+          var topTopics = [];
+          if (searchIndex) {
+            var tc = searchIndex.tagCounts || {};
+            topTags = Object.keys(tc).sort(function(a,b){return tc[b]-tc[a];}).slice(0, 5);
+            var pc = searchIndex.topicCounts || {};
+            topTopics = Object.keys(pc).sort(function(a,b){return pc[b]-pc[a];}).slice(0, 3);
+          }
+          var html = '';
+          if (recent.length) {
+            html += '<div class="search-section"><div class="search-section-title">最近搜索</div>';
+            html += recent.map(function(q){
+              return '<div class="search-recent-row"><button class="search-recent-q" data-query="' + escapeHtml(q) + '">' + escapeHtml(q) + '</button><button class="search-recent-x" data-clear="' + escapeHtml(q) + '" aria-label="删除">×</button></div>';
+            }).join('');
+            html += '</div>';
+          }
+          if (topTopics.length) {
+            html += '<div class="search-section"><div class="search-section-title">热门主题</div><div class="search-chips">';
+            html += topTopics.map(function(t){ return '<a class="search-chip search-chip-primary" href="/topics/' + encodeURIComponent(t) + '">' + escapeHtml(t) + '</a>'; }).join('');
+            html += '</div></div>';
+          }
+          if (topTags.length) {
+            html += '<div class="search-section"><div class="search-section-title">热门标签</div><div class="search-chips">';
+            html += topTags.map(function(t){ return '<a class="search-chip" href="/tags/' + encodeURIComponent(t) + '">' + escapeHtml(t) + '</a>'; }).join('');
+            html += '</div></div>';
+          }
+          if (!html) html = '<div class="search-empty">开始输入以搜索（支持 tag:/topic:/type:/series: 前缀）</div>';
+          results.innerHTML = html;
+          // wire recent
+          results.querySelectorAll('[data-query]').forEach(function(b) {
+            b.addEventListener('click', function() { input.value = this.getAttribute('data-query'); doSearch(); input.focus(); });
+          });
+          results.querySelectorAll('[data-clear]').forEach(function(b) {
+            b.addEventListener('click', function(e) { e.stopPropagation(); clearRecent(this.getAttribute('data-clear')); renderEmpty(); });
+          });
+          results.querySelectorAll('.search-chip').forEach(function(a) {
+            a.addEventListener('click', closeSearch);
+          });
+        }
+
+        function setSelected(idx) {
+          var items = results.querySelectorAll('.search-result-item');
+          if (!items.length) return;
+          items.forEach(function(el){ el.classList.remove('active'); });
+          if (idx < 0) idx = items.length - 1;
+          if (idx >= items.length) idx = 0;
+          selectedIdx = idx;
+          items[idx].classList.add('active');
+          items[idx].scrollIntoView({ block: 'nearest' });
+        }
+
+        async function doSearch() {
+          var raw = input.value.trim();
+          if (!raw) { renderEmpty(); return; }
+          var idx = await loadIndex();
+          if (!idx) { results.innerHTML = '<div class="search-empty">Index unavailable</div>'; return; }
+          var hits = searchNotes(raw, idx, 8);
+          if (!hits.length) { results.innerHTML = '<div class="search-empty">无结果</div>'; selectedIdx = -1; return; }
+          var parsed = parseQuery(raw);
+          var highlightTerm = parsed.free || parsed.tag || parsed.topic || parsed.series || parsed.type || '';
+          results.innerHTML = hits.map(function(h) {
+            var fieldLabel = { title: '标题', tag: '标签', topic: '主题', series: '系列', type: '类型', alias: '同义词', content: '正文' }[h.matchedField] || '';
+            return '<a href="/notes/' + h.note.slug + '" class="search-result-item" data-query="' + escapeHtml(raw) + '">' +
+              '<div class="search-result-header">' +
+                '<span class="search-result-title">' + highlight(h.note.title, highlightTerm) + '</span>' +
+                '<span class="search-result-meta">' + (fieldLabel ? '<span class="search-result-field">' + fieldLabel + '</span>' : '') + '<span class="search-result-date">' + new Date(h.note.date).toLocaleDateString() + '</span></span>' +
+              '</div>' +
+              (h.snippet ? '<div class="search-result-snippet">' + highlight(h.snippet, highlightTerm) + '</div>' : '') +
+            '</a>';
+          }).join('');
+          results.querySelectorAll('.search-result-item').forEach(function(el, i) {
+            el.addEventListener('click', function() { pushRecent(el.getAttribute('data-query')); closeSearch(); });
+            el.addEventListener('mouseenter', function() { setSelected(i); });
+          });
+          selectedIdx = 0;
+          var first = results.querySelector('.search-result-item');
+          if (first) first.classList.add('active');
+        }
+
+        async function openSearch() {
+          overlay.style.display = '';
+          input.focus();
+          input.value = '';
+          document.body.style.overflow = 'hidden';
+          await loadIndex();
+          renderEmpty();
+        }
+        function closeSearch() { overlay.style.display = 'none'; document.body.style.overflow = ''; selectedIdx = -1; }
 
         document.getElementById('search-trigger').addEventListener('click', openSearch);
         document.getElementById('search-backdrop').addEventListener('click', closeSearch);
         document.addEventListener('keydown', function(e) {
-          if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); overlay.style.display === 'none' ? openSearch() : closeSearch(); }
-          if (e.key === 'Escape' && overlay.style.display !== 'none') closeSearch();
+          if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); overlay.style.display === 'none' ? openSearch() : closeSearch(); return; }
+          if (overlay.style.display === 'none') return;
+          if (e.key === 'Escape') { closeSearch(); return; }
+          if (e.key === 'ArrowDown') { e.preventDefault(); setSelected(selectedIdx + 1); return; }
+          if (e.key === 'ArrowUp') { e.preventDefault(); setSelected(selectedIdx - 1); return; }
+          if (e.key === 'Enter') {
+            var items = results.querySelectorAll('.search-result-item');
+            if (selectedIdx >= 0 && items[selectedIdx]) {
+              pushRecent(items[selectedIdx].getAttribute('data-query') || input.value.trim());
+              window.location.href = items[selectedIdx].getAttribute('href');
+              e.preventDefault();
+            }
+          }
         });
-        input.addEventListener('input', function() { clearTimeout(timer); timer = setTimeout(doSearch, 200); });
-
-        async function doSearch() {
-          var q = input.value.trim().toLowerCase();
-          if (!q) { results.innerHTML = ''; return; }
-          if (!searchIndex) { try { searchIndex = await (await fetch('/search-index.json')).json(); } catch(e) { return; } }
-          var m = searchIndex.notes.filter(function(n) { return n.title.toLowerCase().includes(q) || n.content.toLowerCase().includes(q) || n.tags.some(function(t){return t.toLowerCase().includes(q)}); }).slice(0, 8);
-          if (!m.length) { results.innerHTML = '<div class="search-empty">No results</div>'; return; }
-          results.innerHTML = m.map(function(n) { return '<a href="/notes/' + n.slug + '" class="search-result-item"><span class="search-result-title">' + n.title.replace(/</g,'&lt;') + '</span><span class="search-result-date">' + new Date(n.date).toLocaleDateString() + '</span></a>'; }).join('');
-          results.querySelectorAll('.search-result-item').forEach(function(el) { el.addEventListener('click', closeSearch); });
-        }
+        input.addEventListener('input', function() { clearTimeout(timer); timer = setTimeout(doSearch, 160); });
       })();
     </script>
   </body>
