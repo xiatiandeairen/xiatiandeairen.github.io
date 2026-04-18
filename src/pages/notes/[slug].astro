@@ -291,6 +291,9 @@ const articleJsonLd = {
 
   <a href="#main-content" class="back-to-top">{'回到顶部 ↑'}</a>
 
+  {/* Book mode page indicator (only visible when data-article-layout="columns") */}
+  <div class="book-page-indicator" id="book-page-indicator" aria-hidden="true">1 / 1</div>
+
   {/* Resume-reading toast (populated by JS if saved position exists) */}
   <div class="resume-toast" id="resume-toast" role="status" aria-live="polite">
     <span id="resume-toast-label">继续上次阅读</span>
@@ -787,6 +790,81 @@ const articleJsonLd = {
       line-height: 1;
       padding: 0 4px;
     }
+
+    /* ── Book mode (data-article-layout="columns") ──
+       Two-column spread, fixed viewport, horizontal flip via translateX.
+       Double-attr selector for specificity to beat typography width rules.
+    */
+    :global(html[data-article-layout="columns"]) {
+      overflow: hidden;
+    }
+    :global(html[data-article-layout="columns"] body) {
+      overflow: hidden;
+      height: 100vh;
+    }
+    :global(html[data-article-layout="columns"][data-mode] .site-main) {
+      max-width: none !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      min-height: 0 !important;
+      max-height: 100vh !important;
+      padding: var(--space-8) var(--space-9) !important;
+      overflow: hidden;
+      margin: 0 !important;
+      display: flex;
+      align-items: stretch;
+    }
+    :global(html[data-article-layout="columns"] .article-header) {
+      display: none !important;
+    }
+    :global(html[data-article-layout="columns"][data-mode] #article-body) {
+      flex: 1;
+      width: 100%;
+      max-width: none !important;
+      height: 100% !important;
+      min-height: 0 !important;
+      max-height: 100% !important;
+      column-count: 2;
+      column-gap: 4rem;
+      column-fill: auto;
+      column-rule: 1px solid var(--rule-faint);
+      overflow: visible;
+      transform: translateX(var(--book-offset, 0px));
+      transition: transform 420ms cubic-bezier(.4, 0, .2, 1);
+    }
+    :global(html[data-article-layout="columns"] #article-body h2),
+    :global(html[data-article-layout="columns"] #article-body h3),
+    :global(html[data-article-layout="columns"] #article-body pre),
+    :global(html[data-article-layout="columns"] #article-body img),
+    :global(html[data-article-layout="columns"] #article-body table),
+    :global(html[data-article-layout="columns"] #article-body blockquote) {
+      break-inside: avoid;
+    }
+    :global(html[data-article-layout="columns"] #article-body p),
+    :global(html[data-article-layout="columns"] #article-body li) {
+      break-inside: avoid-column;
+    }
+    /* TOC float repurposed: in book mode clicking still works but positioning stays */
+    .book-page-indicator {
+      display: none;
+      position: fixed;
+      bottom: var(--space-3);
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 40;
+      font-family: Inter, sans-serif;
+      font-size: var(--font-caption);
+      color: var(--ink-faint);
+      letter-spacing: 0.1em;
+      padding: 4px var(--space-3);
+      background: var(--paper);
+      border: 1px solid var(--rule-light);
+      border-radius: 999px;
+      pointer-events: none;
+    }
+    :global(html[data-article-layout="columns"]) .book-page-indicator {
+      display: block;
+    }
   </style>
 
   <script is:inline>
@@ -834,8 +912,9 @@ const articleJsonLd = {
       // Page mode registry — presets compose orthogonal capability attrs.
       // Add a new mode by: (1) defining preset here, (2) adding capability rules in CSS (no new mode-named selectors needed).
       var MODE_PRESETS = {
-        'default': { 'chrome': 'visible', 'typography-controls': 'off', 'reading-progress': 'off' },
-        'reading': { 'chrome': 'hidden',  'typography-controls': 'on',  'reading-progress': 'on'  }
+        'default': { 'chrome': 'visible', 'typography-controls': 'off', 'reading-progress': 'off', 'article-layout': 'flow' },
+        'reading': { 'chrome': 'hidden',  'typography-controls': 'on',  'reading-progress': 'on',  'article-layout': 'flow' },
+        'book':    { 'chrome': 'hidden',  'typography-controls': 'on',  'reading-progress': 'off', 'article-layout': 'columns' }
       };
       var readingToggle = document.getElementById('reading-toggle');
       function applyMode(name) {
@@ -861,6 +940,80 @@ const articleJsonLd = {
           applyMode(current === 'reading' ? 'default' : 'reading');
         });
       }
+
+      // ── Book mode (pagination) ──
+      var articleBody = document.getElementById('article-body');
+      var bookSpread = 0;
+      var bookMaxSpread = 0;
+      var bookPosKey = 'book-pos:' + location.pathname;
+
+      function bookInColumns() {
+        return document.documentElement.getAttribute('data-article-layout') === 'columns';
+      }
+      function bookUpdateMetrics() {
+        if (!bookInColumns() || !articleBody) return;
+        var W = articleBody.clientWidth;
+        if (!W) return;
+        var total = articleBody.scrollWidth;
+        bookMaxSpread = Math.max(0, Math.ceil(total / W) - 1);
+        if (bookSpread > bookMaxSpread) bookSpread = bookMaxSpread;
+        bookApply();
+      }
+      function bookApply() {
+        if (!articleBody) return;
+        var W = articleBody.clientWidth;
+        articleBody.style.setProperty('--book-offset', (-bookSpread * W) + 'px');
+        var ind = document.getElementById('book-page-indicator');
+        if (ind) ind.textContent = (bookSpread + 1) + ' / ' + (bookMaxSpread + 1);
+        try { localStorage.setItem(bookPosKey, String(bookSpread)); } catch (e) {}
+      }
+      function bookNext() { if (bookSpread < bookMaxSpread) { bookSpread++; bookApply(); } }
+      function bookPrev() { if (bookSpread > 0) { bookSpread--; bookApply(); } }
+      function bookFirst() { bookSpread = 0; bookApply(); }
+      function bookLast() { bookSpread = bookMaxSpread; bookApply(); }
+      function bookEnter() {
+        try { bookSpread = parseInt(localStorage.getItem(bookPosKey) || '0', 10) || 0; } catch (e) { bookSpread = 0; }
+        // Defer one frame so layout settles after mode attrs applied
+        requestAnimationFrame(function() { requestAnimationFrame(bookUpdateMetrics); });
+      }
+
+      // Observe data-article-layout changes to trigger (re)measure
+      new MutationObserver(function(muts) {
+        muts.forEach(function(m) {
+          if (m.attributeName === 'data-article-layout') {
+            if (bookInColumns()) bookEnter();
+          }
+          if (m.attributeName === 'data-font-size' || m.attributeName === 'data-font-family' || m.attributeName === 'data-width') {
+            if (bookInColumns()) requestAnimationFrame(bookUpdateMetrics);
+          }
+        });
+      }).observe(document.documentElement, { attributes: true });
+
+      window.addEventListener('resize', function() {
+        if (bookInColumns()) setTimeout(bookUpdateMetrics, 50);
+      });
+
+      // If already in book mode on load, initialize
+      if (bookInColumns()) bookEnter();
+
+      // Keyboard for mode switching + book navigation
+      document.addEventListener('keydown', function(e) {
+        if (e.ctrlKey || e.metaKey || e.altKey) return;
+        var tag = (e.target && e.target.tagName) || '';
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || (e.target && e.target.isContentEditable)) return;
+        var current = document.documentElement.getAttribute('data-mode') || 'default';
+        if (e.key === 'b' || e.key === 'B') {
+          applyMode(current === 'book' ? 'default' : 'book');
+          e.preventDefault();
+        } else if (e.key === 'Escape' && current === 'book') {
+          applyMode('default'); e.preventDefault();
+        } else if (bookInColumns()) {
+          if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { bookNext(); e.preventDefault(); }
+          else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { bookPrev(); e.preventDefault(); }
+          else if (e.key === 'Home' || e.key === 'g') { bookFirst(); e.preventDefault(); }
+          else if (e.key === 'End' || e.key === 'G') { bookLast(); e.preventDefault(); }
+        }
+      });
 
       // Reading progress
       var bar = document.getElementById('reading-progress');
@@ -921,12 +1074,15 @@ const articleJsonLd = {
           section: '文章 / 阅读模式',
           items: [
             { keys: ['r'], label: '切换阅读模式' },
-            { keys: ['Space'], label: '向下翻一屏' },
+            { keys: ['b'], label: '切换翻页模式' },
+            { keys: ['Space'], label: '下一页 / 向下翻一屏' },
             { keys: ['Shift', 'Space'], label: '向上翻一屏' },
-            { keys: ['g'], label: '回到顶部' },
-            { keys: ['G'], label: '到达底部' },
-            { keys: ['n'], label: '下一个章节' },
-            { keys: ['p'], label: '上一个章节' },
+            { keys: ['←'], label: '上一页（翻页模式）' },
+            { keys: ['→'], label: '下一页（翻页模式）' },
+            { keys: ['g'], label: '第一页 / 回到顶部' },
+            { keys: ['G'], label: '最后一页 / 到达底部' },
+            { keys: ['n'], label: '下一个章节（阅读模式）' },
+            { keys: ['p'], label: '上一个章节（阅读模式）' },
           ]
         });
       }
