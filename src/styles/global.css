@@ -16,37 +16,29 @@
 @tailwind utilities;
 
 /* ═══════════════════════════════════════
-   Reading Mode (html.reading-mode)
-   Only article body visible; everything else hidden.
-   Exit via reading-toggle button (kept low-opacity top-right).
+   Page Modes — data-mode + orthogonal capability attributes
+   --------------------------------------------------------
+   data-mode = "default" | "reading" | ...  (future: focus / present / print)
+   presets below are set from JS (see src/pages/notes/[slug].astro script)
+   components must read capability attrs, NOT mode name.
+
+     data-chrome              = "visible" | "hidden"
+     data-typography-controls = "off" | "on"        (typography prefs active + Aa panel)
+     data-reading-progress    = "off" | "on"        (top progress bar)
    ═══════════════════════════════════════ */
 
-html.reading-mode .masthead,
-html.reading-mode .footer,
-html.reading-mode footer,
-html.reading-mode .sidebar-hotzone,
-html.reading-mode .sidebar-drawer,
-html.reading-mode .series-banner,
-html.reading-mode .series-nav,
-html.reading-mode .giscus-section,
-html.reading-mode .related-section,
-html.reading-mode .toc-float {
+html[data-chrome="hidden"] .masthead,
+html[data-chrome="hidden"] .footer,
+html[data-chrome="hidden"] footer,
+html[data-chrome="hidden"] .sidebar-hotzone,
+html[data-chrome="hidden"] .sidebar-drawer,
+html[data-chrome="hidden"] .series-banner,
+html[data-chrome="hidden"] .series-nav,
+html[data-chrome="hidden"] .giscus-section,
+html[data-chrome="hidden"] .related-section,
+html[data-chrome="hidden"] nav[aria-label="文章导航"],
+html[data-chrome="hidden"] .back-to-top {
   display: none !important;
 }
 
-/* Widen and recenter article body to fill viewport */
-html.reading-mode main,
-html.reading-mode article {
-  max-width: min(95vw, 1100px) !important;
-  margin-left: auto !important;
-  margin-right: auto !important;
-}
-
-/* Prev/Next nav after article also belongs to chrome */
-html.reading-mode nav[aria-label="文章导航"],
-html.reading-mode .back-to-top {
-  display: none !important;
-}
-
-/* Reading progress bar stays (non-intrusive, helps orient) */
-html.reading-mode .reading-progress { display: block; }
+html[data-reading-progress="on"] .reading-progress { display: block; }
