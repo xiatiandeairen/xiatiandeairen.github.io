@@ -566,13 +566,15 @@ const articleJsonLd = {
       }
     }
 
-    /* ── Typography controls (Aa) — stacked above reading-toggle ── */
+    /* ── Typography controls (Aa) — only in reading mode ── */
     .type-float {
+      display: none;
       position: fixed;
       bottom: calc(var(--space-6) + 112px);
       right: var(--space-6);
       z-index: 40;
     }
+    :global(html[data-typography-controls="on"]) .type-float { display: block; }
     .type-float-btn {
       width: 44px;
       height: 44px;
@@ -654,25 +656,37 @@ const articleJsonLd = {
     .type-opt.serif { font-family: Georgia, 'Songti SC', serif; }
     .type-opt sup { font-size: 0.7em; margin-left: 1px; }
 
-    /* Typography variable drivers (applied via data-attrs on <html>) */
-    :global(html[data-font-size="s"]) #article-body { font-size: 0.9375rem; }
-    :global(html[data-font-size="l"]) #article-body { font-size: 1.0625rem; }
-    :global(html[data-font-family="sans"]) #article-body,
-    :global(html[data-font-family="sans"]) #article-body p,
-    :global(html[data-font-family="sans"]) #article-body li {
-      font-family: Inter, -apple-system, 'PingFang SC', 'Hiragino Sans GB', sans-serif;
+    /* Typography variable drivers — gated by data-typography-controls="on" */
+    :global(#article-body) { --article-font-size: 1rem; }
+    :global(html[data-typography-controls="on"][data-font-size="s"] #article-body) { --article-font-size: 0.9375rem; }
+    :global(html[data-typography-controls="on"][data-font-size="l"] #article-body) { --article-font-size: 1.1875rem; }
+    :global(html[data-typography-controls="on"] #article-body),
+    :global(html[data-typography-controls="on"] #article-body p),
+    :global(html[data-typography-controls="on"] #article-body li),
+    :global(html[data-typography-controls="on"] #article-body blockquote) {
+      font-size: var(--article-font-size) !important;
     }
-    :global(html[data-font-family="serif"]) #article-body,
-    :global(html[data-font-family="serif"]) #article-body p,
-    :global(html[data-font-family="serif"]) #article-body li {
-      font-family: var(--font-display, Georgia, 'Songti SC', serif);
+    :global(html[data-typography-controls="on"][data-font-family="sans"] #article-body),
+    :global(html[data-typography-controls="on"][data-font-family="sans"] #article-body p),
+    :global(html[data-typography-controls="on"][data-font-family="sans"] #article-body li),
+    :global(html[data-typography-controls="on"][data-font-family="sans"] #article-body blockquote) {
+      font-family: Inter, -apple-system, 'PingFang SC', 'Hiragino Sans GB', sans-serif !important;
     }
-    :global(html[data-width="narrow"]) main,
-    :global(html[data-width="narrow"]) .article-header,
-    :global(html[data-width="narrow"]) #article-body { max-width: 68ch !important; margin-left: auto; margin-right: auto; }
-    :global(html[data-width="wide"]) main,
-    :global(html[data-width="wide"]) .article-header,
-    :global(html[data-width="wide"]) #article-body { max-width: min(95vw, 1100px) !important; margin-left: auto; margin-right: auto; }
+    :global(html[data-typography-controls="on"][data-font-family="serif"] #article-body),
+    :global(html[data-typography-controls="on"][data-font-family="serif"] #article-body p),
+    :global(html[data-typography-controls="on"][data-font-family="serif"] #article-body li),
+    :global(html[data-typography-controls="on"][data-font-family="serif"] #article-body blockquote) {
+      font-family: var(--font-display, Georgia, 'Songti SC', serif) !important;
+    }
+    :global(html[data-typography-controls="on"][data-width="narrow"] main),
+    :global(html[data-typography-controls="on"][data-width="narrow"] .article-header),
+    :global(html[data-typography-controls="on"][data-width="narrow"] #article-body) { max-width: 62ch !important; margin-left: auto; margin-right: auto; }
+    :global(html[data-typography-controls="on"][data-width="default"] main),
+    :global(html[data-typography-controls="on"][data-width="default"] .article-header),
+    :global(html[data-typography-controls="on"][data-width="default"] #article-body) { max-width: 820px !important; margin-left: auto; margin-right: auto; }
+    :global(html[data-typography-controls="on"][data-width="wide"] main),
+    :global(html[data-typography-controls="on"][data-width="wide"] .article-header),
+    :global(html[data-typography-controls="on"][data-width="wide"] #article-body) { max-width: min(95vw, 1100px) !important; margin-left: auto; margin-right: auto; }
 
     /* ── Reading mode toggle button (stacked above TOC) ── */
     .reading-toggle-float {
@@ -700,31 +714,26 @@ const articleJsonLd = {
       border-color: var(--ink-muted);
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
     }
-    :global(html.reading-mode) .reading-toggle-btn {
+    :global(html[data-mode="reading"]) .reading-toggle-btn {
       background: color-mix(in srgb, var(--accent) 12%, var(--paper));
       border-color: var(--accent);
       color: var(--accent);
     }
 
-    /* ── Reading mode: fill content area, keep type comfortable ── */
-    :global(html.reading-mode) #article-body {
-      font-size: 1.0625rem;
+    /* Reading density — when typography controls are on, relax line + paragraph rhythm */
+    :global(html[data-typography-controls="on"]) #article-body {
       line-height: 1.85;
-      max-width: none !important;
     }
-    :global(html.reading-mode) #article-body p {
+    :global(html[data-typography-controls="on"]) #article-body p {
       margin-top: 1.3em;
       margin-bottom: 1.3em;
     }
-    :global(html.reading-mode) .article-header {
-      max-width: none;
-    }
-    /* Keep exit button visible but low-key while reading */
-    :global(html.reading-mode) .reading-toggle-float {
+    /* Reading mode keeps the exit button low-key until hover */
+    :global(html[data-mode="reading"]) .reading-toggle-float {
       opacity: 0.25;
       transition: opacity var(--duration-medium, 200ms);
     }
-    :global(html.reading-mode) .reading-toggle-float:hover {
+    :global(html[data-mode="reading"]) .reading-toggle-float:hover {
       opacity: 1;
     }
   </style>
@@ -771,20 +780,34 @@ const articleJsonLd = {
         });
       }
 
-      // Reading mode toggle (persisted in localStorage)
+      // Page mode registry — presets compose orthogonal capability attrs.
+      // Add a new mode by: (1) defining preset here, (2) adding capability rules in CSS (no new mode-named selectors needed).
+      var MODE_PRESETS = {
+        'default': { 'chrome': 'visible', 'typography-controls': 'off', 'reading-progress': 'off' },
+        'reading': { 'chrome': 'hidden',  'typography-controls': 'on',  'reading-progress': 'on'  }
+      };
       var readingToggle = document.getElementById('reading-toggle');
+      function applyMode(name) {
+        var preset = MODE_PRESETS[name] || MODE_PRESETS['default'];
+        var html = document.documentElement;
+        html.setAttribute('data-mode', name);
+        Object.keys(preset).forEach(function(k) { html.setAttribute('data-' + k, preset[k]); });
+        if (readingToggle) readingToggle.setAttribute('aria-pressed', name === 'reading' ? 'true' : 'false');
+        try { localStorage.setItem('mode', name); } catch (e) {}
+      }
+      (function initMode() {
+        var saved;
+        try { saved = localStorage.getItem('mode'); } catch (e) {}
+        if (!saved) {
+          // migrate legacy flag
+          try { saved = localStorage.getItem('readingMode') === '1' ? 'reading' : 'default'; } catch (e) { saved = 'default'; }
+        }
+        applyMode(MODE_PRESETS[saved] ? saved : 'default');
+      })();
       if (readingToggle) {
-        var applyMode = function(on) {
-          document.documentElement.classList.toggle('reading-mode', on);
-          readingToggle.setAttribute('aria-pressed', on ? 'true' : 'false');
-        };
-        try {
-          applyMode(localStorage.getItem('readingMode') === '1');
-        } catch (e) {}
         readingToggle.addEventListener('click', function() {
-          var on = !document.documentElement.classList.contains('reading-mode');
-          applyMode(on);
-          try { localStorage.setItem('readingMode', on ? '1' : '0'); } catch (e) {}
+          var current = document.documentElement.getAttribute('data-mode') || 'default';
+          applyMode(current === 'reading' ? 'default' : 'reading');
         });
       }
 
