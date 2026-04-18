@@ -291,6 +291,13 @@ const articleJsonLd = {
 
   <a href="#main-content" class="back-to-top">{'回到顶部 ↑'}</a>
 
+  {/* Resume-reading toast (populated by JS if saved position exists) */}
+  <div class="resume-toast" id="resume-toast" role="status" aria-live="polite">
+    <span id="resume-toast-label">继续上次阅读</span>
+    <button class="resume-toast-btn" id="resume-toast-go">继续</button>
+    <button class="resume-toast-dismiss" id="resume-toast-close" aria-label="忽略">×</button>
+  </div>
+
   <style>
     /* ── Article body: override prose + base.css max-width ── */
     :global(#article-body) {
@@ -728,13 +735,57 @@ const articleJsonLd = {
       margin-top: 1.3em;
       margin-bottom: 1.3em;
     }
-    /* Reading mode keeps the exit button low-key until hover */
-    :global(html[data-mode="reading"]) .reading-toggle-float {
-      opacity: 0.25;
+    /* Idle fade — all floats dim after 2s of inactivity; restore on hover or activity */
+    .toc-float, .type-float, .reading-toggle-float {
       transition: opacity var(--duration-medium, 200ms);
     }
-    :global(html[data-mode="reading"]) .reading-toggle-float:hover {
-      opacity: 1;
+    :global(html[data-idle="true"]) .toc-float,
+    :global(html[data-idle="true"]) .type-float,
+    :global(html[data-idle="true"]) .reading-toggle-float {
+      opacity: 0.15;
+    }
+    .toc-float:hover, .type-float:hover, .reading-toggle-float:hover {
+      opacity: 1 !important;
+    }
+
+    /* Resume-reading toast */
+    .resume-toast {
+      position: fixed;
+      bottom: var(--space-6);
+      left: var(--space-6);
+      z-index: 45;
+      max-width: 280px;
+      padding: var(--space-3) var(--space-4);
+      background: var(--paper);
+      border: 1px solid var(--rule);
+      border-radius: var(--radius-md);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+      font-family: Inter, sans-serif;
+      font-size: var(--font-caption);
+      color: var(--ink-muted);
+      display: none;
+      align-items: center;
+      gap: var(--space-3);
+    }
+    .resume-toast.show { display: flex; }
+    .resume-toast-btn {
+      background: var(--ink);
+      color: var(--paper);
+      border: none;
+      padding: 4px var(--space-2);
+      border-radius: 3px;
+      font-family: inherit;
+      font-size: inherit;
+      cursor: pointer;
+    }
+    .resume-toast-dismiss {
+      background: transparent;
+      border: none;
+      color: var(--ink-faint);
+      cursor: pointer;
+      font-size: 1rem;
+      line-height: 1;
+      padding: 0 4px;
     }
   </style>
 
@@ -862,6 +913,81 @@ const articleJsonLd = {
           });
         });
       }
+
+      // Idle fade — dim floats after 2s of inactivity
+      var idleTimer = null;
+      function setIdle(v) { document.documentElement.setAttribute('data-idle', v ? 'true' : 'false'); }
+      function bumpIdle() {
+        setIdle(false);
+        clearTimeout(idleTimer);
+        idleTimer = setTimeout(function() { setIdle(true); }, 2000);
+      }
+      ['mousemove', 'scroll', 'keydown', 'touchstart', 'wheel'].forEach(function(ev) {
+        window.addEventListener(ev, bumpIdle, { passive: true });
+      });
+      bumpIdle();
+
+      // Keyboard navigation on article pages
+      document.addEventListener('keydown', function(e) {
+        if (e.ctrlKey || e.metaKey || e.altKey) return;
+        var tag = (e.target && e.target.tagName) || '';
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || (e.target && e.target.isContentEditable)) return;
+        var pageStep = window.innerHeight * 0.9;
+        if (e.key === ' ' || e.key === 'PageDown') {
+          window.scrollBy({ top: pageStep, behavior: 'smooth' }); e.preventDefault();
+        } else if (e.key === 'PageUp' || (e.key === ' ' && e.shiftKey)) {
+          window.scrollBy({ top: -pageStep, behavior: 'smooth' }); e.preventDefault();
+        } else if (e.key === 'g' || e.key === 'Home') {
+          window.scrollTo({ top: 0, behavior: 'smooth' }); e.preventDefault();
+        } else if (e.key === 'G' || e.key === 'End') {
+          window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' }); e.preventDefault();
+        } else if (e.key === 'n' || e.key === 'p') {
+          var hs = Array.prototype.slice.call(document.querySelectorAll('#article-body h2, #article-body h3'));
+          if (!hs.length) return;
+          var y = window.scrollY + 80;
+          var idx = -1;
+          for (var i = 0; i < hs.length; i++) { if (hs[i].offsetTop <= y) idx = i; }
+          var next = e.key === 'n' ? idx + 1 : idx - 1;
+          if (next >= 0 && next < hs.length) {
+            window.scrollTo({ top: hs[next].offsetTop - 60, behavior: 'smooth' });
+            e.preventDefault();
+          }
+        }
+      });
+
+      // Resume reading position (per-slug, saved on scroll-idle)
+      var posKey = 'read-pos:' + location.pathname;
+      var posSaveTimer = null;
+      window.addEventListener('scroll', function() {
+        clearTimeout(posSaveTimer);
+        posSaveTimer = setTimeout(function() {
+          try { localStorage.setItem(posKey, String(Math.round(window.scrollY))); } catch (e) {}
+        }, 400);
+      }, { passive: true });
+      (function showResumeToast() {
+        var saved;
+        try { saved = parseInt(localStorage.getItem(posKey) || '0', 10); } catch (e) { return; }
+        if (!saved || saved < 200 || window.scrollY > 100) return;
+        var toast = document.getElementById('resume-toast');
+        var goBtn = document.getElementById('resume-toast-go');
+        var closeBtn = document.getElementById('resume-toast-close');
+        var label = document.getElementById('resume-toast-label');
+        if (!toast || !goBtn || !closeBtn) return;
+        var docH = document.documentElement.scrollHeight - window.innerHeight;
+        var pct = docH > 0 ? Math.round((saved / docH) * 100) : 0;
+        if (label) label.textContent = '继续上次阅读（' + pct + '%）';
+        toast.classList.add('show');
+        var dismissTimer = setTimeout(function() { toast.classList.remove('show'); }, 10000);
+        goBtn.addEventListener('click', function() {
+          clearTimeout(dismissTimer);
+          window.scrollTo({ top: saved, behavior: 'smooth' });
+          toast.classList.remove('show');
+        });
+        closeBtn.addEventListener('click', function() {
+          clearTimeout(dismissTimer);
+          toast.classList.remove('show');
+        });
+      })();
 
       // TOC scroll spy
       var tocItems = document.querySelectorAll('.toc-item');
