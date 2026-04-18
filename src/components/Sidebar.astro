@@ -2,8 +2,9 @@
 /* Category: Layout
    Patterns: text-hierarchy, card-divider
    Tokens: --font-caption, --font-small, --ink, --ink-muted, --rule-faint
-   See: .know/docs/design-system.md §3.6 */
-import { getAllNotes, sortNotes } from '../utils/notes';
+   See: .know/docs/arch/design-patterns.md §2.6 */
+import { getAllNotes } from '../utils/notes';
+import { getFeatured } from '../utils/rank';
 import { useT, localePath, type Lang } from '../i18n';
 
 interface Props {
@@ -13,9 +14,13 @@ interface Props {
 const { lang = 'zh' } = Astro.props;
 const t = useT(lang);
 
-// Popular: top 5 most recent
 const allNotes = getAllNotes();
-const popular = sortNotes(allNotes, 'date', 'desc').slice(0, 3);
+
+// Featured: by quality.overall (with featured flag bonus), date desc fallback
+const featured = getFeatured(allNotes, 3);
+
+// All notes serialized for client-side random pick + recently-viewed lookup
+const notesIndex = allNotes.map(n => ({ slug: n.slug, title: n.title }));
 
 // Hot tags: top 5 by note count
 const tagCountMap = new Map<string, number>();
@@ -31,7 +36,7 @@ const hotTags = Array.from(tagCountMap.entries())
 // Series: unique series names
 const seriesMap = new Map<string, number>();
 for (const note of allNotes) {
-  const s = (note as any).series;
+  const s = note.series;
   if (s?.name) {
     seriesMap.set(s.name, (seriesMap.get(s.name) || 0) + 1);
   }
@@ -41,15 +46,29 @@ const hasMoreSeries = seriesMap.size > 3;
 ---
 
 <aside class="sidebar">
-  {/* Popular articles */}
+  {/* Featured (by quality.overall + featured flag) */}
   <div class="sidebar-section">
-    <div class="section-label">{t('sidebar.popular')}</div>
-    {popular.map((note, i) => (
+    <div class="section-label">{t('sidebar.featured')}</div>
+    {featured.map((note, i) => (
       <a href={`/notes/${note.slug}`} class="sidebar-popular-item">
         <span class="sidebar-popular-num font-sans">{String(i + 1).padStart(2, '0')}</span>
         <span class="sidebar-popular-title">{note.title}</span>
       </a>
     ))}
+  </div>
+
+  {/* Recently viewed (client-rendered from localStorage) */}
+  <div class="sidebar-section recently-viewed" data-recently-viewed hidden>
+    <div class="section-label">{t('sidebar.recent')}</div>
+    <div class="recently-viewed-list" id="recently-viewed-list"></div>
+  </div>
+
+  {/* Random article button */}
+  <div class="sidebar-section random-note">
+    <button type="button" class="sidebar-random-btn" id="sidebar-random-btn" data-notes={JSON.stringify(notesIndex)}>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>
+      <span>{t('sidebar.random')}</span>
+    </button>
   </div>
 
   {/* Series */}
@@ -91,6 +110,42 @@ const hasMoreSeries = seriesMap.size > 3;
   </div>
 </aside>
 
+<script is:inline>
+  (function() {
+    // Recently viewed: read from localStorage and render
+    var section = document.querySelector('[data-recently-viewed]');
+    var listEl = document.getElementById('recently-viewed-list');
+    if (section && listEl) {
+      var items;
+      try { items = JSON.parse(localStorage.getItem('recentlyViewed') || '[]'); } catch (e) { items = []; }
+      var currentSlug = (location.pathname.match(/^\/notes\/([^\/]+)/) || [])[1] || '';
+      items = items.filter(function(x) { return x && x.slug && x.slug !== currentSlug; });
+      if (items.length) {
+        section.hidden = false;
+        listEl.innerHTML = items.slice(0, 5).map(function(x) {
+          return '<a href="/notes/' + encodeURIComponent(x.slug) + '" class="sidebar-recent-item">' +
+            '<span class="sidebar-recent-title">' + (x.title || x.slug).replace(/[<>&]/g, function(c){ return {'<':'&lt;','>':'&gt;','&':'&amp;'}[c]; }) + '</span>' +
+            '</a>';
+        }).join('');
+      }
+    }
+
+    // Random article button
+    var btn = document.getElementById('sidebar-random-btn');
+    if (btn) {
+      btn.addEventListener('click', function() {
+        var notes;
+        try { notes = JSON.parse(btn.getAttribute('data-notes') || '[]'); } catch (e) { return; }
+        var currentSlug = (location.pathname.match(/^\/notes\/([^\/]+)/) || [])[1] || '';
+        var pool = notes.filter(function(n) { return n.slug !== currentSlug; });
+        if (!pool.length) return;
+        var pick = pool[Math.floor(Math.random() * pool.length)];
+        location.href = '/notes/' + encodeURIComponent(pick.slug);
+      });
+    }
+  })();
+</script>
+
 <style>
   .sidebar-section {
     margin-bottom: var(--space-6);
@@ -100,7 +155,7 @@ const hasMoreSeries = seriesMap.size > 3;
     margin-bottom: 0;
   }
 
-  /* Popular articles */
+  /* Featured / popular articles */
   .sidebar-popular-item {
     display: flex;
     align-items: flex-start;
@@ -139,6 +194,41 @@ const hasMoreSeries = seriesMap.size > 3;
 
   .sidebar-popular-item:hover .sidebar-popular-title {
     color: var(--accent);
+  }
+
+  /* Recently viewed */
+  .sidebar-recent-item {
+    display: block;
+    padding: var(--space-1) 0;
+    border-bottom: 1px solid var(--rule-faint);
+    text-decoration: none;
+    font-size: var(--font-caption);
+    color: var(--ink-muted);
+    line-height: 1.35;
+    transition: color var(--transition-color);
+  }
+  .sidebar-recent-item:last-child { border-bottom: none; }
+  .sidebar-recent-item:hover { color: var(--accent); }
+  .sidebar-recent-title { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+  /* Random button */
+  .sidebar-random-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: 6px var(--space-3);
+    background: transparent;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    cursor: pointer;
+    font-family: Inter, sans-serif;
+    font-size: var(--font-caption);
+    color: var(--ink-muted);
+    transition: all var(--duration-fast);
+  }
+  .sidebar-random-btn:hover {
+    border-color: var(--ink-muted);
+    color: var(--ink);
   }
 
   /* Series */

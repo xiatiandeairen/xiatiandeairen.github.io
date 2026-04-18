@@ -73,6 +73,9 @@ export default {
   },
   sidebar: {
     popular: 'Popular',
+    featured: 'Featured',
+    recent: 'Recently viewed',
+    random: 'Random article',
     series: 'Series',
     subscribe: 'Subscribe RSS',
   },

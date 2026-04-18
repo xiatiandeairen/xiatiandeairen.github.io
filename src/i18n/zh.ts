@@ -73,6 +73,9 @@ export default {
   },
   sidebar: {
     popular: '热门文章',
+    featured: '精选阅读',
+    recent: '最近浏览',
+    random: '随机一篇',
     series: '系列专栏',
     subscribe: '订阅 RSS',
   },
