@@ -196,7 +196,6 @@ const articleJsonLd = {
 <button class="toc-float-btn" id="toc-toggle" aria-label="目录">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="11" y2="18"/></svg>
       </button>
-      <span class="toc-float-hint" id="toc-hint">点这里再次打开目录</span>
       <nav class="toc-panel" id="toc-panel">
         <div class="section-label">{'目录'}</div>
         {toc.map((item) => (
@@ -826,18 +825,17 @@ const articleJsonLd = {
             tocPanel.classList.remove('open');
           }
         });
-        var tocHint = document.getElementById('toc-hint');
         tocPanel.querySelectorAll('a').forEach(function(a) {
           a.addEventListener('click', function() {
             tocPanel.classList.remove('open');
-            tocToggle.classList.remove('pulse');
-            void tocToggle.offsetWidth;
-            tocToggle.classList.add('pulse');
-            if (tocHint) {
-              tocHint.classList.add('show');
-              setTimeout(function() { tocHint.classList.remove('show'); }, 2200);
+            var id = (a.getAttribute('href') || '').slice(1);
+            var heading = id ? document.getElementById(id) : null;
+            if (heading) {
+              heading.classList.remove('toc-target');
+              void heading.offsetWidth;
+              heading.classList.add('toc-target');
+              setTimeout(function() { heading.classList.remove('toc-target'); }, 2400);
             }
-            setTimeout(function() { tocToggle.classList.remove('pulse'); }, 1800);
           });
         });
       }
