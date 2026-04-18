@@ -151,18 +151,27 @@ const articleJsonLd = {
     <div set:html={htmlContent} />
   </article>
 
-  {/* Reading mode toggle (stacked above TOC) */}
-  <div class="reading-toggle-float">
-    <button class="reading-toggle-btn" id="reading-toggle" aria-label="切换阅读模式" aria-pressed="false">
-      <svg class="reading-toggle-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+  {/* Mode toggle — left click cycles default → reading → book → default; right click opens menu */}
+  <div class="mode-toggle-float">
+    <button class="mode-toggle-btn" id="mode-toggle" aria-label="切换阅读形态" title="点击：循环切换 · 右键：精确选择">
+      <svg class="mode-icon mode-icon-default" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="1.5"/><line x1="8" y1="9" x2="16" y2="9"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="12" y2="17"/></svg>
+      <svg class="mode-icon mode-icon-reading" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+      <svg class="mode-icon mode-icon-book" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="8" height="16" rx="1"/><rect x="13" y="4" width="8" height="16" rx="1"/></svg>
     </button>
-  </div>
-
-  {/* Book mode toggle (stacked above Aa) */}
-  <div class="book-toggle-float">
-    <button class="book-toggle-btn" id="book-toggle" aria-label="切换翻页模式" aria-pressed="false" title="翻页模式 (b)">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="8" height="16" rx="1"/><rect x="13" y="4" width="8" height="16" rx="1"/></svg>
-    </button>
+    <div class="mode-menu" id="mode-menu" role="menu" aria-label="阅读形态" hidden>
+      <button class="mode-menu-item" role="menuitem" data-mode="default">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="1.5"/><line x1="8" y1="9" x2="16" y2="9"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="12" y2="17"/></svg>
+        <span>默认</span>
+      </button>
+      <button class="mode-menu-item" role="menuitem" data-mode="reading">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+        <span>阅读模式</span>
+      </button>
+      <button class="mode-menu-item" role="menuitem" data-mode="book">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="8" height="16" rx="1"/><rect x="13" y="4" width="8" height="16" rx="1"/></svg>
+        <span>翻页模式</span>
+      </button>
+    </div>
   </div>
 
   {/* Typography controls (font size / family / width) */}
@@ -375,15 +384,22 @@ const articleJsonLd = {
     .taxonomy-link {
       color: var(--ink-ghost);
       text-decoration: none;
-      transition: color var(--duration-fast);
+      padding: 2px 10px;
+      border: 1px solid transparent;
+      border-radius: 999px;
+      transition: border-color var(--duration-fast), color var(--duration-fast), background var(--duration-fast);
     }
     .taxonomy-link:hover {
+      border-color: var(--ink-muted);
       color: var(--ink);
-      text-decoration: underline;
-      text-underline-offset: 3px;
+      text-decoration: none;
     }
     .taxonomy-link-primary {
-      color: var(--ink-muted);
+      color: var(--accent);
+    }
+    .taxonomy-link-primary:hover {
+      border-color: var(--accent);
+      color: var(--accent);
     }
     .tax-sep {
       color: var(--ink-ghost);
@@ -570,7 +586,7 @@ const articleJsonLd = {
       .series-nav-next { text-align: left; }
       .related-grid { grid-template-columns: 1fr; }
       .toc-float { bottom: var(--space-4); right: var(--space-4); }
-      .reading-toggle-float { bottom: calc(var(--space-4) + 56px); right: var(--space-4); }
+      .mode-toggle-float { bottom: calc(var(--space-4) + 56px); right: var(--space-4); }
       .type-float { bottom: calc(var(--space-4) + 112px); right: var(--space-4); }
       .taxonomy-row {
         grid-template-columns: 1fr;
@@ -705,14 +721,14 @@ const articleJsonLd = {
     :global(html[data-typography-controls="on"][data-width="wide"] .article-header),
     :global(html[data-typography-controls="on"][data-width="wide"] #article-body) { max-width: min(95vw, 1100px) !important; margin-left: auto; margin-right: auto; }
 
-    /* ── Reading mode toggle button (stacked above TOC) ── */
-    .reading-toggle-float {
+    /* ── Mode toggle (unified button, stacked above TOC) ── */
+    .mode-toggle-float {
       position: fixed;
       bottom: calc(var(--space-6) + 56px);
       right: var(--space-6);
       z-index: 40;
     }
-    .reading-toggle-btn {
+    .mode-toggle-btn {
       width: 44px;
       height: 44px;
       border-radius: 50%;
@@ -725,48 +741,57 @@ const articleJsonLd = {
       cursor: pointer;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
       transition: all var(--duration-fast);
+      position: relative;
     }
-    .reading-toggle-btn:hover {
+    .mode-toggle-btn:hover {
       color: var(--ink);
       border-color: var(--ink-muted);
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
     }
-    :global(html[data-mode="reading"]) .reading-toggle-btn {
+    .mode-icon { display: none; }
+    :global(html[data-mode="default"]) .mode-icon-default { display: block; }
+    :global(html[data-mode="reading"]) .mode-icon-reading { display: block; }
+    :global(html[data-mode="book"]) .mode-icon-book { display: block; }
+    :global(html[data-mode="reading"]) .mode-toggle-btn,
+    :global(html[data-mode="book"]) .mode-toggle-btn {
       background: color-mix(in srgb, var(--accent) 12%, var(--paper));
       border-color: var(--accent);
       color: var(--accent);
     }
-
-    /* ── Book mode toggle button (stacked above Aa) ── */
-    .book-toggle-float {
-      position: fixed;
-      bottom: calc(var(--space-6) + 168px);
-      right: var(--space-6);
-      z-index: 40;
-    }
-    .book-toggle-btn {
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
+    /* Dropdown menu — opens to the left of the button */
+    .mode-menu[hidden] { display: none !important; }
+    .mode-menu {
+      position: absolute;
+      right: 52px;
+      bottom: 0;
+      display: flex;
+      flex-direction: column;
+      min-width: 140px;
+      padding: 4px;
       background: var(--paper);
       border: 1px solid var(--rule);
-      color: var(--ink-muted);
+      border-radius: var(--radius-md);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    }
+    .mode-menu-item {
       display: flex;
       align-items: center;
-      justify-content: center;
+      gap: var(--space-2);
+      padding: 6px var(--space-2);
+      background: transparent;
+      border: none;
+      border-radius: 4px;
+      color: var(--ink-muted);
+      font-family: Inter, sans-serif;
+      font-size: var(--font-caption);
+      text-align: left;
       cursor: pointer;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-      transition: all var(--duration-fast);
+      transition: background var(--duration-fast);
     }
-    .book-toggle-btn:hover {
-      color: var(--ink);
-      border-color: var(--ink-muted);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-    }
-    :global(html[data-mode="book"]) .book-toggle-btn {
-      background: color-mix(in srgb, var(--accent) 12%, var(--paper));
-      border-color: var(--accent);
+    .mode-menu-item:hover { background: var(--bg-subtle); color: var(--ink); }
+    .mode-menu-item[aria-current="true"] {
       color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 10%, transparent);
     }
 
     /* Reading density — when typography controls are on, relax line + paragraph rhythm */
@@ -778,16 +803,15 @@ const articleJsonLd = {
       margin-bottom: 1.3em;
     }
     /* Idle fade — all floats dim after 2s of inactivity; restore on hover or activity */
-    .toc-float, .type-float, .reading-toggle-float, .book-toggle-float {
+    .toc-float, .type-float, .mode-toggle-float {
       transition: opacity var(--duration-medium, 200ms);
     }
     :global(html[data-idle="true"]) .toc-float,
     :global(html[data-idle="true"]) .type-float,
-    :global(html[data-idle="true"]) .reading-toggle-float,
-    :global(html[data-idle="true"]) .book-toggle-float {
+    :global(html[data-idle="true"]) .mode-toggle-float {
       opacity: 0.15;
     }
-    .toc-float:hover, .type-float:hover, .reading-toggle-float:hover, .book-toggle-float:hover {
+    .toc-float:hover, .type-float:hover, .mode-toggle-float:hover {
       opacity: 1 !important;
     }
 
@@ -956,15 +980,22 @@ const articleJsonLd = {
         'reading': { 'chrome': 'hidden',  'typography-controls': 'on',  'reading-progress': 'on',  'article-layout': 'flow' },
         'book':    { 'chrome': 'hidden',  'typography-controls': 'on',  'reading-progress': 'off', 'article-layout': 'columns' }
       };
-      var readingToggle = document.getElementById('reading-toggle');
-      var bookToggle = document.getElementById('book-toggle');
+      var modeToggle = document.getElementById('mode-toggle');
+      var modeMenu = document.getElementById('mode-menu');
+      var MODE_ORDER = ['default', 'reading', 'book'];
       function applyMode(name) {
         var preset = MODE_PRESETS[name] || MODE_PRESETS['default'];
         var html = document.documentElement;
         html.setAttribute('data-mode', name);
         Object.keys(preset).forEach(function(k) { html.setAttribute('data-' + k, preset[k]); });
-        if (readingToggle) readingToggle.setAttribute('aria-pressed', name === 'reading' ? 'true' : 'false');
-        if (bookToggle) bookToggle.setAttribute('aria-pressed', name === 'book' ? 'true' : 'false');
+        if (modeMenu) {
+          modeMenu.querySelectorAll('.mode-menu-item').forEach(function(item) {
+            item.setAttribute('aria-current', item.getAttribute('data-mode') === name ? 'true' : 'false');
+          });
+        }
+        if (modeToggle) {
+          modeToggle.setAttribute('aria-label', '当前：' + name + ' · 点击循环切换 · 右键精确选择');
+        }
         try { localStorage.setItem('mode', name); } catch (e) {}
       }
       (function initMode() {
@@ -976,16 +1007,43 @@ const articleJsonLd = {
         }
         applyMode(MODE_PRESETS[saved] ? saved : 'default');
       })();
-      if (readingToggle) {
-        readingToggle.addEventListener('click', function() {
+      function modeMenuOpen() { if (modeMenu) modeMenu.hidden = false; }
+      function modeMenuClose() { if (modeMenu) modeMenu.hidden = true; }
+      if (modeToggle) {
+        // Left click cycles
+        modeToggle.addEventListener('click', function(e) {
+          e.stopPropagation();
           var current = document.documentElement.getAttribute('data-mode') || 'default';
-          applyMode(current === 'reading' ? 'default' : 'reading');
+          var idx = MODE_ORDER.indexOf(current);
+          if (idx < 0) idx = 0;
+          applyMode(MODE_ORDER[(idx + 1) % MODE_ORDER.length]);
+          modeMenuClose();
         });
+        // Right click opens menu
+        modeToggle.addEventListener('contextmenu', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          if (modeMenu && modeMenu.hidden) modeMenuOpen(); else modeMenuClose();
+        });
+        // Long press for touch devices
+        var longPressTimer = null;
+        modeToggle.addEventListener('touchstart', function() {
+          longPressTimer = setTimeout(modeMenuOpen, 500);
+        }, { passive: true });
+        modeToggle.addEventListener('touchend', function() { clearTimeout(longPressTimer); }, { passive: true });
       }
-      if (bookToggle) {
-        bookToggle.addEventListener('click', function() {
-          var current = document.documentElement.getAttribute('data-mode') || 'default';
-          applyMode(current === 'book' ? 'default' : 'book');
+      if (modeMenu) {
+        modeMenu.querySelectorAll('.mode-menu-item').forEach(function(item) {
+          item.addEventListener('click', function(e) {
+            e.stopPropagation();
+            applyMode(item.getAttribute('data-mode'));
+            modeMenuClose();
+          });
+        });
+        document.addEventListener('click', function(e) {
+          if (!modeMenu.hidden && !modeMenu.contains(e.target) && e.target !== modeToggle && !modeToggle.contains(e.target)) {
+            modeMenuClose();
+          }
         });
       }
 
@@ -1053,8 +1111,9 @@ const articleJsonLd = {
         if (e.key === 'b' || e.key === 'B') {
           applyMode(current === 'book' ? 'default' : 'book');
           e.preventDefault();
-        } else if (e.key === 'Escape' && current === 'book') {
-          applyMode('default'); e.preventDefault();
+        } else if (e.key === 'Escape') {
+          if (modeMenu && !modeMenu.hidden) { modeMenuClose(); e.preventDefault(); return; }
+          if (current === 'book') { applyMode('default'); e.preventDefault(); }
         } else if (bookInColumns()) {
           if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { bookNext(); e.preventDefault(); }
           else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { bookPrev(); e.preventDefault(); }
