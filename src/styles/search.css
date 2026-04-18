@@ -221,3 +221,51 @@
 .search-chip-primary:hover {
   border-color: var(--accent);
 }
+.search-section-hint {
+  margin-left: 6px;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0.02em;
+  color: var(--ink-ghost);
+}
+.search-syntax-chip {
+  display: inline-block;
+  padding: 2px 10px;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: var(--font-caption);
+  color: var(--accent);
+  background: transparent;
+  border: 1px dashed color-mix(in srgb, var(--accent) 40%, transparent);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: border-color var(--duration-fast), background var(--duration-fast);
+}
+.search-syntax-chip:hover {
+  border-style: solid;
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+
+.search-date-row {
+  display: flex;
+  gap: 6px;
+  padding: var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--rule-faint);
+  flex-wrap: wrap;
+}
+.search-date-chip {
+  padding: 2px 10px;
+  font-family: Inter, sans-serif;
+  font-size: var(--font-caption);
+  color: var(--ink-muted);
+  background: transparent;
+  border: 1px solid var(--rule-light);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all var(--duration-fast);
+}
+.search-date-chip:hover { color: var(--ink); border-color: var(--ink-muted); }
+.search-date-chip.active {
+  color: var(--paper);
+  background: var(--ink);
+  border-color: var(--ink);
+}

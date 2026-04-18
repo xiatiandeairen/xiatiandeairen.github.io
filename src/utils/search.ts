@@ -116,21 +116,50 @@ interface ParsedQuery {
   topic?: string;
   type?: string;
   series?: string;
+  date?: string;
 }
 
-const PREFIX_RE = /\b(tag|topic|type|series):([^\s]+)/gi;
+const PREFIX_RE = /\b(tag|topic|type|series|date):([^\s]+)/gi;
 
 function parseQuery(raw: string): ParsedQuery {
   const parsed: ParsedQuery = { free: '' };
   let free = raw;
   let m: RegExpExecArray | null;
   while ((m = PREFIX_RE.exec(raw)) !== null) {
-    const field = m[1].toLowerCase() as 'tag' | 'topic' | 'type' | 'series';
+    const field = m[1].toLowerCase() as 'tag' | 'topic' | 'type' | 'series' | 'date';
     parsed[field] = m[2].toLowerCase();
     free = free.replace(m[0], '');
   }
   parsed.free = free.trim().toLowerCase();
   return parsed;
+}
+
+/**
+ * Parse a date filter spec into [since, until] ISO date strings (inclusive).
+ * Supported: Nd (last N days), Ny (last N years), YYYY (a year), YYYY-MM (a month).
+ * Invalid spec → null (no filter applied).
+ */
+function parseDateSpec(spec: string): { since: string; until: string } | null {
+  if (!spec) return null;
+  const now = new Date();
+  let m: RegExpMatchArray | null;
+  if ((m = spec.match(/^(\d+)d$/))) {
+    const since = new Date(now); since.setDate(since.getDate() - parseInt(m[1]));
+    return { since: since.toISOString(), until: now.toISOString() };
+  }
+  if ((m = spec.match(/^(\d+)y$/))) {
+    const since = new Date(now); since.setFullYear(since.getFullYear() - parseInt(m[1]));
+    return { since: since.toISOString(), until: now.toISOString() };
+  }
+  if ((m = spec.match(/^(\d{4})$/))) {
+    return { since: `${m[1]}-01-01T00:00:00Z`, until: `${m[1]}-12-31T23:59:59Z` };
+  }
+  if ((m = spec.match(/^(\d{4})-(\d{2})$/))) {
+    const y = parseInt(m[1]); const mo = parseInt(m[2]);
+    const last = new Date(y, mo, 0).getDate(); // last day of month
+    return { since: `${m[1]}-${m[2]}-01T00:00:00Z`, until: `${m[1]}-${m[2]}-${String(last).padStart(2,'0')}T23:59:59Z` };
+  }
+  return null;
 }
 
 function snippetOf(content: string, term: string): string {
@@ -145,7 +174,8 @@ function snippetOf(content: string, term: string): string {
 
 export function searchNotes(rawQuery: string, index: SearchIndex, opts: SearchOptions = {}): SearchHit[] {
   const q = parseQuery(rawQuery || '');
-  if (!q.free && !q.tag && !q.topic && !q.type && !q.series) return [];
+  if (!q.free && !q.tag && !q.topic && !q.type && !q.series && !q.date) return [];
+  const dateRange = q.date ? parseDateSpec(q.date) : null;
 
   const hits: SearchHit[] = [];
   for (const n of index.notes) {
@@ -158,6 +188,7 @@ export function searchNotes(rawQuery: string, index: SearchIndex, opts: SearchOp
     }
     if (q.type && !n.questionType.toLowerCase().includes(q.type)) continue;
     if (q.series && !n.series.toLowerCase().includes(q.series)) continue;
+    if (dateRange && (n.date < dateRange.since || n.date > dateRange.until)) continue;
 
     let score = 0;
     let matchedField: SearchHit['matchedField'] = 'content';

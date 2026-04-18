@@ -49,7 +49,9 @@ export default {
   search: {
     title: '搜索',
     subtitle: '搜索笔记标题、内容、标签与主题。',
-    placeholder: '搜索笔记…',
+    placeholder: '搜索 · 试试 tag: topic: type: series:',
+    syntaxTitle: '搜索技巧',
+    syntaxHint: '点击插入到输入框',
     button: '搜索',
     loading: '正在加载…',
     noResults: '未找到匹配的笔记',

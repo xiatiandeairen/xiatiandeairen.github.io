@@ -155,6 +155,12 @@ const matchPath = currentPath.replace(/^\/en/, '') || '/';
           <input type="text" id="search-input" class="search-input" placeholder={t('search.placeholder')} autocomplete="off" />
           <kbd class="search-esc">ESC</kbd>
         </div>
+        <div class="search-date-row">
+          <button type="button" class="search-date-chip" data-date="">{lang === 'zh' ? '全部' : 'All'}</button>
+          <button type="button" class="search-date-chip" data-date="30d">{lang === 'zh' ? '近30天' : 'Last 30d'}</button>
+          <button type="button" class="search-date-chip" data-date="90d">{lang === 'zh' ? '近90天' : 'Last 90d'}</button>
+          <button type="button" class="search-date-chip" data-date="1y">{lang === 'zh' ? '近1年' : 'Last 1y'}</button>
+        </div>
         <div id="search-results" class="search-results"></div>
       </div>
     </div>
@@ -222,7 +228,20 @@ const matchPath = currentPath.replace(/^\/en/, '') || '/';
         }
 
         // Query parser + scorer (mirror of src/utils/search.ts searchNotes)
-        var PREFIX_RE = /\b(tag|topic|type|series):([^\s]+)/gi;
+        var PREFIX_RE = /\b(tag|topic|type|series|date):([^\s]+)/gi;
+        function parseDateSpec(spec) {
+          if (!spec) return null;
+          var now = new Date(); var m;
+          if ((m = spec.match(/^(\d+)d$/))) { var s = new Date(now); s.setDate(s.getDate() - parseInt(m[1])); return { since: s.toISOString(), until: now.toISOString() }; }
+          if ((m = spec.match(/^(\d+)y$/))) { var s2 = new Date(now); s2.setFullYear(s2.getFullYear() - parseInt(m[1])); return { since: s2.toISOString(), until: now.toISOString() }; }
+          if ((m = spec.match(/^(\d{4})$/))) return { since: m[1] + '-01-01T00:00:00Z', until: m[1] + '-12-31T23:59:59Z' };
+          if ((m = spec.match(/^(\d{4})-(\d{2})$/))) {
+            var y = parseInt(m[1]), mo = parseInt(m[2]);
+            var last = new Date(y, mo, 0).getDate();
+            return { since: m[1] + '-' + m[2] + '-01T00:00:00Z', until: m[1] + '-' + m[2] + '-' + String(last).padStart(2,'0') + 'T23:59:59Z' };
+          }
+          return null;
+        }
         function parseQuery(raw) {
           var out = { free: '' };
           var free = raw || '';
@@ -246,7 +265,8 @@ const matchPath = currentPath.replace(/^\/en/, '') || '/';
         }
         function searchNotes(rawQuery, index, limit) {
           var q = parseQuery(rawQuery);
-          if (!q.free && !q.tag && !q.topic && !q.type && !q.series) return [];
+          if (!q.free && !q.tag && !q.topic && !q.type && !q.series && !q.date) return [];
+          var dateRange = q.date ? parseDateSpec(q.date) : null;
           var hits = [];
           for (var i = 0; i < index.notes.length; i++) {
             var n = index.notes[i];
@@ -262,6 +282,7 @@ const matchPath = currentPath.replace(/^\/en/, '') || '/';
             }
             if (q.type && !(n.questionType || '').toLowerCase().includes(q.type)) continue;
             if (q.series && !((n.series || '').toLowerCase().includes(q.series))) continue;
+            if (dateRange && (n.date < dateRange.since || n.date > dateRange.until)) continue;
 
             var score = 0, matched = 'content', free = q.free;
             if (!free) {
@@ -337,6 +358,12 @@ const matchPath = currentPath.replace(/^\/en/, '') || '/';
             html += topTags.map(function(t){ return '<a class="search-chip" href="/tags/' + encodeURIComponent(t) + '">' + escapeHtml(t) + '</a>'; }).join('');
             html += '</div></div>';
           }
+          // syntax tips section
+          html += '<div class="search-section"><div class="search-section-title">搜索技巧 <span class="search-section-hint">点击插入</span></div><div class="search-chips">';
+          html += ['tag:', 'topic:', 'type:', 'series:'].map(function(p){
+            return '<button type="button" class="search-syntax-chip" data-prefix="' + p + '">' + p + '</button>';
+          }).join('');
+          html += '</div></div>';
           if (!html) html = '<div class="search-empty">开始输入以搜索（支持 tag:/topic:/type:/series: 前缀）</div>';
           results.innerHTML = html;
           // wire recent
@@ -348,6 +375,14 @@ const matchPath = currentPath.replace(/^\/en/, '') || '/';
           });
           results.querySelectorAll('.search-chip').forEach(function(a) {
             a.addEventListener('click', closeSearch);
+          });
+          results.querySelectorAll('[data-prefix]').forEach(function(b) {
+            b.addEventListener('click', function() {
+              var p = this.getAttribute('data-prefix') || '';
+              input.value = p;
+              input.focus();
+              input.setSelectionRange(p.length, p.length);
+            });
           });
         }
 
@@ -417,7 +452,26 @@ const matchPath = currentPath.replace(/^\/en/, '') || '/';
             }
           }
         });
-        input.addEventListener('input', function() { clearTimeout(timer); timer = setTimeout(doSearch, 160); });
+        input.addEventListener('input', function() { clearTimeout(timer); timer = setTimeout(doSearch, 160); refreshDateChipActive(); });
+
+        // Date chip toggle: rewrite date: prefix in input
+        function refreshDateChipActive() {
+          var current = (input.value.match(/\bdate:(\S+)/i) || ['',''])[1].toLowerCase();
+          document.querySelectorAll('.search-date-chip').forEach(function(c) {
+            c.classList.toggle('active', (c.getAttribute('data-date') || '') === current);
+          });
+        }
+        document.querySelectorAll('.search-date-chip').forEach(function(c) {
+          c.addEventListener('click', function() {
+            var spec = this.getAttribute('data-date') || '';
+            var stripped = input.value.replace(/\bdate:\S+\s*/gi, '').trim();
+            input.value = spec ? (stripped + (stripped ? ' ' : '') + 'date:' + spec).trim() : stripped;
+            input.focus();
+            refreshDateChipActive();
+            doSearch();
+          });
+        });
+        refreshDateChipActive();
       })();
     </script>
   </body>

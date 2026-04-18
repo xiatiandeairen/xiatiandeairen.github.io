@@ -49,7 +49,9 @@ export default {
   search: {
     title: 'Search',
     subtitle: 'Search note titles, content, tags and topics.',
-    placeholder: 'Search notes…',
+    placeholder: 'Search · try tag: topic: type: series:',
+    syntaxTitle: 'Search syntax',
+    syntaxHint: 'Click to insert',
     button: 'Search',
     loading: 'Loading…',
     noResults: 'No matching notes found',
