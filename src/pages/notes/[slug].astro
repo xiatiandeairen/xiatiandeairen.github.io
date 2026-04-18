@@ -6,6 +6,18 @@ import { generateSEOMeta } from '../../utils/seo';
 import { marked } from 'marked';
 
 export async function getStaticPaths() {
+  function slugify(text: string): string {
+    return text.toLowerCase().replace(/[^\w\u4e00-\u9fff]+/g, '-').replace(/^-|-$/g, '');
+  }
+
+  function addHeadingIds(html: string): string {
+    return html.replace(/<h([23])>([\s\S]*?)<\/h\1>/g, (_, level, inner) => {
+      const raw = inner.replace(/<[^>]+>/g, '').replace(/&[^;]+;/g, ' ').trim();
+      const id = slugify(raw);
+      return `<h${level} id="${id}">${inner}</h${level}>`;
+    });
+  }
+
   function extractToc(content: string): { id: string; text: string; level: number }[] {
     const toc: { id: string; text: string; level: number }[] = [];
     const lines = content.split('\n');
@@ -13,7 +25,7 @@ export async function getStaticPaths() {
       const match = line.match(/^(#{2,3})\s+(.+)$/);
       if (match) {
         const text = match[2].replace(/\*\*?|`[^`]+`/g, '').trim();
-        const id = text.toLowerCase().replace(/[^\w\u4e00-\u9fff]+/g, '-').replace(/^-|-$/g, '');
+        const id = slugify(text);
         toc.push({ id, text, level: match[1].length });
       }
     }
@@ -42,7 +54,7 @@ export async function getStaticPaths() {
     const seo = generateSEOMeta(note);
     const mode = 'public';
     const contentWithoutH1 = note.content.replace(/^#\s+.+\n*/m, '');
-    const htmlContent = marked.parse(contentWithoutH1);
+    const htmlContent = addHeadingIds(marked.parse(contentWithoutH1) as string);
     const toc = extractToc(note.content);
     const related = getRelated(note, notes);
 
@@ -63,7 +75,6 @@ const displayMode = urlMode === 'audit' ? 'audit' : mode;
 
 const charCount = note.content.replace(/\s+/g, '').length;
 const readingMinutes = Math.max(1, Math.round(charCount / 300));
-const wordCount = note.content.replace(/\s+/g, ' ').trim().length;
 
 // Series detection from frontmatter
 const series = (note as any).series;
@@ -100,27 +111,26 @@ const articleJsonLd = {
   )}
 
   <header class="article-header">
-    <div class="cat-label mb-2">
-      {note.question.type}
-      {note.question.subType ? ` · ${note.question.subType}` : ''}
-    </div>
-    <h1 class="font-display text-h1 mb-3">{note.title}</h1>
-    <div class="flex flex-wrap items-center gap-4 font-sans article-meta">
+    <div class="article-kicker">{note.question.type}</div>
+    <h1 class="article-title font-display">{note.title}</h1>
+    <div class="article-meta">
+      <span>{readingMinutes + ' min read'}</span>
+      <span class="meta-dot-sep" aria-hidden="true">·</span>
       <time datetime={note.date}>{new Date(note.date).toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' })}</time>
-      <span>{'·'}</span>
-      <span class="reading-badge">{'📖 约 ' + readingMinutes + ' 分钟阅读'}</span>
-      <span>{'·'}</span>
-      <span>{wordCount.toLocaleString() + ' 字'}</span>
     </div>
-
-    {/* Tags + Topics inline */}
-    {(note.tags.length > 0 || note.topics.length > 0) && (
-      <div class="article-taxonomy">
-        {note.tags.map((tag) => (
-          <a href={`/tags/${encodeURIComponent(tag.name)}`} class="taxonomy-chip font-sans">{tag.name}</a>
+    {(note.topics.length > 0 || note.tags.length > 0) && (
+      <div class="taxonomy-row" aria-label="topics and tags">
+        {note.topics.map((topic, i) => (
+          <>
+            {i > 0 && <span class="tax-sep" aria-hidden="true">·</span>}
+            <a href={`/topics/${encodeURIComponent(topic.name)}`} class="taxonomy-link taxonomy-link-primary font-sans">{topic.name}</a>
+          </>
         ))}
-        {note.topics.map((topic) => (
-          <a href={`/topics/${encodeURIComponent(topic.name)}`} class="taxonomy-chip taxonomy-topic font-sans">{topic.name}</a>
+        {note.tags.map((tag, i) => (
+          <>
+            {(i > 0 || note.topics.length > 0) && <span class="tax-sep" aria-hidden="true">·</span>}
+            <a href={`/tags/${encodeURIComponent(tag.name)}`} class="taxonomy-link font-sans">{tag.name}</a>
+          </>
         ))}
       </div>
     )}
@@ -141,12 +151,52 @@ const articleJsonLd = {
     <div set:html={htmlContent} />
   </article>
 
+  {/* Reading mode toggle (stacked above TOC) */}
+  <div class="reading-toggle-float">
+    <button class="reading-toggle-btn" id="reading-toggle" aria-label="切换阅读模式" aria-pressed="false">
+      <svg class="reading-toggle-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+    </button>
+  </div>
+
+  {/* Typography controls (font size / family / width) */}
+  <div class="type-float">
+    <button class="type-float-btn" id="type-toggle" aria-label="排版" aria-expanded="false">
+      <span class="type-aa">Aa</span>
+    </button>
+    <div class="type-panel" id="type-panel" role="dialog" aria-label="排版设置">
+      <div class="type-row">
+        <span class="type-label">字号</span>
+        <div class="type-options" data-group="font-size">
+          <button class="type-opt" data-value="s" aria-label="小">A<sup>-</sup></button>
+          <button class="type-opt" data-value="m" aria-label="中">A</button>
+          <button class="type-opt" data-value="l" aria-label="大">A<sup>+</sup></button>
+        </div>
+      </div>
+      <div class="type-row">
+        <span class="type-label">字体</span>
+        <div class="type-options" data-group="font-family">
+          <button class="type-opt type-opt-text serif" data-value="serif">衬线</button>
+          <button class="type-opt type-opt-text" data-value="sans">无衬线</button>
+        </div>
+      </div>
+      <div class="type-row">
+        <span class="type-label">行宽</span>
+        <div class="type-options" data-group="width">
+          <button class="type-opt type-opt-text" data-value="narrow">窄</button>
+          <button class="type-opt type-opt-text" data-value="default">默认</button>
+          <button class="type-opt type-opt-text" data-value="wide">宽</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   {/* Floating TOC button + overlay */}
   {toc.length > 0 && (
     <div class="toc-float" id="toc-float">
-      <button class="toc-float-btn" id="toc-toggle" aria-label="目录">
+<button class="toc-float-btn" id="toc-toggle" aria-label="目录">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="11" y2="18"/></svg>
       </button>
+      <span class="toc-float-hint" id="toc-hint">点这里再次打开目录</span>
       <nav class="toc-panel" id="toc-panel">
         <div class="section-label">{'目录'}</div>
         {toc.map((item) => (
@@ -180,23 +230,28 @@ const articleJsonLd = {
   {/* Comments (giscus) */}
   <section class="giscus-section">
     <div class="section-label">评论</div>
-    <script
-      src="https://giscus.app/client.js"
-      data-repo="xiatiandeairen/xiatiandeairen.github.io"
-      data-repo-id=""
-      data-category="Comments"
-      data-category-id=""
-      data-mapping="pathname"
-      data-strict="0"
-      data-reactions-enabled="1"
-      data-emit-metadata="0"
-      data-input-position="top"
-      data-theme="preferred_color_scheme"
-      data-lang="zh-CN"
-      data-loading="lazy"
-      crossorigin="anonymous"
-      async
-    ></script>
+    <div class="giscus-hint">
+      使用 GitHub 账号登录即可留言。表情、回复均支持。
+    </div>
+    <div class="giscus-container">
+      <script
+        src="https://giscus.app/client.js"
+        data-repo="xiatiandeairen/xiatiandeairen.github.io"
+        data-repo-id="R_kgDONiKBwA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDONiKBwM4C7GHk"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="top"
+        data-theme="https://xiatiandeairen.github.io/giscus-light.css"
+        data-lang="zh-CN"
+        data-loading="lazy"
+        crossorigin="anonymous"
+        async
+      ></script>
+    </div>
   </section>
 
   {/* Series navigation */}
@@ -249,34 +304,76 @@ const articleJsonLd = {
       max-width: none;
     }
 
-    /* ── Article header ── */
+    /* ── Article header: centered, minimalist editorial (A direction) ── */
     .article-header {
+      text-align: center;
       margin-bottom: var(--space-7);
-      padding-bottom: var(--space-5);
-      border-bottom: 1px solid var(--rule);
+      padding: var(--space-6) 0 var(--space-6);
+      border-bottom: 1px solid var(--rule-light);
     }
-    .article-meta { font-size: var(--font-caption); color: var(--ink-faint); }
-    .article-taxonomy {
-      display: flex;
-      flex-wrap: wrap;
-      gap: var(--space-1);
-      margin-top: var(--space-3);
+
+    .article-kicker {
+      font-family: Inter, sans-serif;
+      font-size: 0.7rem;
+      font-weight: 500;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+      margin-bottom: var(--space-6);
     }
-    .taxonomy-chip {
-      font-size: var(--font-label);
-      padding: 2px var(--space-2);
-      border: 1px solid var(--rule-light);
-      color: var(--ink-muted);
-      text-decoration: none;
-      transition: all var(--duration-fast);
-    }
-    .taxonomy-chip:hover {
-      border-color: var(--rule);
+
+    .article-title {
+      font-size: clamp(1.875rem, 1.5rem + 1.6vw, 2.75rem);
+      font-weight: 400;
+      line-height: 1.25;
+      letter-spacing: -0.005em;
       color: var(--ink);
+      margin: 0 auto var(--space-6);
+      max-width: 22em;
     }
-    .taxonomy-topic {
-      border-style: dashed;
+
+    .article-meta {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+      font-family: Inter, sans-serif;
+      font-size: 0.8125rem;
+      color: var(--ink-faint);
+      letter-spacing: 0.04em;
+      margin-bottom: var(--space-4);
     }
+    .meta-dot-sep { color: var(--ink-ghost); }
+
+    .taxonomy-row {
+      display: inline-flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: var(--space-2);
+      font-family: Inter, sans-serif;
+      font-size: 0.75rem;
+      letter-spacing: 0.08em;
+    }
+    .taxonomy-link {
+      color: var(--ink-ghost);
+      text-decoration: none;
+      transition: color var(--duration-fast);
+    }
+    .taxonomy-link:hover {
+      color: var(--ink);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+    .taxonomy-link-primary {
+      color: var(--ink-muted);
+    }
+    .tax-sep {
+      color: var(--ink-ghost);
+      opacity: 0.6;
+    }
+
     .prev-next-title { color: var(--ink); }
 
     /* ── Floating TOC ── */
@@ -287,6 +384,7 @@ const articleJsonLd = {
       z-index: 40;
     }
     .toc-float-btn {
+      position: relative;
       width: 44px;
       height: 44px;
       border-radius: 50%;
@@ -304,6 +402,37 @@ const articleJsonLd = {
       color: var(--ink);
       border-color: var(--ink-muted);
       box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    }
+    /* Target heading highlight — pulses when TOC jumps to it */
+    :global(#article-body h2.toc-target),
+    :global(#article-body h3.toc-target) {
+      animation: heading-highlight 2.4s ease-out;
+    }
+    :global(#article-body h2.toc-target)::before,
+    :global(#article-body h3.toc-target)::before {
+      content: '';
+      position: absolute;
+      left: -12px;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: var(--accent);
+      animation: heading-bar 2.4s ease-out;
+    }
+    :global(#article-body h2),
+    :global(#article-body h3) {
+      position: relative;
+      scroll-margin-top: 80px;
+    }
+    @keyframes heading-highlight {
+      0%   { background: color-mix(in srgb, var(--accent) 18%, transparent); }
+      80%  { background: color-mix(in srgb, var(--accent) 18%, transparent); }
+      100% { background: transparent; }
+    }
+    @keyframes heading-bar {
+      0%   { opacity: 0.9; }
+      80%  { opacity: 0.9; }
+      100% { opacity: 0; }
     }
     .toc-panel {
       display: none;
@@ -408,17 +537,258 @@ const articleJsonLd = {
       padding-top: var(--space-5);
       border-top: 1px solid var(--rule);
     }
+    .giscus-hint {
+      font-family: Inter, sans-serif;
+      font-size: var(--font-caption);
+      color: var(--ink-faint);
+      margin-bottom: var(--space-4);
+      letter-spacing: 0.02em;
+    }
+    .giscus-container {
+      min-height: 200px;
+      padding: var(--space-3) 0;
+    }
 
     @media (max-width: 767px) {
       .series-nav { grid-template-columns: 1fr; }
       .series-nav-next { text-align: left; }
       .related-grid { grid-template-columns: 1fr; }
       .toc-float { bottom: var(--space-4); right: var(--space-4); }
+      .reading-toggle-float { bottom: calc(var(--space-4) + 56px); right: var(--space-4); }
+      .type-float { bottom: calc(var(--space-4) + 112px); right: var(--space-4); }
+      .taxonomy-row {
+        grid-template-columns: 1fr;
+        gap: var(--space-2);
+      }
+      .taxonomy-label {
+        text-align: left;
+        border-right: none;
+        padding-right: 0;
+      }
+    }
+
+    /* ── Typography controls (Aa) — stacked above reading-toggle ── */
+    .type-float {
+      position: fixed;
+      bottom: calc(var(--space-6) + 112px);
+      right: var(--space-6);
+      z-index: 40;
+    }
+    .type-float-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--paper);
+      border: 1px solid var(--rule);
+      color: var(--ink-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      transition: all var(--duration-fast);
+    }
+    .type-float-btn:hover {
+      color: var(--ink);
+      border-color: var(--ink-muted);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    }
+    .type-aa {
+      font-family: Georgia, 'Songti SC', serif;
+      font-size: 1rem;
+      font-weight: 600;
+      line-height: 1;
+    }
+    .type-panel {
+      display: none;
+      position: absolute;
+      bottom: 56px;
+      right: 0;
+      width: 260px;
+      background: var(--paper);
+      border: 1px solid var(--rule);
+      border-radius: var(--radius-md);
+      padding: var(--space-4);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    }
+    .type-panel.open { display: block; }
+    .type-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--space-2) 0;
+    }
+    .type-row + .type-row { border-top: 1px solid var(--rule-faint); }
+    .type-label {
+      font-family: Inter, sans-serif;
+      font-size: var(--font-label);
+      font-weight: 500;
+      color: var(--ink-muted);
+      letter-spacing: 0.05em;
+    }
+    .type-options {
+      display: inline-flex;
+      gap: 0;
+      border: 1px solid var(--rule-light);
+      border-radius: var(--radius-md, 6px);
+      overflow: hidden;
+    }
+    .type-opt {
+      min-width: 32px;
+      padding: 4px var(--space-2);
+      background: transparent;
+      border: none;
+      border-left: 1px solid var(--rule-light);
+      color: var(--ink-muted);
+      font-family: Inter, sans-serif;
+      font-size: var(--font-caption);
+      cursor: pointer;
+      transition: all var(--duration-fast);
+    }
+    .type-opt:first-child { border-left: none; }
+    .type-opt:hover { background: var(--bg-subtle); color: var(--ink); }
+    .type-opt.active {
+      background: var(--ink);
+      color: var(--paper);
+    }
+    .type-opt-text { letter-spacing: 0.03em; }
+    .type-opt.serif { font-family: Georgia, 'Songti SC', serif; }
+    .type-opt sup { font-size: 0.7em; margin-left: 1px; }
+
+    /* Typography variable drivers (applied via data-attrs on <html>) */
+    :global(html[data-font-size="s"]) #article-body { font-size: 0.9375rem; }
+    :global(html[data-font-size="l"]) #article-body { font-size: 1.0625rem; }
+    :global(html[data-font-family="sans"]) #article-body,
+    :global(html[data-font-family="sans"]) #article-body p,
+    :global(html[data-font-family="sans"]) #article-body li {
+      font-family: Inter, -apple-system, 'PingFang SC', 'Hiragino Sans GB', sans-serif;
+    }
+    :global(html[data-font-family="serif"]) #article-body,
+    :global(html[data-font-family="serif"]) #article-body p,
+    :global(html[data-font-family="serif"]) #article-body li {
+      font-family: var(--font-display, Georgia, 'Songti SC', serif);
+    }
+    :global(html[data-width="narrow"]) main,
+    :global(html[data-width="narrow"]) .article-header,
+    :global(html[data-width="narrow"]) #article-body { max-width: 68ch !important; margin-left: auto; margin-right: auto; }
+    :global(html[data-width="wide"]) main,
+    :global(html[data-width="wide"]) .article-header,
+    :global(html[data-width="wide"]) #article-body { max-width: min(95vw, 1100px) !important; margin-left: auto; margin-right: auto; }
+
+    /* ── Reading mode toggle button (stacked above TOC) ── */
+    .reading-toggle-float {
+      position: fixed;
+      bottom: calc(var(--space-6) + 56px);
+      right: var(--space-6);
+      z-index: 40;
+    }
+    .reading-toggle-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--paper);
+      border: 1px solid var(--rule);
+      color: var(--ink-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      transition: all var(--duration-fast);
+    }
+    .reading-toggle-btn:hover {
+      color: var(--ink);
+      border-color: var(--ink-muted);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    }
+    :global(html.reading-mode) .reading-toggle-btn {
+      background: color-mix(in srgb, var(--accent) 12%, var(--paper));
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* ── Reading mode: fill content area, keep type comfortable ── */
+    :global(html.reading-mode) #article-body {
+      font-size: 1.0625rem;
+      line-height: 1.85;
+      max-width: none !important;
+    }
+    :global(html.reading-mode) #article-body p {
+      margin-top: 1.3em;
+      margin-bottom: 1.3em;
+    }
+    :global(html.reading-mode) .article-header {
+      max-width: none;
+    }
+    /* Keep exit button visible but low-key while reading */
+    :global(html.reading-mode) .reading-toggle-float {
+      opacity: 0.25;
+      transition: opacity var(--duration-medium, 200ms);
+    }
+    :global(html.reading-mode) .reading-toggle-float:hover {
+      opacity: 1;
     }
   </style>
 
   <script is:inline>
     (function() {
+      // Typography controls (font-size / font-family / width)
+      var TYPE_KEYS = { 'font-size': { default: 'm', attr: 'data-font-size' },
+                        'font-family': { default: 'serif', attr: 'data-font-family' },
+                        'width': { default: 'default', attr: 'data-width' } };
+      function applyType(group, value) {
+        var conf = TYPE_KEYS[group];
+        if (!conf) return;
+        document.documentElement.setAttribute(conf.attr, value);
+        try { localStorage.setItem('type.' + group, value); } catch (e) {}
+        var opts = document.querySelectorAll('.type-options[data-group="' + group + '"] .type-opt');
+        opts.forEach(function(o) { o.classList.toggle('active', o.getAttribute('data-value') === value); });
+      }
+      Object.keys(TYPE_KEYS).forEach(function(group) {
+        var stored;
+        try { stored = localStorage.getItem('type.' + group); } catch (e) {}
+        applyType(group, stored || TYPE_KEYS[group].default);
+      });
+      document.querySelectorAll('.type-options .type-opt').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          var group = btn.parentElement.getAttribute('data-group');
+          var value = btn.getAttribute('data-value');
+          applyType(group, value);
+        });
+      });
+      var typeToggle = document.getElementById('type-toggle');
+      var typePanel = document.getElementById('type-panel');
+      if (typeToggle && typePanel) {
+        typeToggle.addEventListener('click', function(e) {
+          e.stopPropagation();
+          var open = typePanel.classList.toggle('open');
+          typeToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        });
+        document.addEventListener('click', function(e) {
+          if (typePanel.classList.contains('open') && !typePanel.contains(e.target) && e.target !== typeToggle) {
+            typePanel.classList.remove('open');
+            typeToggle.setAttribute('aria-expanded', 'false');
+          }
+        });
+      }
+
+      // Reading mode toggle (persisted in localStorage)
+      var readingToggle = document.getElementById('reading-toggle');
+      if (readingToggle) {
+        var applyMode = function(on) {
+          document.documentElement.classList.toggle('reading-mode', on);
+          readingToggle.setAttribute('aria-pressed', on ? 'true' : 'false');
+        };
+        try {
+          applyMode(localStorage.getItem('readingMode') === '1');
+        } catch (e) {}
+        readingToggle.addEventListener('click', function() {
+          var on = !document.documentElement.classList.contains('reading-mode');
+          applyMode(on);
+          try { localStorage.setItem('readingMode', on ? '1' : '0'); } catch (e) {}
+        });
+      }
+
       // Reading progress
       var bar = document.getElementById('reading-progress');
       if (bar) {
@@ -428,12 +798,17 @@ const articleJsonLd = {
         }, { passive: true });
       }
 
-      // Giscus theme sync on toggle
+      // Giscus theme sync on toggle — custom paper-matched themes
+      var giscusThemeUrl = function() {
+        var isDark = document.documentElement.classList.contains('dark');
+        return isDark
+          ? 'https://xiatiandeairen.github.io/giscus-dark.css'
+          : 'https://xiatiandeairen.github.io/giscus-light.css';
+      };
       var observer = new MutationObserver(function() {
         var iframe = document.querySelector('iframe.giscus-frame');
         if (iframe) {
-          var theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
-          iframe.contentWindow.postMessage({ giscus: { setConfig: { theme: theme } } }, 'https://giscus.app');
+          iframe.contentWindow.postMessage({ giscus: { setConfig: { theme: giscusThemeUrl() } } }, 'https://giscus.app');
         }
       });
       observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
@@ -451,8 +826,19 @@ const articleJsonLd = {
             tocPanel.classList.remove('open');
           }
         });
+        var tocHint = document.getElementById('toc-hint');
         tocPanel.querySelectorAll('a').forEach(function(a) {
-          a.addEventListener('click', function() { tocPanel.classList.remove('open'); });
+          a.addEventListener('click', function() {
+            tocPanel.classList.remove('open');
+            tocToggle.classList.remove('pulse');
+            void tocToggle.offsetWidth;
+            tocToggle.classList.add('pulse');
+            if (tocHint) {
+              tocHint.classList.add('show');
+              setTimeout(function() { tocHint.classList.remove('show'); }, 2200);
+            }
+            setTimeout(function() { tocToggle.classList.remove('pulse'); }, 1800);
+          });
         });
       }
 

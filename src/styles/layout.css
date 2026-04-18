@@ -2,13 +2,6 @@
    Layout Primitives + Page Structure
    ═══════════════════════════════════════ */
 
-/* ── Content width container ── */
-.content-width {
-  max-width: 900px;
-  margin-inline: auto;
-  padding-inline: var(--space-page);
-}
-
 /* ── Site main ── */
 .site-main {
   @apply flex-1 mx-auto max-w-content w-full;
@@ -141,14 +134,7 @@
 }
 .footer-link:hover { color: var(--ink); }
 
-/* ── Dual column (article detail, about) ── */
-.layout-dual {
-  display: grid;
-  grid-template-columns: 1fr 220px;
-  gap: var(--space-7);
-  max-width: 900px;
-}
-
+/* ── Dual column (about, archive) ── */
 .layout-dual-wide {
   display: grid;
   grid-template-columns: 1fr 240px;
@@ -192,7 +178,6 @@
   }
 
   /* All dual layouts → single column */
-  .layout-dual,
   .layout-dual-wide,
   .layout-dual-archive {
     grid-template-columns: 1fr;

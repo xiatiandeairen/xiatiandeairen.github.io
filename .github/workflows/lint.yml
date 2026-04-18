@@ -1,0 +1,19 @@
+name: lint
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  unused-code:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Lint unused CSS classes
+        run: bash scripts/lint-unused-css.sh
+
+      - name: Lint unused components
+        run: bash scripts/lint-unused-components.sh

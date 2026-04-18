@@ -296,3 +296,81 @@ class?: string         // 允许外部追加 class
 - [ ] 头注释标注 Patterns + Tokens
 - [ ] 判断粒度（80%+ 共享 → 变体，否则拆新组件）
 - [ ] 样式使用本文档中的 token 和 pattern
+
+
+---
+
+## 6. 架构治理
+
+### 6.1 分层与依赖方向
+
+```
+tokens.css        ← 最稳定：color / space / font-size 变量
+  ↓
+base.css + layout.css  ← HTML tag 级 + 页面容器
+  ↓
+components.css + components/*.astro  ← 共享 primitive（需登记，见 6.3）
+  ↓
+pages/*.astro（内联 <style>）  ← 页面私有，零下游
+  ↓
+global.css        ← 跨切面规则（.reading-mode / .dark 等激活类）
+```
+
+**规则**：
+- 上游不引用下游；pages 之间不互相引用
+- `global.css` 不是"公共样式"，是"跨切面激活规则"
+- 新样式默认内联在页面 `<style>`，满足 6.2 才提升
+
+### 6.2 Rule of Three（抽象门槛）
+
+| 使用次数 | 放哪 |
+|---------|------|
+| 1 | 页面内联 `<style>` |
+| 2 | 页面内联（仍可复制） |
+| **3+** | 提升到 `components.css` 或 `components/*.astro`，必须登记 6.3 |
+
+**禁止防御性抽象**：不为"可能以后用到"写共享代码。回滚错误抽象的成本远高于暂时重复。
+
+### 6.3 Primitive 登记表
+
+所有 `components.css` 里的共享 class 必须出现在此表。**不在表里 = 待删除**。
+修改共享层前先 grep `\b<classname>\b` 了解波及面。
+
+| Class | 用途 | 使用方 | 修改影响面 |
+|-------|------|-------|----------|
+| `.section-label` | section 标题（小字母距大写 + 底线） | Sidebar, index, about, archive, [slug] (8 处) | 全站所有 section 标题 |
+| `.cat-label` | 分类小标签 | NoteCard, archive, search, [slug] (6 处) | 所有文章展示位 |
+| `.archive-item` | 归档/搜索结果列表项 | archive, index, search (6 处) | 列表页 hover 行为 |
+| `.layout-featured-secondary` | 双栏 featured 区布局 | index, layout.css (3 处) | 首页 featured 区 |
+| `.filter-btn` | 归档筛选按钮 | archive, layout.css (3 处) | archive 页筛选 |
+| `.rule` | 装饰横线 | base, masthead (2 处) | 设计 token |
+| `.reading-progress` | 阅读进度条 | [slug], global.css | 文章页顶部 1px 进度 |
+| `.back-to-top` | 回到顶部链接 | [slug], global.css | 文章页 |
+| `.card` | 基础卡片容器 | BaseLayout (1 处) | 待评估：只 1 处用，考虑内联 |
+
+**单文件私用但放在 components.css 的类**（待迁移到各自组件 scoped `<style>`）：
+- `.article-card-*` 9 个 → 归 `ArticleCard.astro`
+- `.about-*`, `.value-card`, `.avatar-box`, `.contact-*`, `.colophon`, `.reader-letter-*` → 归 `about.astro`
+- `.post-card*`, `.post-list` → 归 `NoteCard.astro`
+
+### 6.4 死代码零容忍
+
+每次变更后执行：
+
+```bash
+npm run lint:unused                       # 跑两个扫描
+./scripts/lint-unused-css.sh              # 扫描 src/styles/*.css 中 0 引用 class
+./scripts/lint-unused-components.sh       # 扫描 components/*.astro 中 0 import
+```
+
+报告的死代码要么立即删除，要么在本文件 6.3 表中登记合法用途。
+
+### 6.5 变更前 grep 清单
+
+改共享层文件（tokens.css / base.css / layout.css / components.css / global.css / components/\*.astro）前，运行：
+
+```bash
+grep -rlE "\b<target-class-or-component>\b" src/
+```
+
+几秒钟就知道波及几个文件。页面私有内联样式改动不用 grep。
