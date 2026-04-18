@@ -784,7 +784,8 @@ const articleJsonLd = {
       // Add a new mode by: (1) defining preset here, (2) adding capability rules in CSS (no new mode-named selectors needed).
       var MODE_PRESETS = {
         'default': { 'chrome': 'visible', 'typography-controls': 'off', 'reading-progress': 'off' },
-        'reading': { 'chrome': 'hidden',  'typography-controls': 'on',  'reading-progress': 'on'  }
+        'reading': { 'chrome': 'hidden',  'typography-controls': 'on',  'reading-progress': 'on'  },
+        'focus':   { 'chrome': 'hidden',  'typography-controls': 'off', 'reading-progress': 'off' }
       };
       var readingToggle = document.getElementById('reading-toggle');
       function applyMode(name) {
@@ -810,6 +811,16 @@ const articleJsonLd = {
           applyMode(current === 'reading' ? 'default' : 'reading');
         });
       }
+      // Keyboard shortcuts: r = reading toggle, f = focus toggle, Esc = exit to default
+      document.addEventListener('keydown', function(e) {
+        if (e.ctrlKey || e.metaKey || e.altKey) return;
+        var tag = (e.target && e.target.tagName) || '';
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || (e.target && e.target.isContentEditable)) return;
+        var current = document.documentElement.getAttribute('data-mode') || 'default';
+        if (e.key === 'Escape' && current !== 'default') { applyMode('default'); e.preventDefault(); }
+        else if (e.key === 'r' || e.key === 'R') { applyMode(current === 'reading' ? 'default' : 'reading'); e.preventDefault(); }
+        else if (e.key === 'f' || e.key === 'F') { applyMode(current === 'focus' ? 'default' : 'focus'); e.preventDefault(); }
+      });
 
       // Reading progress
       var bar = document.getElementById('reading-progress');
