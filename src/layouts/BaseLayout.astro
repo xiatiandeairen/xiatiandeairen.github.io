@@ -4,6 +4,7 @@ import type { SEOData } from '../utils/seo';
 import { SITE_CONFIG } from '../utils/constants';
 import { getLang, useT, switchLangPath, localePath, type Lang } from '../i18n';
 import Sidebar from '../components/Sidebar.astro';
+import ShortcutsHelp from '../components/ShortcutsHelp.astro';
 
 interface Props {
   title: string;
@@ -119,6 +120,7 @@ const matchPath = currentPath.replace(/^\/en/, '') || '/';
                   <button class="dropdown-item theme-option" data-theme="dark">{lang === 'zh' ? '深色' : 'Dark'}</button>
                 </div>
               </div>
+              <ShortcutsHelp />
             </div>
           </div><!-- masthead-meta -->
         </header>
