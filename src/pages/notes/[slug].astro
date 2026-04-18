@@ -914,6 +914,23 @@ const articleJsonLd = {
         });
       }
 
+      // Register article-specific shortcuts into the global help modal
+      if (window.__registerShortcuts) {
+        window.__registerShortcuts({
+          id: 'article-reading',
+          section: '文章 / 阅读模式',
+          items: [
+            { keys: ['r'], label: '切换阅读模式' },
+            { keys: ['Space'], label: '向下翻一屏' },
+            { keys: ['Shift', 'Space'], label: '向上翻一屏' },
+            { keys: ['g'], label: '回到顶部' },
+            { keys: ['G'], label: '到达底部' },
+            { keys: ['n'], label: '下一个章节' },
+            { keys: ['p'], label: '上一个章节' },
+          ]
+        });
+      }
+
       // Idle fade — dim floats after 2s of inactivity
       var idleTimer = null;
       function setIdle(v) { document.documentElement.setAttribute('data-idle', v ? 'true' : 'false'); }

@@ -1,0 +1,192 @@
+---
+// ShortcutsHelp — global keyboard shortcut reference.
+// Mounted once in BaseLayout; exposes window.__registerShortcuts({section, items})
+// so pages can inject page-specific shortcuts at runtime.
+//
+// Trigger: `?` or Shift+/ or click the masthead icon. Close: Esc / click backdrop / × btn.
+---
+
+<button id="shortcuts-trigger" class="icon-button" aria-label="键盘快捷键" title="键盘快捷键 (?)">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <circle cx="12" cy="12" r="10"/>
+    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+    <line x1="12" y1="17" x2="12.01" y2="17"/>
+  </svg>
+</button>
+
+<div class="shortcuts-modal" id="shortcuts-modal" role="dialog" aria-modal="true" aria-labelledby="shortcuts-title" hidden>
+  <div class="shortcuts-backdrop" id="shortcuts-backdrop"></div>
+  <div class="shortcuts-panel">
+    <header class="shortcuts-header">
+      <h2 id="shortcuts-title">键盘快捷键</h2>
+      <button class="shortcuts-close" id="shortcuts-close" aria-label="关闭">×</button>
+    </header>
+    <div class="shortcuts-body" id="shortcuts-body">
+      <section class="shortcuts-section">
+        <h3>全站</h3>
+        <dl>
+          <dt><kbd>?</kbd></dt><dd>打开 / 关闭此面板</dd>
+          <dt><kbd>⌘</kbd> <kbd>K</kbd></dt><dd>搜索</dd>
+          <dt><kbd>Esc</kbd></dt><dd>关闭弹窗 / 退出特殊模式</dd>
+        </dl>
+      </section>
+      {/* page-specific sections appended here by window.__registerShortcuts */}
+      <div id="shortcuts-extras"></div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .shortcuts-modal[hidden] { display: none !important; }
+  .shortcuts-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .shortcuts-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    animation: fade-in var(--duration-fast) ease-out;
+  }
+  .shortcuts-panel {
+    position: relative;
+    width: min(520px, 92vw);
+    max-height: 80vh;
+    overflow-y: auto;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-md);
+    box-shadow: 0 10px 32px rgba(0, 0, 0, 0.18);
+    animation: scale-in var(--duration-medium, 180ms) cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .shortcuts-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-4) var(--space-5);
+    border-bottom: 1px solid var(--rule-light);
+  }
+  .shortcuts-header h2 {
+    margin: 0;
+    font-family: var(--font-display, Georgia, serif);
+    font-size: var(--font-h3);
+    color: var(--ink);
+  }
+  .shortcuts-close {
+    background: transparent;
+    border: none;
+    font-size: 1.5rem;
+    line-height: 1;
+    color: var(--ink-muted);
+    cursor: pointer;
+    padding: 0 var(--space-2);
+  }
+  .shortcuts-close:hover { color: var(--ink); }
+  .shortcuts-body {
+    padding: var(--space-4) var(--space-5) var(--space-5);
+  }
+  :global(#shortcuts-body .shortcuts-section + .shortcuts-section) {
+    margin-top: var(--space-5);
+  }
+  :global(#shortcuts-body .shortcuts-section h3) {
+    margin: 0 0 var(--space-3);
+    font-family: Inter, sans-serif;
+    font-size: var(--font-label);
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+  }
+  :global(#shortcuts-body .shortcuts-section dl) {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: var(--space-2) var(--space-4);
+    margin: 0;
+    align-items: center;
+  }
+  :global(#shortcuts-body .shortcuts-section dt) {
+    display: inline-flex;
+    gap: 4px;
+    white-space: nowrap;
+  }
+  :global(#shortcuts-body .shortcuts-section dd) {
+    margin: 0;
+    font-size: var(--font-small);
+    color: var(--ink-light);
+  }
+  :global(#shortcuts-body .shortcuts-section kbd) {
+    display: inline-block;
+    padding: 2px 8px;
+    font-family: var(--font-mono, ui-monospace, monospace);
+    font-size: var(--font-caption);
+    color: var(--ink);
+    background: var(--bg-subtle);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    box-shadow: 0 1px 0 var(--rule-light);
+    line-height: 1.2;
+  }
+  @keyframes fade-in { from { opacity: 0 } to { opacity: 1 } }
+  @keyframes scale-in { from { opacity: 0; transform: scale(0.96) } to { opacity: 1; transform: scale(1) } }
+</style>
+
+<script is:inline>
+  (function() {
+    var modal = document.getElementById('shortcuts-modal');
+    var trigger = document.getElementById('shortcuts-trigger');
+    var closeBtn = document.getElementById('shortcuts-close');
+    var backdrop = document.getElementById('shortcuts-backdrop');
+    var extras = document.getElementById('shortcuts-extras');
+    if (!modal || !trigger) return;
+
+    function open() { modal.hidden = false; }
+    function close() { modal.hidden = true; }
+    function toggle() { modal.hidden ? open() : close(); }
+
+    trigger.addEventListener('click', toggle);
+    if (closeBtn) closeBtn.addEventListener('click', close);
+    if (backdrop) backdrop.addEventListener('click', close);
+
+    document.addEventListener('keydown', function(e) {
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      var tag = (e.target && e.target.tagName) || '';
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || (e.target && e.target.isContentEditable)) return;
+      if (e.key === '?' || (e.key === '/' && e.shiftKey)) { toggle(); e.preventDefault(); }
+      else if (e.key === 'Escape' && !modal.hidden) { close(); e.preventDefault(); }
+    });
+
+    // Page registration API — pages call this on load to inject their shortcuts.
+    // items = [{keys: ['r'], label: 'reading mode'}, ...]
+    window.__registerShortcuts = function(opts) {
+      if (!extras || !opts || !opts.section || !Array.isArray(opts.items)) return;
+      var existing = extras.querySelector('[data-shortcut-id="' + opts.id + '"]');
+      if (existing) existing.remove();
+      var section = document.createElement('section');
+      section.className = 'shortcuts-section';
+      if (opts.id) section.setAttribute('data-shortcut-id', opts.id);
+      var h3 = document.createElement('h3');
+      h3.textContent = opts.section;
+      section.appendChild(h3);
+      var dl = document.createElement('dl');
+      opts.items.forEach(function(item) {
+        var dt = document.createElement('dt');
+        (item.keys || []).forEach(function(k, i) {
+          if (i > 0) dt.appendChild(document.createTextNode(' '));
+          var kbd = document.createElement('kbd');
+          kbd.textContent = k;
+          dt.appendChild(kbd);
+        });
+        var dd = document.createElement('dd');
+        dd.textContent = item.label || '';
+        dl.appendChild(dt);
+        dl.appendChild(dd);
+      });
+      section.appendChild(dl);
+      extras.appendChild(section);
+    };
+  })();
+</script>
