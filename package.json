@@ -8,7 +8,11 @@
     "start": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "design:view": "./scripts/view-design.sh",
+    "lint:unused-css": "./scripts/lint-unused-css.sh",
+    "lint:unused-components": "./scripts/lint-unused-components.sh",
+    "lint:unused": "./scripts/lint-unused-css.sh && ./scripts/lint-unused-components.sh"
   },
   "dependencies": {
     "@astrojs/markdown-remark": "^4.0.0",

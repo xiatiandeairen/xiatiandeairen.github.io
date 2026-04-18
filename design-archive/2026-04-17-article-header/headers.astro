@@ -1,0 +1,297 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+const title = 'Long Sprint 实践：让 AI 自主完成大型任务';
+const date = '2026年4月15日';
+const minutes = 13;
+const type = '系统设计';
+const topics = ['AI 工程化', '开发工具'];
+const tags = ['AI', 'agent', 'engineering', 'sprint'];
+---
+<BaseLayout title="Header Preview">
+  <div class="preview-wrap">
+    <h2 class="preview-section">A · 极简文艺（Kinfolk / Medium 编辑版）</h2>
+    <header class="a-header">
+      <div class="a-kicker">{type}</div>
+      <h1 class="a-title font-display">{title}</h1>
+      <div class="a-meta">
+        {minutes} min read · {date}
+      </div>
+      <div class="a-tax">{[...topics, ...tags].join('   ·   ')}</div>
+    </header>
+
+    <hr class="preview-sep"/>
+
+    <h2 class="preview-section">B · 古典书籍（Penguin Classics 扉页）</h2>
+    <header class="b-header">
+      <div class="b-rule-top"></div>
+      <div class="b-kicker">—— {type} ——</div>
+      <h1 class="b-title font-display">{title}</h1>
+      <div class="b-rule-bot"></div>
+      <div class="b-meta">{date}　·　约 {minutes} 分钟阅读</div>
+      <div class="b-tax">
+        <span class="b-tax-label">主题</span>
+        <span>{topics.join(' · ')}</span>
+      </div>
+      <div class="b-tax">
+        <span class="b-tax-label">标签</span>
+        <span>{tags.join(' · ')}</span>
+      </div>
+    </header>
+
+    <hr class="preview-sep"/>
+
+    <h2 class="preview-section">C · 现代科技博客（Stripe / Vercel）</h2>
+    <header class="c-header">
+      <div class="c-kicker">{type}</div>
+      <h1 class="c-title font-display">{title}</h1>
+      <div class="c-meta">
+        <span class="c-dot"></span>
+        <span>{minutes} 分钟阅读</span>
+        <span class="c-gap">·</span>
+        <span>{date}</span>
+      </div>
+      <div class="c-tags">
+        {topics.map(t => <span class="c-pill c-pill-primary">{t}</span>)}
+        {tags.map(t => <span class="c-pill">{t}</span>)}
+      </div>
+    </header>
+
+    <hr class="preview-sep"/>
+
+    <h2 class="preview-section">D · 报纸专栏（NYT / The Atlantic）</h2>
+    <header class="d-header">
+      <div class="d-topbar"></div>
+      <div class="d-kicker">{type}</div>
+      <h1 class="d-title font-display">{title}</h1>
+      <div class="d-byline">
+        <em>夏天的爱人</em> · {date} · 约 {minutes} 分钟阅读
+      </div>
+      <div class="d-tax">
+        {[...topics, ...tags].map((t, i, arr) => (
+          <>
+            <span class="d-tag">{t}</span>
+            {i < arr.length - 1 && <span class="d-sep">·</span>}
+          </>
+        ))}
+      </div>
+    </header>
+  </div>
+
+  <style>
+    .preview-wrap { max-width: 720px; margin: 0 auto; padding: var(--space-7) var(--space-page); }
+    .preview-section {
+      font-family: Inter, sans-serif;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--ink-ghost);
+      margin: var(--space-7) 0 var(--space-5);
+      padding-bottom: var(--space-2);
+      border-bottom: 1px dashed var(--rule-light);
+    }
+    .preview-sep { border: none; height: 0; margin: var(--space-8) 0; }
+
+    /* ─── A · 极简文艺 ─── */
+    .a-header { text-align: center; padding: var(--space-7) 0; }
+    .a-kicker {
+      font-family: Inter, sans-serif;
+      font-size: 0.7rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+      margin-bottom: var(--space-6);
+    }
+    .a-title {
+      font-size: clamp(1.75rem, 1.4rem + 1.5vw, 2.5rem);
+      font-weight: 400;
+      line-height: 1.25;
+      letter-spacing: -0.01em;
+      color: var(--ink);
+      margin-bottom: var(--space-6);
+    }
+    .a-meta {
+      font-family: Inter, sans-serif;
+      font-size: 0.8125rem;
+      color: var(--ink-faint);
+      letter-spacing: 0.03em;
+      margin-bottom: var(--space-4);
+    }
+    .a-tax {
+      font-family: Inter, sans-serif;
+      font-size: 0.75rem;
+      color: var(--ink-ghost);
+      letter-spacing: 0.08em;
+    }
+
+    /* ─── B · 古典书籍 ─── */
+    .b-header { text-align: center; padding: var(--space-7) var(--space-4); position: relative; }
+    .b-rule-top {
+      width: 60%;
+      height: 1px;
+      background: var(--ink);
+      margin: 0 auto var(--space-5);
+    }
+    .b-kicker {
+      font-family: var(--font-display, Georgia, serif);
+      font-style: italic;
+      font-size: 0.95rem;
+      color: var(--ink-muted);
+      margin-bottom: var(--space-5);
+      letter-spacing: 0.05em;
+    }
+    .b-title {
+      font-size: clamp(1.6rem, 1.3rem + 1.4vw, 2.3rem);
+      font-weight: 700;
+      line-height: 1.2;
+      color: var(--ink);
+      margin-bottom: var(--space-5);
+    }
+    .b-rule-bot {
+      width: 30%;
+      height: 3px;
+      background: var(--ink);
+      margin: 0 auto var(--space-5);
+      position: relative;
+    }
+    .b-rule-bot::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 8px;
+      height: 8px;
+      background: var(--paper);
+      border-left: 1px solid var(--ink);
+      border-right: 1px solid var(--ink);
+      transform: translate(-50%, -50%) rotate(45deg);
+    }
+    .b-meta {
+      font-family: var(--font-display, Georgia, serif);
+      font-style: italic;
+      font-size: 0.9rem;
+      color: var(--ink-muted);
+      margin-bottom: var(--space-5);
+    }
+    .b-tax {
+      font-family: var(--font-display, Georgia, serif);
+      font-size: 0.875rem;
+      color: var(--ink-muted);
+      margin-top: var(--space-2);
+    }
+    .b-tax-label {
+      font-style: italic;
+      color: var(--ink-ghost);
+      margin-right: var(--space-3);
+    }
+
+    /* ─── C · 现代科技博客 ─── */
+    .c-header { padding: var(--space-6) 0; }
+    .c-kicker {
+      display: inline-block;
+      font-family: Inter, sans-serif;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 8%, transparent);
+      padding: 4px var(--space-3);
+      border-radius: 999px;
+      letter-spacing: 0.05em;
+      margin-bottom: var(--space-4);
+    }
+    .c-title {
+      font-size: clamp(1.875rem, 1.5rem + 1.8vw, 3rem);
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+      margin-bottom: var(--space-5);
+    }
+    .c-meta {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-family: Inter, sans-serif;
+      font-size: 0.875rem;
+      color: var(--ink-muted);
+      margin-bottom: var(--space-5);
+    }
+    .c-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+    .c-gap { color: var(--ink-ghost); }
+    .c-tags { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+    .c-pill {
+      font-family: Inter, sans-serif;
+      font-size: 0.75rem;
+      font-weight: 500;
+      padding: 4px var(--space-3);
+      border-radius: 6px;
+      background: var(--bg-subtle);
+      color: var(--ink-muted);
+      border: 1px solid var(--rule-light);
+    }
+    .c-pill-primary {
+      background: var(--ink);
+      color: var(--paper);
+      border-color: var(--ink);
+      font-weight: 600;
+    }
+
+    /* ─── D · 报纸专栏 ─── */
+    .d-header { padding: var(--space-6) 0; }
+    .d-topbar {
+      width: 100%;
+      height: 4px;
+      background: var(--ink);
+      margin-bottom: var(--space-5);
+      position: relative;
+    }
+    .d-topbar::after {
+      content: '';
+      position: absolute;
+      top: 6px;
+      left: 0;
+      width: 100%;
+      height: 1px;
+      background: var(--ink);
+    }
+    .d-kicker {
+      font-family: var(--font-display, Georgia, serif);
+      font-style: italic;
+      font-size: 0.9rem;
+      color: var(--accent);
+      margin-bottom: var(--space-4);
+      letter-spacing: 0.02em;
+    }
+    .d-title {
+      font-family: var(--font-display, Georgia, serif);
+      font-size: clamp(1.875rem, 1.5rem + 1.6vw, 2.75rem);
+      font-weight: 700;
+      line-height: 1.15;
+      color: var(--ink);
+      margin-bottom: var(--space-4);
+    }
+    .d-byline {
+      font-family: var(--font-display, Georgia, serif);
+      font-size: 0.9rem;
+      color: var(--ink-muted);
+      padding-bottom: var(--space-3);
+      border-bottom: 1px solid var(--rule-light);
+      margin-bottom: var(--space-4);
+    }
+    .d-byline em { font-style: italic; color: var(--ink); font-weight: 500; }
+    .d-tax {
+      font-family: var(--font-display, Georgia, serif);
+      font-size: 0.85rem;
+      color: var(--ink-muted);
+    }
+    .d-tag { color: var(--ink); }
+    .d-sep { color: var(--ink-ghost); margin: 0 var(--space-2); }
+  </style>
+</BaseLayout>

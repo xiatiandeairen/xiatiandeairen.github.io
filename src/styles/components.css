@@ -36,28 +36,6 @@
   }
   .card:hover { border-color: var(--rule); }
 
-  /* ── Badge ── */
-  .badge {
-    @apply inline-flex items-center rounded font-sans text-xs font-medium;
-    padding: var(--space-1) var(--space-2);
-    background: var(--bg-subtle);
-    color: var(--ink-muted);
-  }
-
-  /* ── Reading badge ── */
-  .reading-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-1);
-    padding: var(--space-1) var(--space-3);
-    border: 1px solid var(--rule-light);
-    border-radius: var(--radius-pill);
-    font-family: Inter, sans-serif;
-    font-size: var(--font-caption);
-    color: var(--ink-muted);
-    transition: border-color var(--transition-color);
-  }
-
   /* ── Reading progress bar ── */
   .reading-progress {
     position: fixed;
@@ -69,9 +47,6 @@
     z-index: var(--z-progress);
     transition: width 0.08s linear;
   }
-
-  /* ── Divider ── */
-  .rule { background: var(--rule); }
 
   /* ── Post list ── */
   .post-list { @apply space-y-0; }
@@ -126,33 +101,6 @@
     color: inherit;
   }
   .archive-item:hover { padding-left: var(--space-2); color: inherit; }
-
-  /* ── Search result item (JS-generated) ── */
-  .search-result-card {
-    display: block;
-    padding: var(--space-3) 0;
-    border-bottom: 1px solid var(--rule-faint);
-    transition: padding-left var(--duration-fast);
-  }
-  .search-result-card:hover { padding-left: var(--space-2); }
-
-  .search-result-card h3 {
-    font-size: var(--font-body);
-    font-weight: 700;
-    line-height: 1.35;
-    margin-bottom: var(--space-1);
-  }
-  .search-result-card h3 a {
-    color: var(--ink);
-    text-decoration: none;
-  }
-  .search-result-card p {
-    font-family: Inter, sans-serif;
-    font-size: var(--font-small);
-    color: var(--ink-muted);
-    line-height: 1.6;
-  }
-
 
   /* ── Secondary dual-column (inside featured area) ──
      States:
@@ -450,28 +398,6 @@
     transition: color var(--transition-color);
   }
   .back-to-top:hover { color: var(--ink); }
-
-  /* ── Pull quote ── */
-  .pull-quote {
-    @apply text-center mx-auto max-w-content;
-    padding: var(--space-5) var(--space-page);
-    border-top: 1px solid var(--rule);
-    border-bottom: 1px solid var(--rule);
-  }
-  .pull-quote blockquote {
-    @apply font-display italic leading-relaxed border-none;
-    font-size: var(--font-h2);
-    padding-left: 0;
-    margin: 0 auto;
-    max-width: 480px;
-    color: var(--ink-light);
-  }
-  .pull-quote cite {
-    @apply block font-sans not-italic;
-    font-size: var(--font-caption);
-    color: var(--ink-faint);
-    margin-top: var(--space-2);
-  }
 
   /* ── Filter button ── */
   .filter-btn {

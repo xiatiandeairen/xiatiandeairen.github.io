@@ -21,6 +21,11 @@ Thumbs.db
 # Astro
 public/*
 !public/search-index.json
+!public/giscus-light.css
+!public/giscus-dark.css
 
 # Sprint (temporary session data)
 .sprint/
+
+# Design archive preview (populated by scripts/view-design.sh, never committed)
+src/pages/preview/
