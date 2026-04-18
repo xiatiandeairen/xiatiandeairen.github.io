@@ -24,7 +24,8 @@ export function generateSEOMeta(note: Note, siteConfig = SITE_CONFIG): SEOData {
     ogTitle: note.title,
     ogDescription: description,
     ogType: 'article',
-    ogImage: `${siteConfig.url}/og/${note.slug}.png`,
+    // og-default.svg is the static fallback; per-slug PNG generation is v2.
+    ogImage: `${siteConfig.url}/og-default.svg`,
     canonical: url
   };
 }
@@ -41,6 +42,7 @@ export function generatePageMeta(page: { title: string; description?: string; pa
     ogTitle: page.title,
     ogDescription: description,
     ogType: 'website',
+    ogImage: `${siteConfig.url}/og-default.svg`,
     canonical: url
   };
 }

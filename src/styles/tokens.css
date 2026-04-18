@@ -131,6 +131,22 @@ html.dark {
   --color-ink-hover: #8abaa5;
 }
 
+/* ── Color: Sepia Mode (warm yellow paper, brown ink — long-reading comfort) ── */
+html[data-theme="sepia"] {
+  --color-paper: #f4ecd8;
+  --color-ink: #4b3621;
+  --color-ink-light: #5e4732;
+  --color-ink-muted: #7a5e44;
+  --color-ink-faint: #97785a;
+  --color-ink-ghost: #b6997b;
+  --color-rule: #d8c8a8;
+  --color-rule-light: #e3d8bd;
+  --color-rule-faint: #ebe2cb;
+  --color-surface: #ede2c8;
+  --color-accent: #9c4221;
+  --color-ink-hover: #6b8e4e;
+}
+
 /* ── Theme Transition ── */
 html {
   transition: background var(--transition-color), color var(--transition-color);
