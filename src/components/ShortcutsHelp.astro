@@ -40,7 +40,9 @@
   .shortcuts-modal[hidden] { display: none !important; }
   .shortcuts-modal {
     position: fixed;
-    inset: 0;
+    top: 0; left: 0;
+    width: 100vw;
+    height: 100vh;
     z-index: 100;
     display: flex;
     align-items: center;
@@ -54,9 +56,7 @@
   }
   .shortcuts-panel {
     position: relative;
-    width: min(520px, 92vw);
-    max-height: 80vh;
-    overflow-y: auto;
+    width: min(760px, 94vw);
     background: var(--paper);
     border: 1px solid var(--rule);
     border-radius: var(--radius-md);
@@ -88,23 +88,40 @@
   .shortcuts-close:hover { color: var(--ink); }
   .shortcuts-body {
     padding: var(--space-4) var(--space-5) var(--space-5);
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-4);
+    align-items: start;
+  }
+  .shortcuts-body > section,
+  :global(#shortcuts-body .shortcuts-section) {
+    margin: 0;
+    padding: var(--space-3) var(--space-4);
+    background: var(--bg-subtle);
+    border: 1px solid var(--rule-faint);
+    border-radius: var(--radius-md);
+  }
+  :global(#shortcuts-extras) {
+    display: contents;
   }
   :global(#shortcuts-body .shortcuts-section + .shortcuts-section) {
-    margin-top: var(--space-5);
+    margin-top: 0;
   }
   :global(#shortcuts-body .shortcuts-section h3) {
     margin: 0 0 var(--space-3);
+    padding-bottom: var(--space-2);
+    border-bottom: 1px solid var(--rule-faint);
     font-family: Inter, sans-serif;
     font-size: var(--font-label);
     font-weight: 600;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: var(--ink-muted);
+    color: var(--accent);
   }
   :global(#shortcuts-body .shortcuts-section dl) {
     display: grid;
     grid-template-columns: auto 1fr;
-    gap: var(--space-2) var(--space-4);
+    gap: var(--space-2) var(--space-3);
     margin: 0;
     align-items: center;
   }
