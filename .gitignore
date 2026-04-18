@@ -23,6 +23,8 @@ public/*
 !public/search-index.json
 !public/giscus-light.css
 !public/giscus-dark.css
+!public/site-runtime.js
+!public/og-default.svg
 
 # Sprint (temporary session data)
 .sprint/
