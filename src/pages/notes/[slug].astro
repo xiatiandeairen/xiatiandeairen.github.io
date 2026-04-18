@@ -158,6 +158,13 @@ const articleJsonLd = {
     </button>
   </div>
 
+  {/* Book mode toggle (stacked above Aa) */}
+  <div class="book-toggle-float">
+    <button class="book-toggle-btn" id="book-toggle" aria-label="切换翻页模式" aria-pressed="false" title="翻页模式 (b)">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="8" height="16" rx="1"/><rect x="13" y="4" width="8" height="16" rx="1"/></svg>
+    </button>
+  </div>
+
   {/* Typography controls (font size / family / width) */}
   <div class="type-float">
     <button class="type-float-btn" id="type-toggle" aria-label="排版" aria-expanded="false">
@@ -730,6 +737,38 @@ const articleJsonLd = {
       color: var(--accent);
     }
 
+    /* ── Book mode toggle button (stacked above Aa) ── */
+    .book-toggle-float {
+      position: fixed;
+      bottom: calc(var(--space-6) + 168px);
+      right: var(--space-6);
+      z-index: 40;
+    }
+    .book-toggle-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--paper);
+      border: 1px solid var(--rule);
+      color: var(--ink-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      transition: all var(--duration-fast);
+    }
+    .book-toggle-btn:hover {
+      color: var(--ink);
+      border-color: var(--ink-muted);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    }
+    :global(html[data-mode="book"]) .book-toggle-btn {
+      background: color-mix(in srgb, var(--accent) 12%, var(--paper));
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
     /* Reading density — when typography controls are on, relax line + paragraph rhythm */
     :global(html[data-typography-controls="on"]) #article-body {
       line-height: 1.85;
@@ -739,15 +778,16 @@ const articleJsonLd = {
       margin-bottom: 1.3em;
     }
     /* Idle fade — all floats dim after 2s of inactivity; restore on hover or activity */
-    .toc-float, .type-float, .reading-toggle-float {
+    .toc-float, .type-float, .reading-toggle-float, .book-toggle-float {
       transition: opacity var(--duration-medium, 200ms);
     }
     :global(html[data-idle="true"]) .toc-float,
     :global(html[data-idle="true"]) .type-float,
-    :global(html[data-idle="true"]) .reading-toggle-float {
+    :global(html[data-idle="true"]) .reading-toggle-float,
+    :global(html[data-idle="true"]) .book-toggle-float {
       opacity: 0.15;
     }
-    .toc-float:hover, .type-float:hover, .reading-toggle-float:hover {
+    .toc-float:hover, .type-float:hover, .reading-toggle-float:hover, .book-toggle-float:hover {
       opacity: 1 !important;
     }
 
@@ -917,12 +957,14 @@ const articleJsonLd = {
         'book':    { 'chrome': 'hidden',  'typography-controls': 'on',  'reading-progress': 'off', 'article-layout': 'columns' }
       };
       var readingToggle = document.getElementById('reading-toggle');
+      var bookToggle = document.getElementById('book-toggle');
       function applyMode(name) {
         var preset = MODE_PRESETS[name] || MODE_PRESETS['default'];
         var html = document.documentElement;
         html.setAttribute('data-mode', name);
         Object.keys(preset).forEach(function(k) { html.setAttribute('data-' + k, preset[k]); });
         if (readingToggle) readingToggle.setAttribute('aria-pressed', name === 'reading' ? 'true' : 'false');
+        if (bookToggle) bookToggle.setAttribute('aria-pressed', name === 'book' ? 'true' : 'false');
         try { localStorage.setItem('mode', name); } catch (e) {}
       }
       (function initMode() {
@@ -938,6 +980,12 @@ const articleJsonLd = {
         readingToggle.addEventListener('click', function() {
           var current = document.documentElement.getAttribute('data-mode') || 'default';
           applyMode(current === 'reading' ? 'default' : 'reading');
+        });
+      }
+      if (bookToggle) {
+        bookToggle.addEventListener('click', function() {
+          var current = document.documentElement.getAttribute('data-mode') || 'default';
+          applyMode(current === 'book' ? 'default' : 'book');
         });
       }
 
@@ -1070,19 +1118,40 @@ const articleJsonLd = {
       // Register article-specific shortcuts into the global help modal
       if (window.__registerShortcuts) {
         window.__registerShortcuts({
-          id: 'article-reading',
-          section: '文章 / 阅读模式',
+          id: 'article-modes',
+          section: '模式切换',
           items: [
-            { keys: ['r'], label: '切换阅读模式' },
-            { keys: ['b'], label: '切换翻页模式' },
-            { keys: ['Space'], label: '下一页 / 向下翻一屏' },
+            { keys: ['r'], label: '进入 / 退出阅读模式' },
+            { keys: ['b'], label: '进入 / 退出翻页模式' },
+          ]
+        });
+        window.__registerShortcuts({
+          id: 'article-reading',
+          section: '阅读模式',
+          items: [
+            { keys: ['Space'], label: '向下翻一屏' },
             { keys: ['Shift', 'Space'], label: '向上翻一屏' },
-            { keys: ['←'], label: '上一页（翻页模式）' },
-            { keys: ['→'], label: '下一页（翻页模式）' },
-            { keys: ['g'], label: '第一页 / 回到顶部' },
-            { keys: ['G'], label: '最后一页 / 到达底部' },
-            { keys: ['n'], label: '下一个章节（阅读模式）' },
-            { keys: ['p'], label: '上一个章节（阅读模式）' },
+            { keys: ['PgDn'], label: '向下翻一屏' },
+            { keys: ['PgUp'], label: '向上翻一屏' },
+            { keys: ['n'], label: '下一个章节' },
+            { keys: ['p'], label: '上一个章节' },
+            { keys: ['g'], label: '回到顶部' },
+            { keys: ['G'], label: '到达底部' },
+          ]
+        });
+        window.__registerShortcuts({
+          id: 'article-book',
+          section: '翻页模式',
+          items: [
+            { keys: ['→'], label: '下一页' },
+            { keys: ['←'], label: '上一页' },
+            { keys: ['Space'], label: '下一页' },
+            { keys: ['PgDn'], label: '下一页' },
+            { keys: ['PgUp'], label: '上一页' },
+            { keys: ['Home'], label: '第一页' },
+            { keys: ['End'], label: '最后一页' },
+            { keys: ['g'], label: '第一页' },
+            { keys: ['G'], label: '最后一页' },
           ]
         });
       }
