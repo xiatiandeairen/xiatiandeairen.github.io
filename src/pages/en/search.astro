@@ -31,7 +31,20 @@ const query = Astro.url.searchParams.get('q') || '';
   {query && (
     <script is:inline>
       (function() {
-        var PREFIX_RE = /\b(tag|topic|type|series):([^\s]+)/gi;
+        var PREFIX_RE = /\b(tag|topic|type|series|date):([^\s]+)/gi;
+        function parseDateSpec(spec) {
+          if (!spec) return null;
+          var now = new Date(); var m;
+          if ((m = spec.match(/^(\d+)d$/))) { var s = new Date(now); s.setDate(s.getDate() - parseInt(m[1])); return { since: s.toISOString(), until: now.toISOString() }; }
+          if ((m = spec.match(/^(\d+)y$/))) { var s2 = new Date(now); s2.setFullYear(s2.getFullYear() - parseInt(m[1])); return { since: s2.toISOString(), until: now.toISOString() }; }
+          if ((m = spec.match(/^(\d{4})$/))) return { since: m[1] + '-01-01T00:00:00Z', until: m[1] + '-12-31T23:59:59Z' };
+          if ((m = spec.match(/^(\d{4})-(\d{2})$/))) {
+            var y = parseInt(m[1]), mo = parseInt(m[2]);
+            var last = new Date(y, mo, 0).getDate();
+            return { since: m[1] + '-' + m[2] + '-01T00:00:00Z', until: m[1] + '-' + m[2] + '-' + String(last).padStart(2,'0') + 'T23:59:59Z' };
+          }
+          return null;
+        }
         function escapeHtml(s) { return String(s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
         function escapeRe(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
         function highlight(text, term) {
@@ -54,7 +67,8 @@ const query = Astro.url.searchParams.get('q') || '';
         }
         function searchNotes(rawQuery, index) {
           var q = parseQuery(rawQuery);
-          if (!q.free && !q.tag && !q.topic && !q.type && !q.series) return [];
+          if (!q.free && !q.tag && !q.topic && !q.type && !q.series && !q.date) return [];
+          var dateRange = q.date ? parseDateSpec(q.date) : null;
           var hits = [];
           for (var i = 0; i < index.notes.length; i++) {
             var n = index.notes[i];
@@ -70,6 +84,7 @@ const query = Astro.url.searchParams.get('q') || '';
             }
             if (q.type && !(n.questionType || '').toLowerCase().includes(q.type)) continue;
             if (q.series && !((n.series || '').toLowerCase().includes(q.series))) continue;
+            if (dateRange && (n.date < dateRange.since || n.date > dateRange.until)) continue;
 
             var score = 0, matched = 'content', free = q.free;
             if (!free) { score = 50; matched = q.tag ? 'tag' : q.topic ? 'topic' : q.series ? 'series' : q.type ? 'type' : 'content'; }
