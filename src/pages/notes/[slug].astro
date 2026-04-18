@@ -890,8 +890,8 @@ const articleJsonLd = {
       column-count: 2;
       column-gap: 4rem;
       column-fill: auto;
-      column-rule: 1px solid var(--rule-faint);
       overflow: visible;
+      padding-right: 2px; /* safety: avoid sub-pixel right-edge clipping of last column */
       transform: translateX(var(--book-offset, 0px));
       transition: transform 420ms cubic-bezier(.4, 0, .2, 1);
     }
@@ -1073,7 +1073,8 @@ const articleJsonLd = {
       function bookApply() {
         if (!articleBody) return;
         var W = articleBody.clientWidth;
-        articleBody.style.setProperty('--book-offset', (-bookSpread * W) + 'px');
+        // Round to integer pixel to avoid sub-pixel column drift
+        articleBody.style.setProperty('--book-offset', Math.round(-bookSpread * W) + 'px');
         var ind = document.getElementById('book-page-indicator');
         if (ind) ind.textContent = (bookSpread + 1) + ' / ' + (bookMaxSpread + 1);
         try { localStorage.setItem(bookPosKey, String(bookSpread)); } catch (e) {}
@@ -1087,6 +1088,24 @@ const articleJsonLd = {
         // Defer one frame so layout settles after mode attrs applied
         requestAnimationFrame(function() { requestAnimationFrame(bookUpdateMetrics); });
       }
+
+      // Touch swipe (mobile): swipe left → next, right → prev. Threshold 60px, vertical guard.
+      (function bindBookSwipe() {
+        if (!articleBody) return;
+        var startX = 0, startY = 0, tracking = false;
+        articleBody.addEventListener('touchstart', function(e) {
+          if (!bookInColumns() || e.touches.length !== 1) return;
+          startX = e.touches[0].clientX; startY = e.touches[0].clientY; tracking = true;
+        }, { passive: true });
+        articleBody.addEventListener('touchend', function(e) {
+          if (!tracking || !bookInColumns()) { tracking = false; return; }
+          tracking = false;
+          var t = e.changedTouches[0]; if (!t) return;
+          var dx = t.clientX - startX, dy = t.clientY - startY;
+          if (Math.abs(dx) < 60 || Math.abs(dy) > Math.abs(dx)) return; // not a horizontal swipe
+          if (dx < 0) bookNext(); else bookPrev();
+        }, { passive: true });
+      })();
 
       // Observe data-article-layout changes to trigger (re)measure
       new MutationObserver(function(muts) {
@@ -1165,16 +1184,36 @@ const articleJsonLd = {
           }
         });
         tocPanel.querySelectorAll('a').forEach(function(a) {
-          a.addEventListener('click', function() {
+          a.addEventListener('click', function(e) {
             tocPanel.classList.remove('open');
             var id = (a.getAttribute('href') || '').slice(1);
             var heading = id ? document.getElementById(id) : null;
-            if (heading) {
-              heading.classList.remove('toc-target');
-              void heading.offsetWidth;
-              heading.classList.add('toc-target');
-              setTimeout(function() { heading.classList.remove('toc-target'); }, 2400);
+            if (!heading) return;
+            // In book mode, translate scroll target into spread index.
+            if (bookInColumns()) {
+              e.preventDefault();
+              var ab = document.getElementById('article-body');
+              if (ab && typeof bookSpread !== 'undefined') {
+                var W = ab.clientWidth;
+                if (W) {
+                  // Remove transform temporarily to measure heading's natural offsetLeft
+                  var prevTransform = ab.style.transform;
+                  ab.style.transition = 'none';
+                  ab.style.transform = 'translateX(0px)';
+                  void ab.offsetWidth;
+                  var headingLeft = heading.getBoundingClientRect().left + window.scrollX - ab.getBoundingClientRect().left;
+                  ab.style.transition = '';
+                  ab.style.transform = prevTransform;
+                  void ab.offsetWidth;
+                  bookSpread = Math.max(0, Math.min(bookMaxSpread, Math.floor(headingLeft / W)));
+                  bookApply();
+                }
+              }
             }
+            heading.classList.remove('toc-target');
+            void heading.offsetWidth;
+            heading.classList.add('toc-target');
+            setTimeout(function() { heading.classList.remove('toc-target'); }, 2400);
           });
         });
       }
