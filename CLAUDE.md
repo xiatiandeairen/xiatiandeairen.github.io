@@ -1,20 +1,68 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
 # 夏天的爱人 — xiatiandeairen.github.io
 
 个人内容站，报纸/杂志风格，Astro + Tailwind CSS 构建，部署于 GitHub Pages。
 
-## Design System
+## Commands
 
-修改 `src/styles/` 或新增组件时，**必须先读** [Design System](.know/docs/design-system.md)。所有交互态、颜色、间距、排版必须使用文档中定义的 token 和 pattern。
+```bash
+npm run dev              # Astro dev server，默认 http://localhost:4321
+npm run build            # 构建到 dist/（同时跑 zod 校验和搜索索引生成）
+npm run preview          # 本地预览构建产物
+npm run lint:unused      # 扫描死 CSS class + 未引用组件（CI 强制）
+npm run design:view <folder>  # 临时挂载 design-archive/<folder> 到 dev server
+```
 
-## 架构治理（细则见 [Design System §6](.know/docs/design-system.md#6-架构治理)）
+无 test 框架。质量保证靠：build 时的 zod schema 校验 + `lint:unused` 死代码扫描 + GitHub Actions（`.github/workflows/lint.yml` push/PR 触发）。
 
-**R1 — 分层与依赖**：tokens → base/layout → components → pages → global（跨切面）。上游不引用下游，pages 之间不互引。`global.css` 只放激活类规则（`.dark`、`.reading-mode`），不是"公共样式"。
+调试单个页面：`curl -s http://localhost:4321/notes/<slug>` 配 grep / python 解析；本项目无 e2e 测试基建。
 
-**R2 — Rule of Three**：新样式默认写在页面 `<style>`；第 3 次被复用才提升到 `components.css`，同时登记 [Design System §6.3](.know/docs/design-system.md#63-primitive-登记表)。禁止防御性抽象。
+## Architecture
 
-**R3 — 变更前 grep**：改任何 `tokens.css / base.css / layout.css / components.css / global.css / components/*.astro` 前，先 `grep -rlE "\b<target>\b" src/` 了解波及面。页面内联样式改动免 grep。
+**框架**：Astro 4.x（static output）+ Tailwind + TypeScript。零客户端 framework，交互靠 `<script is:inline>` 原生 JS。
 
-**R4 — 未使用代码扫描**：清理工作完成后或提交前跑 `npm run lint:unused`（=`./scripts/lint-unused-css.sh` + `./scripts/lint-unused-components.sh`）。报告的死代码要么删除，要么在 [Design System §6.3](.know/docs/design-system.md#63-primitive-登记表) 登记合法用途。
+**内容是 Astro Content Collection**（`src/content/notes/*.md`），构建时被 `src/utils/schema.ts` 的 zod schema 校验（slug 唯一、objectivity 比例和=1.0、ISO 日期等）。Frontmatter 全字段定义在 README §Frontmatter Schema。
+
+**双语 i18n**（`src/i18n/{zh,en}.ts`）：默认中文在根路径，英文在 `/en/*`。每个英文页都在 `src/pages/en/` 镜像一份；公用业务逻辑放在 `src/utils/`，组件通过 `lang` prop 切换文案。
+
+**渲染管线**（文章详情页 `src/pages/notes/[slug].astro`）：
+1. `getStaticPaths()` 读 `src/content/notes/`，每篇生成 props（包括 toc / related / series / prev/next）
+2. Markdown 经 `marked` 渲染 → `addHeadingIds()` 后处理给 h2/h3 注入 id（默认 marked 不加，TOC 锚跳依赖此）
+3. `extractToc()` 和 `addHeadingIds()` 用同一个 `slugify` 算法保证 id 一致
+
+**搜索索引**：构建时 `src/integrations/generate-search-index.ts` 生成 `public/search-index.json`（v1.1 含 `series/tagAliases/topicAliases/tagCounts/topicCounts`）；运行时 `src/utils/search.ts::searchNotes(q, index)` 解析字段前缀 `tag:/topic:/type:/series:`，分层打分（title-exact 100 > title-partial 60 > tag/topic-exact 55 > partial 35 > series 30 > alias 25 > content 10），同分 date desc。overlay（BaseLayout）+ `/search` + `/en/search` 三处 inline JS 镜像该逻辑，无服务端。
+
+**文章模式系统**：`<html data-mode="default|reading|book">` + 正交能力属性 `data-chrome / data-typography-controls / data-reading-progress / data-article-layout`。模式只是预设组合，CSS 只读能力属性不读模式名。新增模式只需在 `src/pages/notes/[slug].astro` 的 `MODE_PRESETS` 里加一行 + 相应能力属性的 CSS 规则；不用改 mode-named 选择器。当前有单个浮层按钮 `mode-toggle`（左键循环、右键/长按弹 menu）。
+
+**CSS 分层**（详见 [UI Architecture §2.1](.know/docs/arch/ui-architecture.md#21-style-层细节css-5-层依赖)）：
+```
+tokens.css → base/layout/masthead/dropdown/search → components.css → pages/<style> → global.css（仅跨切面规则）
+```
+`src/styles/` 只放 CSS；设计文档族在 `.know/docs/arch/design-*.md` + `ui-architecture.md`，`src/styles/README.md` 是 stub 指路。
+
+## 架构规范（when → action）
+
+所有规则都可查 [Design Governance](.know/docs/arch/design-governance.md)。**当你遇到这些场景时：**
+
+| 场景 | 动作 |
+|------|------|
+| **入门 / 不熟悉架构** | 读 [UI Architecture](.know/docs/arch/ui-architecture.md)（CSS 5 层 + Component 4 类 + Page 组成） |
+| **写新样式** | 默认写在页面 `<style>`；第 3 次被复用才提升到 `components.css` 并登记 [§2.3 Primitive 表](.know/docs/arch/design-governance.md#23-primitive-登记表)。禁止防御性抽象 |
+| **改共享层文件**（`tokens.css` / `base.css` / `layout.css` / `components.css` / `global.css` / `components/*.astro`） | 先 `grep -rlE "\b<target>\b" src/` 预判影响面。页面内联样式改动免 grep |
+| **写组件查变量** | 读 [Design Tokens](.know/docs/arch/design-tokens.md) |
+| **实现新组件找配方** | 读 [Design Patterns](.know/docs/arch/design-patterns.md)，组件头注释列出复用的 patterns + tokens |
+| **新建页面** | 同时建 `src/pages/` 中文版 + `src/pages/en/` 英文版；文案通过 `src/i18n/*.ts` 走 |
+| **新增 / 删除 components.css 共享 class** | 同步更新 [§2.3 Primitive 登记表](.know/docs/arch/design-governance.md#23-primitive-登记表)；不在表 = 待删 |
+| **引入 `global.css` 规则** | 只允许跨切面激活类（`.dark` / `.reading-mode`），不是"公共样式" |
+| **探索新设计方向** | 放到 `design-archive/<YYYY-MM-DD>-<topic>/`；用 `./scripts/view-design.sh <folder>` 预览；归档见 [Design Archive](.know/docs/arch/design-archive.md) |
+| **提交前 / 清理后** | `npm run build && npm run lint:unused`。死代码要么删，要么登记登记表 |
+
+## Commit 约定
+
+全局 commit-msg hook 强制 `^(feat|fix|chore|refactor|docs|test|build|ci|revert|subtree)(\([\w._-]+\))?: subject`。scope 不允许 `+`、空格等字符。多行 message 中 subject 与 body 之间留空行。
 
 ## Know
 
@@ -23,7 +71,11 @@
 #### 项目级
 
 - [夏天的爱人 产品路线图](.know/docs/roadmap.md) | v1-v3, M1-M10
-- [Design System](.know/docs/design-system.md) | Tokens + Patterns + Components + 架构治理 §6
+- [Design Tokens 架构](.know/docs/arch/design-tokens.md) | 5 类原子变量 + 12 语义颜色 + 3 质量分级色 + 8 字号 + 9 间距，消费方禁硬编码
+- [Design Patterns 架构](.know/docs/arch/design-patterns.md) | 7 个 Patterns + 8 个 Component 状态规范 + 5 条 Don'ts
+- [UI Architecture 架构](.know/docs/arch/ui-architecture.md) | CSS 5 层 + Component 4 类 + Page 组成（路由/i18n/Layout/渲染管线/数据流）
+- [Design Governance 架构](.know/docs/arch/design-governance.md) | 4 治理机制：Rule of Three / 变更前 grep / Primitive 登记表 / lint:unused CI
+- [Design Archive 架构](.know/docs/arch/design-archive.md) | 候选方向 mockup 归档 + view-design.sh 流程 + 生产构建隔离不变量
 
 #### UI
 

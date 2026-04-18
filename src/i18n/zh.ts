@@ -79,4 +79,18 @@ export default {
   common: {
     empty: '暂无内容',
   },
+  shortcuts: {
+    triggerLabel: '键盘快捷键',
+    title: '键盘快捷键',
+    close: '关闭',
+    sectionGlobal: '全站',
+    toggleHelp: '打开 / 关闭此面板',
+    search: '搜索',
+    closeOrExit: '关闭弹窗 / 退出特殊模式',
+  },
+  resume: {
+    label: '继续上次阅读（{pct}%）',
+    go: '继续',
+    dismiss: '忽略',
+  },
 } as const;

@@ -79,4 +79,18 @@ export default {
   common: {
     empty: 'No content yet',
   },
+  shortcuts: {
+    triggerLabel: 'Keyboard shortcuts',
+    title: 'Keyboard Shortcuts',
+    close: 'Close',
+    sectionGlobal: 'Global',
+    toggleHelp: 'Open / close this panel',
+    search: 'Search',
+    closeOrExit: 'Close dialog / exit special mode',
+  },
+  resume: {
+    label: 'Resume reading ({pct}%)',
+    go: 'Resume',
+    dismiss: 'Dismiss',
+  },
 } as const;
