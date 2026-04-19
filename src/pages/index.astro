@@ -126,7 +126,7 @@ const suggestionsData = getSuggestionsData(allNotes);
                 {lang === 'zh' ? `系列 · ${s.count} 篇` : `Series · ${s.count} posts`}
               </div>
               <h3 class="home-series-card-name font-display">
-                <a href={`/series/${encodeURIComponent(s.name)}`}>{s.name}</a>
+                <a href={`/series#${s.name.replace(/\s+/g, '-').toLowerCase()}`}>{s.name}</a>
               </h3>
               <ul class="home-series-card-list">
                 {s.notes.slice(0, 3).map((n, i) => (
