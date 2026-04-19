@@ -33,9 +33,16 @@ const websiteJsonLd = {
 
 const featuredNote = sortedNotes.find((n: any) => n.featured === true);
 const featured = featuredNote || notes[0];
-const sidebarNotes = notes.slice(1, 4);
-const secondaryNotes = notes.slice(4, 6);
-const remainingNotes = notes.slice(6);
+const sidebarNotes = notes.slice(1, 6);     // 5 items — fills sidebar height so hero stops looking lopsided
+const secondaryNotes = notes.slice(6, 8);
+const remainingNotes = notes.slice(8);
+
+// Hot tags for sidebar bottom chip cluster
+const tagCountMap = new Map<string, number>();
+for (const n of allNotes) {
+  for (const tag of n.tags) tagCountMap.set(tag.name, (tagCountMap.get(tag.name) || 0) + 1);
+}
+const homeHotTags = Array.from(tagCountMap.entries()).sort((a, b) => b[1] - a[1]).slice(0, 8);
 
 // Build slug → related-slugs map (top 6 each) for client-side suggestions.
 const relatedMap: Record<string, string[]> = {};
@@ -67,6 +74,18 @@ for (const n of allNotes) {
           {sidebarNotes.map((note) => (
             <ArticleCard note={note} variant="sidebar" lang={lang} />
           ))}
+          {homeHotTags.length > 0 && (
+            <div class="home-hot-tags">
+              <div class="section-label section-label-sub">{lang === 'zh' ? '热门标签' : 'Hot tags'}</div>
+              <div class="home-hot-tags-chips">
+                {homeHotTags.map(([name, count]) => (
+                  <a href={`/tags/${encodeURIComponent(name)}`} class="home-hot-tag-chip font-sans">
+                    {name} <span class="home-hot-tag-count">{count}</span>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
         </aside>
         {secondaryNotes.length > 0 && (
           <div class="layout-featured-secondary">
@@ -187,5 +206,41 @@ for (const n of allNotes) {
     font-weight: 600;
     color: var(--ink);
     line-height: 1.35;
+  }
+
+  /* Sidebar bottom mini-module: hot tags */
+  .home-hot-tags {
+    margin-top: var(--space-5);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--rule-light);
+  }
+  .section-label-sub {
+    margin-bottom: var(--space-3);
+  }
+  .home-hot-tags-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .home-hot-tag-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 10px;
+    font-size: var(--font-caption);
+    color: var(--ink-muted);
+    background: var(--paper);
+    border: 1px solid var(--rule-light);
+    border-radius: 999px;
+    text-decoration: none;
+    transition: border-color var(--duration-fast), color var(--duration-fast);
+  }
+  .home-hot-tag-chip:hover {
+    color: var(--ink);
+    border-color: var(--ink-muted);
+  }
+  .home-hot-tag-count {
+    font-size: var(--font-xs);
+    color: var(--ink-ghost);
   }
 </style>
