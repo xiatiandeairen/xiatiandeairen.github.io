@@ -9,7 +9,7 @@ const t = useT(lang);
 const allNotes = getAllNotes();
 const seo = generatePageMeta({ title: t('series.title'), description: t('series.subtitle'), path: '/series' });
 
-// Group notes by series
+// ── Group by series, sort by order, then by date ──
 const seriesMap = new Map<string, any[]>();
 for (const note of allNotes) {
   const s = (note as any).series;
@@ -17,48 +17,170 @@ for (const note of allNotes) {
   if (!seriesMap.has(s.name)) seriesMap.set(s.name, []);
   seriesMap.get(s.name)!.push(note);
 }
-
-// Sort each series by order
 for (const [, notes] of seriesMap) {
-  notes.sort((a: any, b: any) => ((a as any).series?.order || 0) - ((b as any).series?.order || 0));
+  notes.sort((a: any, b: any) => {
+    const ao = a.series?.order ?? 9999;
+    const bo = b.series?.order ?? 9999;
+    if (ao !== bo) return ao - bo;
+    return a.date < b.date ? -1 : 1;
+  });
 }
 
-const seriesList = Array.from(seriesMap.entries());
+function slugifyName(name: string): string {
+  return name.replace(/\s+/g, '-').toLowerCase();
+}
 
+const seriesList = Array.from(seriesMap.entries())
+  .map(([name, notes]) => ({
+    id: slugifyName(name),
+    name,
+    notes,
+    latestDate: notes.reduce((max: string, n: any) => (n.date > max ? n.date : max), ''),
+  }))
+  .sort((a, b) => (a.latestDate < b.latestDate ? 1 : -1));
+
+// Tagline lookup (hardcoded for now; migrate to content collection once >3 series).
+const SERIES_TAGLINES: Record<string, { zh: string; en: string }> = {
+  'AI Skills 系列': {
+    zh: '从碎片经验到可复用的 skill — 让 AI 把你的"默会"变成可调用的能力',
+    en: 'From scattered hacks to reusable skills — turn tacit know-how into callable capabilities',
+  },
+};
+
+// ── Helpers ──
+function plainText(content: string): string {
+  return content
+    .replace(/```[\s\S]*?```/g, '')
+    .replace(/`[^`]+`/g, '')
+    .replace(/#{1,6}\s/g, '')
+    .replace(/\*\*?|__?/g, '')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/[<>]/g, '')
+    .replace(/\n+/g, ' ')
+    .trim();
+}
 function readingTime(content: string): number {
   return Math.max(1, Math.round(content.replace(/\s+/g, ' ').trim().length / 300));
+}
+function fmt(d: string): string { return d.slice(5, 10); }
+function spanDays(notes: any[]): number {
+  if (notes.length < 2) return 0;
+  const dates = notes.map(n => new Date(n.date).getTime()).sort((a, b) => a - b);
+  return Math.round((dates[dates.length - 1] - dates[0]) / 86400000);
+}
+function totalMinutes(notes: any[]): number {
+  return notes.reduce((n, note) => n + readingTime(note.content), 0);
 }
 ---
 
 <BaseLayout title={t('series.title')} seo={seo} lang={lang}>
   <header class="series-header">
     <h1 class="font-display text-h1 mb-1">{t('series.title')}</h1>
-    <p class="font-sans text-small series-subtitle">{t('series.subtitle')}</p>
+    <p class="font-sans text-small series-subtitle">{lang === 'zh' ? `按主题组织的连续写作，共 ${seriesList.length} 组。` : `Continuous writing organized by theme — ${seriesList.length} series.`}</p>
   </header>
 
   {seriesList.length === 0 ? (
     <p class="font-sans text-small series-empty">{t('series.empty')}</p>
   ) : (
-    seriesList.map(([name, notes]) => (
-      <div class="series-group">
-        <h2 class="font-display text-h2 series-group-title">{name}</h2>
-        <p class="font-sans text-small series-group-meta">{t('series.count', { count: notes.length })}</p>
-        <div class="series-list">
-          {notes.map((note: any, i: number) => (
-            <a href={`/notes/${note.slug}`} class="series-item">
-              <span class="series-num font-sans">{String(i + 1).padStart(2, '0')}</span>
-              <div class="series-item-body">
-                <div class="series-item-title font-serif">{note.title}</div>
-                <div class="series-item-meta font-sans">
-                  {t('series.readingTime', { min: readingTime(note.content) })}
-                </div>
+    <div class="series-md" data-series-count={seriesList.length}>
+      <aside class="series-md-list">
+        <div class="series-md-list-label font-sans">{lang === 'zh' ? '所有系列' : 'All series'}</div>
+        {seriesList.map((s, i) => {
+          const tagline = SERIES_TAGLINES[s.name]?.[lang];
+          return (
+            <a
+              href={`#${s.id}`}
+              class={`series-md-card ${i === 0 ? 'is-selected' : ''}`}
+              data-series-id={s.id}
+            >
+              <div class="series-md-card-kicker font-sans">
+                {lang === 'zh' ? `系列 · ${s.notes.length} 篇 · ${totalMinutes(s.notes)} min` : `Series · ${s.notes.length} posts · ${totalMinutes(s.notes)} min`}
+              </div>
+              <div class="series-md-card-name font-display">{s.name}</div>
+              {tagline && <div class="series-md-card-tagline font-sans">{tagline}</div>}
+              <div class="series-md-card-dates font-sans">
+                {s.notes[0].date.slice(0, 7)} → {s.notes[s.notes.length - 1].date.slice(0, 7)}
               </div>
             </a>
-          ))}
-        </div>
-      </div>
-    ))
+          );
+        })}
+      </aside>
+
+      <main class="series-md-detail">
+        {seriesList.map((s, i) => {
+          const tagline = SERIES_TAGLINES[s.name]?.[lang];
+          return (
+            <section
+              class={`series-panel ${i === 0 ? 'is-visible' : ''}`}
+              data-series-id={s.id}
+              id={`panel-${s.id}`}
+            >
+              <header class="series-panel-head">
+                <div class="series-panel-kicker font-sans">
+                  {lang === 'zh'
+                    ? `系列 · ${s.notes.length} 篇 · ${totalMinutes(s.notes)} min · 跨度 ${spanDays(s.notes)} 天`
+                    : `Series · ${s.notes.length} posts · ${totalMinutes(s.notes)} min · span ${spanDays(s.notes)}d`}
+                </div>
+                <h2 class="series-panel-title font-display">{s.name}</h2>
+                {tagline && <p class="series-panel-tagline font-serif">—— {tagline}</p>}
+              </header>
+
+              <ol class="timeline">
+                {s.notes.map((note: any, idx: number) => {
+                  const isLast = idx === s.notes.length - 1;
+                  const excerpt = plainText(note.content).slice(0, 100) + '…';
+                  return (
+                    <li class={`timeline-node ${isLast ? 'timeline-node-latest' : ''}`}>
+                      <span class="timeline-dot" aria-hidden="true"></span>
+                      <time class="timeline-date font-sans" datetime={note.date}>{fmt(note.date)}</time>
+                      <div class="timeline-body">
+                        <a href={`/notes/${note.slug}`} class="timeline-title font-display">
+                          <span class="timeline-order font-sans">#{String(note.series?.order ?? idx + 1).padStart(2, '0')}</span>
+                          {note.title}
+                        </a>
+                        {isLast && <span class="timeline-latest font-sans">{lang === 'zh' ? '最新' : 'Latest'}</span>}
+                        <p class="timeline-excerpt font-sans">{excerpt}</p>
+                        <div class="timeline-meta font-sans">{lang === 'zh' ? `约 ${readingTime(note.content)} 分钟` : `~${readingTime(note.content)} min`}</div>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ol>
+            </section>
+          );
+        })}
+      </main>
+    </div>
   )}
+
+  <script is:inline>
+    (function() {
+      function showSeries(id) {
+        document.querySelectorAll('.series-md-card').forEach(function(c) {
+          c.classList.toggle('is-selected', c.dataset.seriesId === id);
+        });
+        document.querySelectorAll('.series-panel').forEach(function(p) {
+          p.classList.toggle('is-visible', p.dataset.seriesId === id);
+        });
+      }
+      function handleHash() {
+        var id = location.hash.slice(1);
+        if (!id) return;
+        var card = document.querySelector('.series-md-card[data-series-id="' + id + '"]');
+        if (card) showSeries(id);
+      }
+      window.addEventListener('hashchange', handleHash);
+      handleHash();
+      document.querySelectorAll('.series-md-card').forEach(function(card) {
+        card.addEventListener('click', function(e) {
+          e.preventDefault();
+          var id = card.dataset.seriesId;
+          history.replaceState(null, '', '#' + id);
+          showSeries(id);
+        });
+      });
+    })();
+  </script>
 </BaseLayout>
 
 <style>
@@ -69,28 +191,215 @@ function readingTime(content: string): number {
   }
   .series-subtitle { color: var(--ink-muted); }
   .series-empty { color: var(--ink-muted); text-align: center; padding: var(--space-7) 0; }
-  .series-group { margin-bottom: var(--space-7); }
-  .series-group-title { color: var(--ink); margin-bottom: var(--space-1); }
-  .series-group-meta { color: var(--ink-muted); margin-bottom: var(--space-4); }
-  .series-list { border-top: 1px solid var(--rule-light); }
-  .series-item {
+
+  /* Master-Detail layout */
+  .series-md {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: var(--space-6);
+    align-items: start;
+  }
+  .series-md[data-series-count="1"] { grid-template-columns: 1fr; }
+  .series-md[data-series-count="1"] .series-md-list { display: none; }
+
+  /* Left column — series list */
+  .series-md-list {
+    position: sticky;
+    top: var(--space-3);
     display: flex;
-    align-items: flex-start;
-    gap: var(--space-4);
-    padding: var(--space-3) 0;
-    border-bottom: 1px solid var(--rule-faint);
+    flex-direction: column;
+    gap: var(--space-3);
+    max-height: calc(100vh - var(--space-5));
+    overflow-y: auto;
+    padding-right: var(--space-2);
+  }
+  .series-md-list-label {
+    font-size: var(--font-label);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-ghost);
+    margin-bottom: var(--space-1);
+  }
+  .series-md-card {
+    padding: var(--space-3) var(--space-4);
+    background: var(--bg-subtle);
+    border: 1px solid var(--rule-faint);
+    border-left: 3px solid var(--rule);
+    border-radius: var(--radius-sm);
     text-decoration: none;
     color: inherit;
-    transition: all var(--transition-color);
+    transition: border-color var(--duration-fast), background var(--duration-fast);
   }
-  .series-item:hover { padding-left: var(--space-2); color: inherit; }
-  .series-num {
+  .series-md-card:hover { border-left-color: var(--ink-muted); }
+  .series-md-card.is-selected {
+    border-left-color: var(--accent);
+    background: var(--paper);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .series-md-card-kicker {
+    font-size: var(--font-label);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    margin-bottom: var(--space-1);
+  }
+  .series-md-card-name {
+    font-size: var(--font-h3);
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.25;
+    margin-bottom: var(--space-1);
+  }
+  .series-md-card-tagline {
+    font-size: var(--font-caption);
+    color: var(--ink-muted);
+    line-height: 1.45;
+    margin-bottom: var(--space-2);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .series-md-card-dates {
+    font-size: var(--font-xs);
+    color: var(--ink-ghost);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Right column — detail panel */
+  .series-md-detail { min-width: 0; }
+  .series-panel { display: none; }
+  .series-panel.is-visible { display: block; }
+  .series-panel-head {
+    padding: 0 0 var(--space-4) 0;
+    margin-bottom: var(--space-4);
+    border-bottom: 1px solid var(--rule-light);
+  }
+  .series-panel-kicker {
+    font-size: var(--font-label);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    margin-bottom: var(--space-1);
+  }
+  .series-panel-title { font-size: var(--font-h1); font-weight: 700; line-height: 1.15; margin: 0 0 var(--space-1); color: var(--ink); letter-spacing: -0.01em; }
+  .series-panel-tagline { font-size: var(--font-body); font-style: italic; color: var(--ink-muted); margin: 0; line-height: 1.5; }
+
+  /* Timeline */
+  .timeline {
+    list-style: none;
+    padding: 0 0 0 120px;
+    margin: 0;
+    position: relative;
+  }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 90px;
+    top: 8px;
+    bottom: 8px;
+    width: 2px;
+    background: var(--rule-light);
+  }
+  .timeline-node {
+    position: relative;
+    padding: var(--space-3) 0 var(--space-4);
+  }
+  .timeline-dot {
+    position: absolute;
+    left: -37px;
+    top: calc(var(--space-3) + 4px);
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--paper);
+    border: 2px solid var(--accent);
+    z-index: 1;
+  }
+  .timeline-node-latest .timeline-dot {
+    background: var(--accent);
+    box-shadow: 0 0 0 4px color-mix(in oklab, var(--accent) 20%, transparent);
+  }
+  .timeline-date {
+    position: absolute;
+    left: -120px;
+    top: calc(var(--space-3) + 2px);
+    width: 72px;
+    text-align: right;
+    font-size: var(--font-caption);
+    color: var(--ink-ghost);
+    font-variant-numeric: tabular-nums;
+  }
+  .timeline-body { min-width: 0; }
+  .timeline-title {
+    display: block;
+    font-size: var(--font-h3);
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.3;
+    text-decoration: none;
+    margin-bottom: var(--space-1);
+  }
+  .timeline-title:hover { color: var(--ink-hover); text-decoration: underline; text-underline-offset: 0.15em; }
+  .timeline-order {
+    display: inline-block;
+    font-size: var(--font-caption);
+    color: var(--ink-ghost);
+    font-weight: 400;
+    margin-right: var(--space-2);
+    font-variant-numeric: tabular-nums;
+  }
+  .timeline-latest {
+    display: inline-block;
+    padding: 1px 8px;
+    font-size: var(--font-xs);
+    background: var(--accent);
+    color: var(--paper);
+    border-radius: var(--radius-sm);
+    letter-spacing: 0.05em;
+    margin-bottom: var(--space-2);
+  }
+  .timeline-excerpt {
     font-size: var(--font-small);
-    font-weight: 600;
-    color: var(--rule);
-    min-width: var(--space-5);
-    padding-top: var(--space-1);
+    color: var(--ink-muted);
+    line-height: 1.55;
+    margin: var(--space-1) 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
-  .series-item-title { font-size: var(--font-body); font-weight: 600; line-height: 1.35; color: var(--ink); }
-  .series-item-meta { font-size: var(--font-caption); color: var(--ink-ghost); margin-top: var(--space-1); }
+  .timeline-meta { font-size: var(--font-caption); color: var(--ink-ghost); font-variant-numeric: tabular-nums; }
+
+  @media (max-width: 900px) {
+    .series-md { grid-template-columns: 1fr; }
+    .series-md-list {
+      position: static;
+      flex-direction: row;
+      overflow-x: auto;
+      max-height: none;
+      padding-bottom: var(--space-2);
+      margin-bottom: var(--space-4);
+      border-bottom: 1px solid var(--rule-faint);
+    }
+    .series-md-list-label { display: none; }
+    .series-md-card {
+      flex: 0 0 240px;
+      padding: var(--space-2) var(--space-3);
+    }
+    .series-md-card-tagline { display: none; }
+    .series-md-card-dates { display: none; }
+  }
+  @media (max-width: 640px) {
+    .timeline { padding-left: 44px; }
+    .timeline::before { left: 14px; }
+    .timeline-date {
+      position: static;
+      left: auto;
+      width: auto;
+      text-align: left;
+      margin-bottom: var(--space-1);
+      display: block;
+    }
+  }
 </style>
