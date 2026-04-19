@@ -6,6 +6,7 @@ import { getRelated as rankGetRelated } from '../../utils/rank';
 import { generateSEOMeta } from '../../utils/seo';
 import { localePath, getLang } from '../../i18n';
 import { marked } from 'marked';
+import '../../styles/pages/notes.css';
 
 export async function getStaticPaths() {
   function slugify(text: string): string {
@@ -79,6 +80,18 @@ const seriesIndex = seriesNotes.findIndex((n: any) => n.slug === note.slug);
 const seriesPrev = seriesIndex > 0 ? seriesNotes[seriesIndex - 1] : null;
 const seriesNext = seriesIndex < seriesNotes.length - 1 ? seriesNotes[seriesIndex + 1] : null;
 
+// Topic siblings: parallel to series-continue, surfaces same-topic notes for readers arriving via topic page.
+const primaryTopic = note.topics?.[0]?.name ?? null;
+const topicSiblings = primaryTopic
+  ? getAllNotes()
+      .filter((n: any) => n.slug !== note.slug && n.topics?.some((t: any) => t.name === primaryTopic))
+      .sort((a: any, b: any) => (a.date < b.date ? 1 : -1))
+      .slice(0, 3)
+  : [];
+const topicTotalCount = primaryTopic
+  ? getAllNotes().filter((n: any) => n.topics?.some((t: any) => t.name === primaryTopic)).length
+  : 0;
+
 const articleJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Article',
@@ -108,27 +121,23 @@ const articleJsonLd = {
   <header class="article-header">
     <div class="article-kicker">{note.question.type}</div>
     <h1 class="article-title font-display">{note.title}</h1>
-    <div class="article-meta">
-      <span>{readingMinutes + ' min read'}</span>
-      <span class="meta-dot-sep" aria-hidden="true">·</span>
-      <time datetime={note.date}>{new Date(note.date).toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' })}</time>
-    </div>
-    {(note.topics.length > 0 || note.tags.length > 0) && (
-      <div class="taxonomy-row" aria-label="topics and tags">
-        {note.topics.map((topic, i) => (
-          <>
-            {i > 0 && <span class="tax-sep" aria-hidden="true">·</span>}
+    <div class="article-dateline" aria-label="article meta">
+      {(note.topics.length > 0 || note.tags.length > 0) && (
+        <div class="dateline-tax">
+          {note.topics.map((topic) => (
             <a href={`/topics/${encodeURIComponent(topic.name)}`} class="taxonomy-link taxonomy-link-primary font-sans">{topic.name}</a>
-          </>
-        ))}
-        {note.tags.map((tag, i) => (
-          <>
-            {(i > 0 || note.topics.length > 0) && <span class="tax-sep" aria-hidden="true">·</span>}
+          ))}
+          {note.tags.map((tag) => (
             <a href={`/tags/${encodeURIComponent(tag.name)}`} class="taxonomy-link font-sans">{tag.name}</a>
-          </>
-        ))}
+          ))}
+        </div>
+      )}
+      <div class="dateline-meta">
+        <time datetime={note.date}>{new Date(note.date).toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' })}</time>
+        <span class="dateline-meta-sep" aria-hidden="true"></span>
+        <span>{readingMinutes + ' min read'}</span>
       </div>
-    )}
+    </div>
   </header>
 
   <article id="article-body" class="prose prose-lg max-w-none
@@ -196,6 +205,13 @@ const articleJsonLd = {
           <button class="type-opt type-opt-text" data-value="narrow">窄</button>
           <button class="type-opt type-opt-text" data-value="default">默认</button>
           <button class="type-opt type-opt-text" data-value="wide">宽</button>
+        </div>
+      </div>
+      <div class="type-row">
+        <span class="type-label">进度</span>
+        <div class="type-options" data-group="progress">
+          <button class="type-opt type-opt-text" data-value="off" id="progress-off">隐藏</button>
+          <button class="type-opt type-opt-text" data-value="on" id="progress-on">显示</button>
         </div>
       </div>
     </div>
@@ -294,6 +310,27 @@ const articleJsonLd = {
     </section>
   )}
 
+  {/* Topic continue block: parallel to series-continue; shown when note has a primary topic with siblings */}
+  {primaryTopic && topicSiblings.length > 0 && (
+    <section class="series-continue topic-continue" aria-label="主题阅读">
+      <header class="series-continue-head">
+        <div class="series-continue-meta">
+          <span class="series-continue-label">主题 · {primaryTopic}</span>
+          <span class="series-continue-progress">{topicTotalCount} 篇</span>
+        </div>
+      </header>
+      {topicSiblings.map((s: any) => (
+        <a href={`/notes/${s.slug}`} class="series-continue-next">
+          <div class="series-continue-tag">同主题 →</div>
+          <div class="series-continue-title font-serif">{s.title}</div>
+        </a>
+      ))}
+      <div class="series-continue-remaining">
+        <a href={localePath(`/topics/${primaryTopic}`, lang)}>查看主题全部 {topicTotalCount} 篇 →</a>
+      </div>
+    </section>
+  )}
+
   {/* Series navigation (compact prev/next) */}
   {series && (seriesPrev || seriesNext) && (
     <nav class="series-nav" aria-label="系列导航">
@@ -312,8 +349,8 @@ const articleJsonLd = {
     </nav>
   )}
 
-  {/* Prev / Next navigation */}
-  {(prevNote || nextNote) && (
+  {/* Prev / Next navigation (skipped when series nav already covers it) */}
+  {!series && (prevNote || nextNote) && (
     <nav class="grid grid-cols-2 gap-6 mt-8 pt-6 border-t border-rule" aria-label="文章导航">
       {prevNote ? (
         <a href={`/notes/${prevNote.slug}`} class="no-underline group">
@@ -332,6 +369,33 @@ const articleJsonLd = {
 
   <a href="#main-content" class="back-to-top">{'回到顶部 ↑'}</a>
 
+  {/* Source-context: prefer sessionStorage (set by upstream pages on click), fall back to document.referrer for direct same-tab nav.
+      Cleared after read so a refresh / direct visit reverts to default rendering. */}
+  <script is:inline>
+    (function () {
+      var html = document.documentElement;
+      var ctx = null;
+      try { ctx = sessionStorage.getItem('entryContext'); } catch (e) {}
+      if (!ctx) {
+        var ref = document.referrer;
+        if (ref) {
+          try {
+            var u = new URL(ref);
+            if (u.origin === location.origin) {
+              if (u.pathname.indexOf('/topics/') === 0) ctx = 'topic';
+              else if (u.pathname.indexOf('/series') === 0) ctx = 'series';
+              else if (u.pathname.indexOf('/tags/') === 0) ctx = 'tag';
+            }
+          } catch (e) {}
+        }
+      }
+      if (ctx) {
+        html.dataset.sourceContext = ctx;
+        try { sessionStorage.removeItem('entryContext'); } catch (e) {}
+      }
+    })();
+  </script>
+
   {/* Book mode page indicator (only visible when data-article-layout="columns") */}
   <div class="book-page-indicator" id="book-page-indicator" aria-hidden="true">1 / 1</div>
 
@@ -342,697 +406,14 @@ const articleJsonLd = {
     <button class="resume-toast-dismiss" id="resume-toast-close" aria-label="忽略">×</button>
   </div>
 
-  <style>
-    /* ── Article body: override prose + base.css max-width ── */
-    :global(#article-body) {
-      max-width: none;
-    }
-    :global(#article-body p),
-    :global(#article-body ul),
-    :global(#article-body ol),
-    :global(#article-body blockquote) {
-      max-width: none;
-    }
-
-    /* ── Article header: centered, minimalist editorial (A direction) ── */
-    .article-header {
-      text-align: center;
-      margin-bottom: var(--space-7);
-      padding: var(--space-6) 0 var(--space-6);
-      border-bottom: 1px solid var(--rule-light);
-    }
-
-    .article-kicker {
-      font-family: Inter, sans-serif;
-      font-size: 0.7rem;
-      font-weight: 500;
-      letter-spacing: 0.22em;
-      text-transform: uppercase;
-      color: var(--ink-faint);
-      margin-bottom: var(--space-6);
-    }
-
-    .article-title {
-      font-size: clamp(1.875rem, 1.5rem + 1.6vw, 2.75rem);
-      font-weight: 400;
-      line-height: 1.25;
-      letter-spacing: -0.005em;
-      color: var(--ink);
-      margin: 0 auto var(--space-6);
-      max-width: 22em;
-    }
-
-    .article-meta {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      flex-wrap: wrap;
-      gap: var(--space-2);
-      font-family: Inter, sans-serif;
-      font-size: 0.8125rem;
-      color: var(--ink-faint);
-      letter-spacing: 0.04em;
-      margin-bottom: var(--space-4);
-    }
-    .meta-dot-sep { color: var(--ink-ghost); }
-
-    .taxonomy-row {
-      display: inline-flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      align-items: center;
-      gap: var(--space-2);
-      font-family: Inter, sans-serif;
-      font-size: 0.75rem;
-      letter-spacing: 0.08em;
-    }
-    .taxonomy-link {
-      color: var(--ink-ghost);
-      text-decoration: none;
-      padding: 2px 10px;
-      border: 1px solid transparent;
-      border-radius: 999px;
-      transition: border-color var(--duration-fast), color var(--duration-fast), background var(--duration-fast);
-    }
-    .taxonomy-link:hover {
-      border-color: var(--ink-muted);
-      color: var(--ink);
-      text-decoration: none;
-    }
-    .taxonomy-link-primary {
-      color: var(--accent);
-    }
-    .taxonomy-link-primary:hover {
-      border-color: var(--accent);
-      color: var(--accent);
-    }
-    .tax-sep {
-      color: var(--ink-ghost);
-      opacity: 0.6;
-    }
-
-    .prev-next-title { color: var(--ink); }
-
-    /* ── Floating TOC ── */
-    .toc-float {
-      position: fixed;
-      bottom: var(--space-6);
-      right: var(--space-6);
-      z-index: 40;
-    }
-    .toc-float-btn {
-      position: relative;
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      background: var(--paper);
-      border: 1px solid var(--rule);
-      color: var(--ink-muted);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-      transition: all var(--duration-fast);
-    }
-    .toc-float-btn:hover {
-      color: var(--ink);
-      border-color: var(--ink-muted);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-    }
-    /* Target heading highlight — pulses when TOC jumps to it */
-    :global(#article-body h2.toc-target),
-    :global(#article-body h3.toc-target) {
-      animation: heading-highlight 2.4s ease-out;
-    }
-    :global(#article-body h2.toc-target)::before,
-    :global(#article-body h3.toc-target)::before {
-      content: '';
-      position: absolute;
-      left: -12px;
-      top: 0;
-      bottom: 0;
-      width: 3px;
-      background: var(--accent);
-      animation: heading-bar 2.4s ease-out;
-    }
-    :global(#article-body h2),
-    :global(#article-body h3) {
-      position: relative;
-      scroll-margin-top: 80px;
-    }
-    @keyframes heading-highlight {
-      0%   { background: color-mix(in srgb, var(--accent) 18%, transparent); }
-      80%  { background: color-mix(in srgb, var(--accent) 18%, transparent); }
-      100% { background: transparent; }
-    }
-    @keyframes heading-bar {
-      0%   { opacity: 0.9; }
-      80%  { opacity: 0.9; }
-      100% { opacity: 0; }
-    }
-    .toc-panel {
-      display: none;
-      position: absolute;
-      bottom: 56px;
-      right: 0;
-      width: 260px;
-      max-height: 60vh;
-      overflow-y: auto;
-      background: var(--paper);
-      border: 1px solid var(--rule);
-      border-radius: var(--radius-md);
-      padding: var(--space-4);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.1);
-    }
-    .toc-panel.open {
-      display: block;
-    }
-
-    /* Series banner */
-    .series-banner {
-      display: flex;
-      align-items: center;
-      gap: var(--space-3);
-      padding: var(--space-3) var(--space-4);
-      margin-bottom: var(--space-5);
-      border: 1px solid var(--rule-light);
-      border-radius: var(--radius-md);
-      background: var(--bg-subtle);
-      font-size: var(--font-small);
-    }
-    .series-label { font-size: var(--font-label); text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-faint); }
-    .series-name { color: var(--ink); font-weight: 600; }
-    .series-pos { color: var(--ink-muted); margin-left: auto; font-size: var(--font-caption); }
-
-    /* TOC */
-    .toc-item {
-      display: block;
-      font-family: Inter, sans-serif;
-      font-size: var(--font-caption);
-      color: var(--ink-muted);
-      padding: var(--space-1) 0;
-      border-left: 2px solid transparent;
-      padding-left: var(--space-3);
-      margin-left: calc(-1 * var(--space-3));
-      text-decoration: none;
-      transition: all var(--duration-fast);
-      line-height: 1.4;
-    }
-    .toc-item:hover { color: var(--ink); }
-    .toc-item.active {
-      color: var(--ink);
-      border-left-color: var(--accent);
-      font-weight: 500;
-    }
-    .toc-sub { padding-left: calc(var(--space-3) + var(--space-3)); margin-left: calc(-1 * var(--space-3)); font-size: var(--font-caption); }
-
-    /* Related */
-    .related-section {
-      margin-top: var(--space-7);
-      padding-top: var(--space-5);
-      border-top: 1px solid var(--rule);
-    }
-    .related-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: var(--space-3);
-    }
-    .related-card {
-      padding: var(--space-3);
-      border: 1px solid var(--rule-faint);
-      border-radius: var(--radius-md);
-      text-decoration: none;
-      transition: all var(--transition-color);
-      color: inherit;
-    }
-    .related-card:hover { border-color: var(--rule); color: inherit; }
-    .related-card-title {
-      font-size: var(--font-small);
-      font-weight: 600;
-      line-height: 1.35;
-      color: var(--ink);
-    }
-
-    /* Series continue (emphasized end-of-article block) */
-    .series-continue {
-      margin-top: var(--space-7);
-      padding: var(--space-5) var(--space-5);
-      background: color-mix(in srgb, var(--accent) 5%, var(--paper));
-      border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
-      border-radius: var(--radius-md);
-    }
-    .series-continue-head { margin-bottom: var(--space-4); }
-    .series-continue-meta {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      font-family: Inter, sans-serif;
-      font-size: var(--font-caption);
-      color: var(--ink-muted);
-      margin-bottom: var(--space-2);
-    }
-    .series-continue-label { font-weight: 600; letter-spacing: 0.04em; }
-    .series-continue-progress { color: var(--accent); font-weight: 600; }
-    .series-continue-bar {
-      height: 4px;
-      background: color-mix(in srgb, var(--ink) 8%, transparent);
-      border-radius: 2px;
-      overflow: hidden;
-    }
-    .series-continue-bar > span {
-      display: block;
-      height: 100%;
-      background: var(--accent);
-      transition: width 0.3s;
-    }
-    .series-continue-next {
-      display: block;
-      padding: var(--space-3) 0;
-      text-decoration: none;
-      color: inherit;
-      transition: padding-left var(--duration-fast);
-    }
-    .series-continue-next:hover { padding-left: var(--space-2); color: inherit; }
-    .series-continue-tag {
-      font-family: Inter, sans-serif;
-      font-size: var(--font-label);
-      color: var(--accent);
-      letter-spacing: 0.05em;
-      margin-bottom: var(--space-1);
-    }
-    .series-continue-title {
-      font-size: var(--font-h3);
-      font-weight: 600;
-      color: var(--ink);
-      line-height: 1.3;
-    }
-    .series-continue-remaining {
-      font-family: Inter, sans-serif;
-      font-size: var(--font-caption);
-      color: var(--ink-muted);
-      padding-top: var(--space-3);
-      border-top: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
-    }
-    .series-continue-remaining a { color: var(--accent); text-decoration: none; }
-    .series-continue-remaining a:hover { text-decoration: underline; }
-
-    /* Series nav */
-    .series-nav {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: var(--space-4);
-      margin-top: var(--space-6);
-      padding-top: var(--space-5);
-      border-top: 1px solid var(--rule);
-    }
-    .series-nav-link { text-decoration: none; color: inherit; }
-    .series-nav-link:hover { color: inherit; }
-    .series-nav-next { text-align: right; }
-    .series-nav-title { font-size: var(--font-body); font-weight: 600; color: var(--ink); margin-top: var(--space-1); }
-
-    /* Giscus comments */
-    .giscus-section {
-      margin-top: var(--space-7);
-      padding-top: var(--space-5);
-      border-top: 1px solid var(--rule);
-    }
-    .giscus-hint {
-      font-family: Inter, sans-serif;
-      font-size: var(--font-caption);
-      color: var(--ink-faint);
-      margin-bottom: var(--space-4);
-      letter-spacing: 0.02em;
-    }
-    .giscus-container {
-      min-height: 200px;
-      padding: var(--space-3) 0;
-    }
-
-    @media (max-width: 767px) {
-      .series-nav { grid-template-columns: 1fr; }
-      .series-nav-next { text-align: left; }
-      .related-grid { grid-template-columns: 1fr; }
-      .toc-float { bottom: var(--space-4); right: var(--space-4); }
-      .mode-toggle-float { bottom: calc(var(--space-4) + 56px); right: var(--space-4); }
-      .type-float { bottom: calc(var(--space-4) + 112px); right: var(--space-4); }
-      /* Mode menu: constrain to viewport on narrow screens */
-      .mode-menu { right: 0; bottom: 52px; max-width: calc(100vw - var(--space-4) * 2); }
-      /* Book mode mobile fallback: single column, still paginates by viewport */
-      :global(html[data-article-layout="columns"][data-mode] #article-body) {
-        column-count: 1;
-        column-gap: 0;
-        column-rule: none;
-      }
-      .taxonomy-row {
-        grid-template-columns: 1fr;
-        gap: var(--space-2);
-      }
-      .taxonomy-label {
-        text-align: left;
-        border-right: none;
-        padding-right: 0;
-      }
-    }
-
-    /* ── Typography controls (Aa) — only in reading mode ── */
-    .type-float {
-      display: none;
-      position: fixed;
-      bottom: calc(var(--space-6) + 112px);
-      right: var(--space-6);
-      z-index: 40;
-    }
-    :global(html[data-typography-controls="on"]) .type-float { display: block; }
-    .type-float-btn {
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      background: var(--paper);
-      border: 1px solid var(--rule);
-      color: var(--ink-muted);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-      transition: all var(--duration-fast);
-    }
-    .type-float-btn:hover {
-      color: var(--ink);
-      border-color: var(--ink-muted);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-    }
-    .type-aa {
-      font-family: Georgia, 'Songti SC', serif;
-      font-size: 1rem;
-      font-weight: 600;
-      line-height: 1;
-    }
-    .type-panel {
-      display: none;
-      position: absolute;
-      bottom: 56px;
-      right: 0;
-      width: 260px;
-      background: var(--paper);
-      border: 1px solid var(--rule);
-      border-radius: var(--radius-md);
-      padding: var(--space-4);
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-    }
-    .type-panel.open { display: block; }
-    .type-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: var(--space-2) 0;
-    }
-    .type-row + .type-row { border-top: 1px solid var(--rule-faint); }
-    .type-label {
-      font-family: Inter, sans-serif;
-      font-size: var(--font-label);
-      font-weight: 500;
-      color: var(--ink-muted);
-      letter-spacing: 0.05em;
-    }
-    .type-options {
-      display: inline-flex;
-      gap: 0;
-      border: 1px solid var(--rule-light);
-      border-radius: var(--radius-md, 6px);
-      overflow: hidden;
-    }
-    .type-opt {
-      min-width: 32px;
-      padding: 4px var(--space-2);
-      background: transparent;
-      border: none;
-      border-left: 1px solid var(--rule-light);
-      color: var(--ink-muted);
-      font-family: Inter, sans-serif;
-      font-size: var(--font-caption);
-      cursor: pointer;
-      transition: all var(--duration-fast);
-    }
-    .type-opt:first-child { border-left: none; }
-    .type-opt:hover { background: var(--bg-subtle); color: var(--ink); }
-    .type-opt.active {
-      background: var(--ink);
-      color: var(--paper);
-    }
-    .type-opt-text { letter-spacing: 0.03em; }
-    .type-opt.serif { font-family: Georgia, 'Songti SC', serif; }
-    .type-opt sup { font-size: 0.7em; margin-left: 1px; }
-
-    /* Typography variable drivers — gated by data-typography-controls="on" */
-    :global(#article-body) { --article-font-size: 1rem; }
-    :global(html[data-typography-controls="on"][data-font-size="s"] #article-body) { --article-font-size: 0.9375rem; }
-    :global(html[data-typography-controls="on"][data-font-size="l"] #article-body) { --article-font-size: 1.1875rem; }
-    :global(html[data-typography-controls="on"] #article-body),
-    :global(html[data-typography-controls="on"] #article-body p),
-    :global(html[data-typography-controls="on"] #article-body li),
-    :global(html[data-typography-controls="on"] #article-body blockquote) {
-      font-size: var(--article-font-size) !important;
-    }
-    :global(html[data-typography-controls="on"][data-font-family="sans"] #article-body),
-    :global(html[data-typography-controls="on"][data-font-family="sans"] #article-body p),
-    :global(html[data-typography-controls="on"][data-font-family="sans"] #article-body li),
-    :global(html[data-typography-controls="on"][data-font-family="sans"] #article-body blockquote) {
-      font-family: Inter, -apple-system, 'PingFang SC', 'Hiragino Sans GB', sans-serif !important;
-    }
-    :global(html[data-typography-controls="on"][data-font-family="serif"] #article-body),
-    :global(html[data-typography-controls="on"][data-font-family="serif"] #article-body p),
-    :global(html[data-typography-controls="on"][data-font-family="serif"] #article-body li),
-    :global(html[data-typography-controls="on"][data-font-family="serif"] #article-body blockquote) {
-      font-family: var(--font-display, Georgia, 'Songti SC', serif) !important;
-    }
-    :global(html[data-typography-controls="on"][data-width="narrow"] main),
-    :global(html[data-typography-controls="on"][data-width="narrow"] .article-header),
-    :global(html[data-typography-controls="on"][data-width="narrow"] #article-body) { max-width: 62ch !important; margin-left: auto; margin-right: auto; }
-    :global(html[data-typography-controls="on"][data-width="default"] main),
-    :global(html[data-typography-controls="on"][data-width="default"] .article-header),
-    :global(html[data-typography-controls="on"][data-width="default"] #article-body) { max-width: 820px !important; margin-left: auto; margin-right: auto; }
-    :global(html[data-typography-controls="on"][data-width="wide"] main),
-    :global(html[data-typography-controls="on"][data-width="wide"] .article-header),
-    :global(html[data-typography-controls="on"][data-width="wide"] #article-body) { max-width: min(95vw, 1100px) !important; margin-left: auto; margin-right: auto; }
-
-    /* ── Mode toggle (unified button, stacked above TOC) ── */
-    .mode-toggle-float {
-      position: fixed;
-      bottom: calc(var(--space-6) + 56px);
-      right: var(--space-6);
-      z-index: 40;
-    }
-    .mode-toggle-btn {
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      background: var(--paper);
-      border: 1px solid var(--rule);
-      color: var(--ink-muted);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-      transition: all var(--duration-fast);
-      position: relative;
-    }
-    .mode-toggle-btn:hover {
-      color: var(--ink);
-      border-color: var(--ink-muted);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-    }
-    .mode-icon { display: none; }
-    :global(html[data-mode="default"]) .mode-icon-default { display: block; }
-    :global(html[data-mode="reading"]) .mode-icon-reading { display: block; }
-    :global(html[data-mode="book"]) .mode-icon-book { display: block; }
-    :global(html[data-mode="reading"]) .mode-toggle-btn,
-    :global(html[data-mode="book"]) .mode-toggle-btn {
-      background: color-mix(in srgb, var(--accent) 12%, var(--paper));
-      border-color: var(--accent);
-      color: var(--accent);
-    }
-    /* Dropdown menu — opens to the left of the button */
-    .mode-menu[hidden] { display: none !important; }
-    .mode-menu {
-      position: absolute;
-      right: 52px;
-      bottom: 0;
-      display: flex;
-      flex-direction: column;
-      min-width: 140px;
-      padding: 4px;
-      background: var(--paper);
-      border: 1px solid var(--rule);
-      border-radius: var(--radius-md);
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-    }
-    .mode-menu-item {
-      display: flex;
-      align-items: center;
-      gap: var(--space-2);
-      padding: 6px var(--space-2);
-      background: transparent;
-      border: none;
-      border-radius: 4px;
-      color: var(--ink-muted);
-      font-family: Inter, sans-serif;
-      font-size: var(--font-caption);
-      text-align: left;
-      cursor: pointer;
-      transition: background var(--duration-fast);
-    }
-    .mode-menu-item:hover { background: var(--bg-subtle); color: var(--ink); }
-    .mode-menu-item[aria-current="true"] {
-      color: var(--accent);
-      background: color-mix(in srgb, var(--accent) 10%, transparent);
-    }
-
-    /* Reading density — when typography controls are on, relax line + paragraph rhythm */
-    :global(html[data-typography-controls="on"]) #article-body {
-      line-height: 1.85;
-    }
-    :global(html[data-typography-controls="on"]) #article-body p {
-      margin-top: 1.3em;
-      margin-bottom: 1.3em;
-    }
-    /* Idle fade — all floats dim after 2s of inactivity; restore on hover or activity */
-    .toc-float, .type-float, .mode-toggle-float {
-      transition: opacity var(--duration-medium, 200ms);
-    }
-    :global(html[data-idle="true"]) .toc-float,
-    :global(html[data-idle="true"]) .type-float,
-    :global(html[data-idle="true"]) .mode-toggle-float {
-      opacity: 0.15;
-    }
-    .toc-float:hover, .type-float:hover, .mode-toggle-float:hover {
-      opacity: 1 !important;
-    }
-
-    /* Resume-reading toast */
-    .resume-toast {
-      position: fixed;
-      bottom: var(--space-6);
-      left: var(--space-6);
-      z-index: 45;
-      max-width: 280px;
-      padding: var(--space-3) var(--space-4);
-      background: var(--paper);
-      border: 1px solid var(--rule);
-      border-radius: var(--radius-md);
-      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-      font-family: Inter, sans-serif;
-      font-size: var(--font-caption);
-      color: var(--ink-muted);
-      display: none;
-      align-items: center;
-      gap: var(--space-3);
-    }
-    .resume-toast.show { display: flex; }
-    .resume-toast-btn {
-      background: var(--ink);
-      color: var(--paper);
-      border: none;
-      padding: 4px var(--space-2);
-      border-radius: 3px;
-      font-family: inherit;
-      font-size: inherit;
-      cursor: pointer;
-    }
-    .resume-toast-dismiss {
-      background: transparent;
-      border: none;
-      color: var(--ink-faint);
-      cursor: pointer;
-      font-size: 1rem;
-      line-height: 1;
-      padding: 0 4px;
-    }
-
-    /* ── Book mode (data-article-layout="columns") ──
-       Two-column spread, fixed viewport, horizontal flip via translateX.
-       Double-attr selector for specificity to beat typography width rules.
-    */
-    :global(html[data-article-layout="columns"]) {
-      overflow: hidden;
-    }
-    :global(html[data-article-layout="columns"] body) {
-      overflow: hidden;
-      height: 100vh;
-    }
-    :global(html[data-article-layout="columns"][data-mode] .site-main) {
-      max-width: none !important;
-      width: 100vw !important;
-      height: 100vh !important;
-      min-height: 0 !important;
-      max-height: 100vh !important;
-      padding: var(--space-8) var(--space-9) !important;
-      overflow: hidden;
-      margin: 0 !important;
-      display: flex;
-      align-items: stretch;
-    }
-    :global(html[data-article-layout="columns"] .article-header) {
-      display: none !important;
-    }
-    :global(html[data-article-layout="columns"][data-mode] #article-body) {
-      flex: 1;
-      width: 100%;
-      max-width: none !important;
-      height: 100% !important;
-      min-height: 0 !important;
-      max-height: 100% !important;
-      column-count: 2;
-      column-gap: 4rem;
-      column-fill: auto;
-      overflow: visible;
-      padding-right: 2px; /* safety: avoid sub-pixel right-edge clipping of last column */
-      transform: translateX(var(--book-offset, 0px));
-      transition: transform 420ms cubic-bezier(.4, 0, .2, 1);
-    }
-    :global(html[data-article-layout="columns"] #article-body h2),
-    :global(html[data-article-layout="columns"] #article-body h3),
-    :global(html[data-article-layout="columns"] #article-body pre),
-    :global(html[data-article-layout="columns"] #article-body img),
-    :global(html[data-article-layout="columns"] #article-body table),
-    :global(html[data-article-layout="columns"] #article-body blockquote) {
-      break-inside: avoid;
-    }
-    :global(html[data-article-layout="columns"] #article-body p),
-    :global(html[data-article-layout="columns"] #article-body li) {
-      break-inside: avoid-column;
-    }
-    /* TOC float repurposed: in book mode clicking still works but positioning stays */
-    .book-page-indicator {
-      display: none;
-      position: fixed;
-      bottom: var(--space-3);
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 40;
-      font-family: Inter, sans-serif;
-      font-size: var(--font-caption);
-      color: var(--ink-faint);
-      letter-spacing: 0.1em;
-      padding: 4px var(--space-3);
-      background: var(--paper);
-      border: 1px solid var(--rule-light);
-      border-radius: 999px;
-      pointer-events: none;
-    }
-    :global(html[data-article-layout="columns"]) .book-page-indicator {
-      display: block;
-    }
-  </style>
 
   <script is:inline>
     (function() {
-      // Typography controls (font-size / font-family / width)
+      // Typography controls (font-size / font-family / width / progress)
       var TYPE_KEYS = { 'font-size': { default: 'm', attr: 'data-font-size' },
                         'font-family': { default: 'serif', attr: 'data-font-family' },
-                        'width': { default: 'default', attr: 'data-width' } };
+                        'width': { default: 'default', attr: 'data-width' },
+                        'progress': { default: 'off', attr: 'data-reading-progress' } };
       function applyType(group, value) {
         var conf = TYPE_KEYS[group];
         if (!conf) return;
@@ -1085,9 +466,13 @@ const articleJsonLd = {
         var preset = MODE_PRESETS[name] || MODE_PRESETS['default'];
         var html = document.documentElement;
         html.setAttribute('data-mode', name);
-        Object.keys(preset).forEach(function(k) { html.setAttribute('data-' + k, preset[k]); });
+        Object.keys(preset).forEach(function(k) {
+          // reading-progress is user-controlled via #progress-toggle; don't let mode preset override stored preference.
+          if (k === 'reading-progress') return;
+          html.setAttribute('data-' + k, preset[k]);
+        });
         if (modeMenu) {
-          modeMenu.querySelectorAll('.mode-menu-item').forEach(function(item) {
+          modeMenu.querySelectorAll('.mode-menu-item[data-mode]').forEach(function(item) {
             item.setAttribute('aria-current', item.getAttribute('data-mode') === name ? 'true' : 'false');
           });
         }
