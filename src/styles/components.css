@@ -48,38 +48,70 @@
     transition: width 0.08s linear;
   }
 
-  /* ── Chapter progress: segmented bar by h2 ── */
+  /* ── Chapter progress: segmented bar with per-segment percentage ──
+     Uses distinct progress color (teal) instead of accent red to avoid
+     visual confusion with links/chip primary. */
   .chapter-progress {
+    --progress-color: #0891b2; /* cyan-600 — distinct from accent */
+    --progress-color-light: color-mix(in srgb, var(--progress-color) 20%, transparent);
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
-    height: 6px;
+    height: 22px;
     display: flex;
     gap: 2px;
     z-index: var(--z-progress);
     pointer-events: none;
-    background: var(--rule);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+    background: var(--surface);
+    border-bottom: 1px solid var(--rule);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
   }
   .cp-seg {
     position: relative;
     height: 100%;
-    background: color-mix(in srgb, var(--ink) 35%, transparent);
+    background: color-mix(in srgb, var(--ink) 10%, transparent);
     overflow: hidden;
     pointer-events: auto;
     transition: background 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    min-width: 0;
   }
-  .cp-seg:hover    { background: color-mix(in srgb, var(--accent) 60%, transparent); }
-  .cp-seg.cp-current { background: color-mix(in srgb, var(--accent) 45%, transparent); }
-  .cp-seg.cp-done    { background: var(--accent); }
+  .cp-seg:hover    { background: var(--progress-color-light); }
+  .cp-seg.cp-current {
+    background: var(--progress-color-light);
+  }
+  .cp-seg.cp-done {
+    background: var(--progress-color);
+  }
   .cp-fill {
     position: absolute;
     inset: 0;
-    background: var(--accent);
+    background: var(--progress-color);
     width: var(--fill, 0%);
     transition: width 0.1s linear;
-    box-shadow: 0 0 4px color-mix(in srgb, var(--accent) 60%, transparent);
+  }
+  .cp-label {
+    position: relative;
+    z-index: 1;
+    font-family: Inter, sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--ink-muted);
+    mix-blend-mode: difference;
+    filter: invert(1) grayscale(1) contrast(2);
+    white-space: nowrap;
+    pointer-events: none;
+  }
+  .cp-seg.cp-current .cp-label,
+  .cp-seg.cp-done .cp-label {
+    color: white;
+    mix-blend-mode: normal;
+    filter: none;
   }
   /* When chapter segments rendered, hide the single-bar fallback */
   .chapter-progress:not(:empty) ~ .reading-progress { display: none; }
