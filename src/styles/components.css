@@ -54,23 +54,24 @@
     top: 0;
     left: 0;
     right: 0;
-    height: 3px;
+    height: 4px;
     display: flex;
-    gap: 1px;
+    gap: 2px;
     z-index: var(--z-progress);
     pointer-events: none;
+    background: color-mix(in srgb, var(--rule) 30%, transparent);
   }
   .cp-seg {
     position: relative;
     height: 100%;
-    background: color-mix(in srgb, var(--ink) 8%, transparent);
+    background: color-mix(in srgb, var(--ink) 18%, transparent);
     overflow: hidden;
     pointer-events: auto;
     transition: background 0.15s;
   }
-  .cp-seg:hover { background: color-mix(in srgb, var(--accent) 15%, transparent); }
-  .cp-seg.cp-current { background: color-mix(in srgb, var(--accent) 18%, transparent); }
-  .cp-seg.cp-done    { background: color-mix(in srgb, var(--accent) 35%, transparent); }
+  .cp-seg:hover    { background: color-mix(in srgb, var(--accent) 35%, transparent); }
+  .cp-seg.cp-current { background: color-mix(in srgb, var(--accent) 30%, transparent); }
+  .cp-seg.cp-done    { background: var(--accent); }
   .cp-fill {
     position: absolute;
     inset: 0;
