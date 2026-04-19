@@ -25,6 +25,9 @@ public/*
 !public/giscus-dark.css
 !public/site-runtime.js
 !public/og-default.svg
+!public/robots.txt
+# OG images are generated at build time
+public/og/
 
 # Sprint (temporary session data)
 .sprint/
@@ -32,3 +35,8 @@ public/*
 # Design archive preview (populated by scripts/view-design.sh, never committed)
 src/pages/preview/
 .playwright-mcp/
+
+# Dev scratch (screenshots, MCP local config, Claude local state)
+/*.png
+.claude/
+.mcp.json
