@@ -52,7 +52,7 @@
      Uses distinct progress color (teal) instead of accent red to avoid
      visual confusion with links/chip primary. */
   .chapter-progress {
-    --progress-color: #0891b2; /* cyan-600 — distinct from accent */
+    --progress-color: #5a7d6e; /* muted sage — harmonizes with cream paper + brown accent */
     --progress-color-light: color-mix(in srgb, var(--progress-color) 20%, transparent);
     position: fixed;
     top: 0;
