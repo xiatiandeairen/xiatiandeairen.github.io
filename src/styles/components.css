@@ -99,19 +99,11 @@
     z-index: 1;
     font-family: Inter, sans-serif;
     font-size: 10px;
-    font-weight: 600;
+    font-weight: 700;
     letter-spacing: 0.02em;
-    color: var(--ink-muted);
-    mix-blend-mode: difference;
-    filter: invert(1) grayscale(1) contrast(2);
+    color: var(--ink);
     white-space: nowrap;
     pointer-events: none;
-  }
-  .cp-seg.cp-current .cp-label,
-  .cp-seg.cp-done .cp-label {
-    color: white;
-    mix-blend-mode: normal;
-    filter: none;
   }
   /* When chapter segments rendered, hide the single-bar fallback */
   .chapter-progress:not(:empty) ~ .reading-progress { display: none; }
