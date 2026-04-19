@@ -1,7 +1,12 @@
 # src/styles/
 
-CSS modules. Layer order: `tokens → base → layout → masthead → dropdown → search → components`.
+CSS modules. Layer order: `tokens → base → layout → masthead → dropdown → search → components`。
 
-设计系统、token 表、primitive 登记、架构治理细则在 **[`.know/docs/design-system.md`](../../.know/docs/design-system.md)**。
+设计文档族在 `.know/docs/arch/`：
 
-修改任何 css 文件前先读 design-system §6（架构治理）。
+- [UI Architecture](../../.know/docs/arch/ui-architecture.md) — 入门必读：CSS 5 层 + Component 4 类 + Page 组成
+- [Design Tokens](../../.know/docs/arch/design-tokens.md) — 写组件查变量名
+- [Design Patterns](../../.know/docs/arch/design-patterns.md) — 实现新组件查可用配方
+- [Design Governance](../../.know/docs/arch/design-governance.md) — 改共享层前查规则
+
+修改任何 css 前先读 design-governance（4 个治理机制）。
