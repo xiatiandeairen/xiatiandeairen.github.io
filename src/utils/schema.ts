@@ -113,3 +113,48 @@ export function validateSlugUniqueness(notes: Array<{ slug: string; file?: strin
     throw new Error(`Duplicate slugs found:\n${errorMessages.join('\n')}`);
   }
 }
+
+interface SeriesNote {
+  slug: string;
+  file?: string;
+  series?: { name: string; order?: number };
+}
+
+// Build-time guard: series.order within each series must form [1..N] with no
+// duplicates and no gaps. Notes without order are ignored by this check —
+// they still render but won't participate in prev/next ordering.
+export function validateSeriesOrder(notes: SeriesNote[]): void {
+  const groups = new Map<string, Array<{ order: number; file: string }>>();
+
+  for (const n of notes) {
+    if (!n.series?.name || n.series.order === undefined) continue;
+    const key = n.series.name;
+    const arr = groups.get(key) || [];
+    arr.push({ order: n.series.order, file: n.file || n.slug });
+    groups.set(key, arr);
+  }
+
+  const problems: string[] = [];
+  for (const [name, entries] of groups.entries()) {
+    const orders = entries.map(e => e.order).sort((a, b) => a - b);
+    const seen = new Set<number>();
+    const dupes: number[] = [];
+    for (const o of orders) {
+      if (seen.has(o)) dupes.push(o);
+      seen.add(o);
+    }
+    if (dupes.length > 0) {
+      const offenders = entries.filter(e => dupes.includes(e.order)).map(e => `${e.file}(order=${e.order})`);
+      problems.push(`Series "${name}": duplicate order ${[...new Set(dupes)].join(', ')} in ${offenders.join(', ')}`);
+      continue;
+    }
+    const expected = Array.from({ length: orders.length }, (_, i) => i + 1);
+    if (orders[0] !== 1 || orders.some((o, i) => o !== expected[i])) {
+      problems.push(`Series "${name}": expected orders [${expected.join(',')}] but got [${orders.join(',')}]`);
+    }
+  }
+
+  if (problems.length > 0) {
+    throw new Error(`Invalid series.order:\n${problems.join('\n')}`);
+  }
+}

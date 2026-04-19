@@ -1,7 +1,7 @@
 import { readFileSync, readdirSync } from 'fs';
 import { join } from 'path';
 import matter from 'gray-matter';
-import { validateNoteFrontmatter, validateSlugUniqueness } from './schema';
+import { validateNoteFrontmatter, validateSlugUniqueness, validateSeriesOrder } from './schema';
 import { PAGINATION } from './constants';
 
 export interface Note extends NoteFrontmatter {
@@ -52,6 +52,7 @@ export function getAllNotes(): Note[] {
   }
 
   validateSlugUniqueness(notes);
+  validateSeriesOrder(notes);
   cachedNotes = notes;
   return notes;
 }
@@ -111,6 +112,9 @@ export function sortNotes(notes: Note[], sortBy: SortField = 'date', order: Sort
 
     if (aValue < bValue) return order === 'asc' ? -1 : 1;
     if (aValue > bValue) return order === 'asc' ? 1 : -1;
+    // Stable tie-break so prev/next navigation is deterministic across builds.
+    if (a.slug < b.slug) return -1;
+    if (a.slug > b.slug) return 1;
     return 0;
   });
 
