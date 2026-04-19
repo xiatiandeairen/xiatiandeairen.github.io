@@ -85,7 +85,7 @@ const matchPath = currentPath.replace(/^\/en/, '') || '/';
               <span class="masthead-tagline">{t('site.tagline')}</span>
               <span class="masthead-sep"></span>
               <nav class="masthead-nav" aria-label={lang === 'zh' ? '主导航' : 'Main navigation'}>
-                <a href={localePath('/topics', lang)} class:list={[matchPath.startsWith('/topics') && 'active']}>
+                <a href="/topics" class:list={[matchPath.startsWith('/topics') && 'active']}>
                   {t('nav.topics')}
                 </a>
                 <a href={localePath('/series', lang)} class:list={[matchPath.startsWith('/series') && 'active']}>
@@ -399,6 +399,25 @@ const matchPath = currentPath.replace(/^\/en/, '') || '/';
         });
         refreshDateChipActive();
       })();
+    </script>
+
+    {/* Entry-context dispatcher: derive from current URL on click; propagates between articles, cleared on neutral pages. */}
+    <script is:inline>
+      document.addEventListener('click', function (e) {
+        var t = e.target;
+        var a = t && t.closest ? t.closest('a[href^="/notes/"]') : null;
+        if (!a) return;
+        var p = location.pathname;
+        var ctx = null;
+        if (p.indexOf('/topics/') === 0) ctx = 'topic';
+        else if (p.indexOf('/series') === 0) ctx = 'series';
+        else if (p.indexOf('/tags/') === 0) ctx = 'tag';
+        else if (p.indexOf('/notes/') === 0) ctx = document.documentElement.dataset.sourceContext || null;
+        try {
+          if (ctx) sessionStorage.setItem('entryContext', ctx);
+          else sessionStorage.removeItem('entryContext');
+        } catch (e) {}
+      }, true);
     </script>
   </body>
 </html>

@@ -59,13 +59,13 @@ const activeSeries = getActiveSeries(allNotes);
             <article class="home-series-card">
               <div class="home-series-card-meta font-sans">Series · {s.count} posts</div>
               <h3 class="home-series-card-name font-display">
-                <a href={`/en/series/${encodeURIComponent(s.name)}`}>{s.name}</a>
+                <a href={`/series#${s.name.replace(/\s+/g, '-').toLowerCase()}`}>{s.name}</a>
               </h3>
               <ul class="home-series-card-list">
                 {s.notes.slice(0, 3).map((n, i) => (
                   <li>
                     <span class="home-series-card-num font-sans">{String(i + 1).padStart(2, '0')}</span>
-                    <a href={`/en/notes/${n.slug}`} class="home-series-card-title">{n.title}</a>
+                    <a href={`/notes/${n.slug}`} class="home-series-card-title">{n.title}</a>
                   </li>
                 ))}
               </ul>
