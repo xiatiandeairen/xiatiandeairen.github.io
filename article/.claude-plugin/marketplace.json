@@ -1,0 +1,22 @@
+{
+  "name": "article",
+  "owner": {
+    "name": "taoxia"
+  },
+  "metadata": {
+    "description": "半自动文章生产管道 — capture/draft/gate/publish"
+  },
+  "plugins": [
+    {
+      "name": "article",
+      "source": "./",
+      "description": "AI 对话片段 → 个人站高质量文章",
+      "version": "1.0.0",
+      "author": {
+        "name": "taoxia"
+      },
+      "category": "workflow",
+      "tags": ["writing", "publishing", "blog"]
+    }
+  ]
+}
