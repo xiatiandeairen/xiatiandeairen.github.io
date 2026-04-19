@@ -1,10 +1,9 @@
 ---
-import IndexLayout from '../../layouts/IndexLayout.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
 import NoteCard from '../../components/NoteCard.astro';
 import Pagination from '../../components/Pagination.astro';
-import TagHierarchy from '../../components/TagHierarchy.astro';
-import { getAllNotes, getNotesByTag, sortNotes, paginateNotes } from '../../utils/notes';
-import { resolveTagAlias, getChildTags } from '../../utils/tags';
+import { getAllNotes, getNotesByTag, sortNotes, paginateNotes, formatDate } from '../../utils/notes';
+import { resolveTagAlias, getChildTags, getParentTag } from '../../utils/tags';
 import { getRelatedTags, getParentTopics } from '../../utils/rank';
 import { generatePageMeta } from '../../utils/seo';
 
@@ -15,9 +14,7 @@ export async function getStaticPaths() {
   for (const note of allNotes) {
     for (const tag of note.tags) {
       tagSet.add(tag.name);
-      if (tag.alias) {
-        tag.alias.forEach(alias => tagSet.add(alias));
-      }
+      if (tag.alias) tag.alias.forEach(alias => tagSet.add(alias));
     }
   }
 
@@ -46,7 +43,7 @@ export async function getStaticPaths() {
     const allTagNotes = [...new Set([...notes, ...childTags.flatMap(child => getNotesByTag(child, allNotes))])];
     const sortedNotes = sortNotes(allTagNotes, 'date', 'desc');
     const { notes: paginatedNotes, pagination } = paginateNotes(sortedNotes, page);
-    
+
     const seo = generatePageMeta({
       title: `标签: ${tagName}`,
       description: `标签 "${tagName}" 下的笔记`,
@@ -58,6 +55,7 @@ export async function getStaticPaths() {
       props: {
         tagName: resolvedTag,
         notes: paginatedNotes,
+        allTagNotes: sortedNotes,
         pagination,
         seo
       }
@@ -65,113 +63,305 @@ export async function getStaticPaths() {
   });
 }
 
-const { tagName, notes, pagination, seo } = Astro.props;
-const allNotesForHierarchy = getAllNotes();
-const parentTopics = getParentTopics(tagName, allNotesForHierarchy);
-const relatedTags = getRelatedTags(tagName, allNotesForHierarchy, 5);
+const { tagName, notes, allTagNotes, pagination, seo } = Astro.props;
+const allNotes = getAllNotes();
+
+// ── Context: parent topic(s), parent tag, child tags, related tags ──
+const parentTopics = getParentTopics(tagName, allNotes);
+const parentTag = getParentTag(tagName, allNotes);
+const childTags = getChildTags(tagName, allNotes);
+const relatedTags = getRelatedTags(tagName, allNotes, 6);
+
+// ── Stats computed across full tag corpus (not just current page) ──
+const total = allTagNotes.length;
+const latestDate = allTagNotes.length > 0 ? allTagNotes[0].date : null;
+const oldestDate = allTagNotes.length > 0 ? allTagNotes[allTagNotes.length - 1].date : null;
+const spanDays = (() => {
+  if (allTagNotes.length < 2) return 0;
+  const ms = allTagNotes.map(n => new Date(n.date).getTime());
+  return Math.round((Math.max(...ms) - Math.min(...ms)) / 86400000);
+})();
+
+// ── Timeline grouping (by year) for current page notes ──
+const USE_TIMELINE = allTagNotes.length >= 5;
+type YearGroup = { year: string; notes: typeof notes };
+const yearGroups: YearGroup[] = [];
+if (USE_TIMELINE) {
+  for (const note of notes) {
+    const year = String(new Date(note.date).getFullYear());
+    const last = yearGroups[yearGroups.length - 1];
+    if (!last || last.year !== year) {
+      yearGroups.push({ year, notes: [note] });
+    } else {
+      last.notes.push(note);
+    }
+  }
+}
 ---
 
-<IndexLayout title={`标签: ${tagName}`} seo={seo}>
-  <TagHierarchy tagName={tagName} notes={allNotesForHierarchy} />
+<BaseLayout title={`#${tagName}`} seo={seo}>
+  <header class="tag-hero">
+    <div class="tag-hero-name">
+      <span class="tag-hero-hash" aria-hidden="true">#</span><h1 class="font-display">{tagName}</h1>
+    </div>
+    {total > 0 && (
+      <div class="tag-hero-stats font-sans">
+        <span><strong>{total}</strong> 篇</span>
+        {spanDays >= 2 && (
+          <>
+            <span class="sep" aria-hidden="true"></span>
+            <span>跨 <strong>{spanDays}</strong> 天</span>
+          </>
+        )}
+        {latestDate && (
+          <>
+            <span class="sep" aria-hidden="true"></span>
+            <span>最近 {formatDate(latestDate)}</span>
+          </>
+        )}
+      </div>
+    )}
+  </header>
 
-  {(parentTopics.length > 0 || relatedTags.length > 0) && (
-    <div class="tag-bridge">
+  {(parentTopics.length > 0 || parentTag || childTags.length > 0 || relatedTags.length > 0) && (
+    <section class="tag-context" aria-label="标签关系">
       {parentTopics.length > 0 && (
-        <div class="tag-bridge-row">
-          <span class="tag-bridge-label">所属主题</span>
-          <div class="tag-bridge-chips">
+        <div class="tag-context-row">
+          <span class="tag-context-label">所属主题</span>
+          <div class="tag-context-chips">
             {parentTopics.map(topic => (
-              <a href={`/topics/${encodeURIComponent(topic)}`} class="bridge-chip bridge-chip-primary">{topic}</a>
+              <a href={`/topics/${encodeURIComponent(topic)}`} class="ctx-chip ctx-chip-topic font-sans">{topic}</a>
+            ))}
+          </div>
+        </div>
+      )}
+      {(parentTag || childTags.length > 0) && (
+        <div class="tag-context-row">
+          <span class="tag-context-label">标签层级</span>
+          <div class="tag-context-chips">
+            {parentTag && (
+              <a href={`/tags/${encodeURIComponent(parentTag)}`} class="ctx-chip ctx-chip-parent font-sans">↑ {parentTag}</a>
+            )}
+            {childTags.map(child => (
+              <a href={`/tags/${encodeURIComponent(child)}`} class="ctx-chip ctx-chip-child font-sans">↳ {child}</a>
             ))}
           </div>
         </div>
       )}
       {relatedTags.length > 0 && (
-        <div class="tag-bridge-row">
-          <span class="tag-bridge-label">相关标签</span>
-          <div class="tag-bridge-chips">
+        <div class="tag-context-row">
+          <span class="tag-context-label">常一起出现</span>
+          <div class="tag-context-chips">
             {relatedTags.map(t => (
-              <a href={`/tags/${encodeURIComponent(t.name)}`} class="bridge-chip">{t.name} <span class="bridge-chip-count">{t.count}</span></a>
+              <a href={`/tags/${encodeURIComponent(t.name)}`} class="ctx-chip font-sans">
+                {t.name}<span class="ctx-chip-count">{t.count}</span>
+              </a>
             ))}
           </div>
         </div>
       )}
-    </div>
+    </section>
   )}
 
   {notes.length === 0 ? (
-    <p class="text-text-secondary">该标签下暂无笔记</p>
+    <p class="tag-empty font-sans">该标签下暂无笔记</p>
+  ) : USE_TIMELINE ? (
+    <div class="tag-timeline">
+      {yearGroups.map(yg => (
+        <section class="tag-year" aria-label={`${yg.year} 年`}>
+          <div class="tag-year-rail" aria-hidden="true">
+            <span class="tag-year-label font-display">{yg.year}</span>
+            <span class="tag-year-count font-sans">{yg.notes.length} 篇</span>
+          </div>
+          <div class="tag-year-notes">
+            {yg.notes.map(note => <NoteCard note={note} showQuality={true} hideTag={tagName} />)}
+          </div>
+        </section>
+      ))}
+    </div>
   ) : (
-    <>
-      <div class="space-y-4">
-        {notes.map((note) => (
-          <NoteCard note={note} showQuality={true} />
-        ))}
-      </div>
-      <Pagination
-        currentPage={pagination.currentPage}
-        totalPages={pagination.totalPages}
-        baseUrl={`/tags/${tagName}`}
-      />
-    </>
+    <div class="space-y-4">
+      {notes.map(note => <NoteCard note={note} showQuality={true} hideTag={tagName} />)}
+    </div>
   )}
-</IndexLayout>
+
+  <Pagination
+    currentPage={pagination.currentPage}
+    totalPages={pagination.totalPages}
+    baseUrl={`/tags/${tagName}`}
+  />
+</BaseLayout>
 
 <style>
-  .tag-bridge {
+  .tag-hero {
+    padding: var(--space-4) 0 var(--space-5);
+    border-bottom: 1px solid var(--rule-light);
     margin-bottom: var(--space-6);
-    padding: var(--space-4);
-    background: var(--bg-subtle);
-    border: 1px solid var(--rule-faint);
-    border-radius: var(--radius-md);
+  }
+  .tag-hero-name {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-1);
+    margin-bottom: var(--space-3);
+  }
+  .tag-hero-hash {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 1.5rem + 2vw, 3rem);
+    color: var(--ink-ghost);
+    font-weight: 300;
+    line-height: 1;
+  }
+  .tag-hero-name h1 {
+    font-size: clamp(2rem, 1.5rem + 2vw, 3rem);
+    font-weight: 500;
+    color: var(--ink);
+    line-height: 1.15;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+  .tag-hero-stats {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-3);
+    font-size: var(--font-small);
+    color: var(--ink-muted);
+  }
+  .tag-hero-stats strong {
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .tag-hero-stats .sep {
+    display: inline-block;
+    width: 1px;
+    height: 10px;
+    background: var(--rule);
+  }
+
+  .tag-context {
+    margin-bottom: var(--space-7);
     display: grid;
     gap: var(--space-3);
   }
-  .tag-bridge-row {
-    display: flex;
+  .tag-context-row {
+    display: grid;
+    grid-template-columns: 6.5rem 1fr;
     align-items: baseline;
     gap: var(--space-3);
-    flex-wrap: wrap;
   }
-  .tag-bridge-label {
+  .tag-context-label {
     font-family: Inter, sans-serif;
-    font-size: var(--font-label);
-    font-weight: 600;
-    letter-spacing: 0.1em;
+    font-size: var(--font-caption);
+    font-weight: 500;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: var(--ink-muted);
-    flex-shrink: 0;
+    color: var(--ink-ghost);
   }
-  .tag-bridge-chips {
+  .tag-context-chips {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
   }
-  .bridge-chip {
+  .ctx-chip {
     display: inline-flex;
     align-items: center;
     gap: 4px;
     padding: 2px 10px;
-    font-family: Inter, sans-serif;
     font-size: var(--font-caption);
-    color: var(--ink-light);
-    background: var(--paper);
+    color: var(--ink-muted);
+    background: transparent;
     border: 1px solid var(--rule-light);
     border-radius: 999px;
     text-decoration: none;
-    transition: border-color var(--duration-fast), color var(--duration-fast);
+    transition: border-color var(--duration-fast), color var(--duration-fast), background var(--duration-fast);
   }
-  .bridge-chip:hover {
+  .ctx-chip:hover {
     color: var(--ink);
     border-color: var(--ink-muted);
+    text-decoration: none;
   }
-  .bridge-chip-primary {
+  .ctx-chip-topic {
     color: var(--accent);
-    border-color: color-mix(in srgb, var(--accent) 30%, transparent);
+    border-color: color-mix(in srgb, var(--accent) 35%, transparent);
   }
-  .bridge-chip-primary:hover { border-color: var(--accent); }
-  .bridge-chip-count {
+  .ctx-chip-topic:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 6%, transparent);
+  }
+  .ctx-chip-parent,
+  .ctx-chip-child {
+    color: var(--ink-light);
+  }
+  .ctx-chip-count {
     font-size: var(--font-xs);
     color: var(--ink-ghost);
+    margin-left: 2px;
+  }
+
+  .tag-empty {
+    color: var(--ink-muted);
+    font-size: var(--font-small);
+    padding: var(--space-6) 0;
+  }
+
+  .tag-timeline {
+    display: grid;
+    gap: var(--space-6);
+  }
+  .tag-year {
+    display: grid;
+    grid-template-columns: 6.5rem 1fr;
+    gap: var(--space-5);
+    align-items: start;
+  }
+  .tag-year-rail {
+    position: sticky;
+    top: var(--space-5);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding-right: var(--space-3);
+    border-right: 1px solid var(--rule-light);
+    text-align: right;
+  }
+  .tag-year-label {
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: var(--ink);
+    line-height: 1;
+    letter-spacing: -0.01em;
+  }
+  .tag-year-count {
+    font-size: var(--font-caption);
+    color: var(--ink-ghost);
+    letter-spacing: 0.04em;
+  }
+  .tag-year-notes {
+    display: grid;
+    gap: var(--space-4);
+    min-width: 0;
+  }
+
+  @media (max-width: 640px) {
+    .tag-context-row {
+      grid-template-columns: 1fr;
+      gap: var(--space-1);
+    }
+    .tag-year {
+      grid-template-columns: 1fr;
+      gap: var(--space-2);
+    }
+    .tag-year-rail {
+      position: static;
+      flex-direction: row;
+      align-items: baseline;
+      gap: var(--space-2);
+      padding-right: 0;
+      border-right: none;
+      border-bottom: 1px solid var(--rule-light);
+      padding-bottom: var(--space-1);
+      text-align: left;
+    }
   }
 </style>
