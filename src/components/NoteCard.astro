@@ -2,7 +2,7 @@
 /* Category: Content
    Patterns: hover-indicator, hover-shift, card-divider, text-hierarchy
    Tokens: --font-h3, --font-caption, --ink, --ink-hover, --ink-ghost, --rule-faint
-   See: .know/docs/design-system.md §2, §3.2 */
+   See: .know/docs/arch/design-tokens.md + design-patterns.md §2.2 */
 import type { Note } from '../utils/notes';
 import { formatDate } from '../utils/notes';
 import { QUALITY_COLORS, QUALITY_THRESHOLDS } from '../utils/constants';
@@ -12,10 +12,12 @@ interface Props {
   note: Note;
   showQuality?: boolean;
   showExcerpt?: boolean;
+  hideTag?: string;
   lang?: Lang;
 }
 
-const { note, showQuality = false, showExcerpt = false, lang = 'zh' } = Astro.props;
+const { note, showQuality = false, showExcerpt = false, hideTag, lang = 'zh' } = Astro.props;
+const visibleTags = hideTag ? note.tags.filter(t => t.name !== hideTag) : note.tags;
 const t = useT(lang);
 const dateFormatted = formatDate(note.date, lang === 'en' ? 'en-US' : 'zh-CN');
 
@@ -60,10 +62,10 @@ function getExcerpt(content: string, maxLen: number = 120): string {
         </span>
       </>
     )}
-    {note.tags.length > 0 && (
+    {visibleTags.length > 0 && (
       <>
         <span>{'·'}</span>
-        <span>{note.tags.slice(0, 3).map(tag => tag.name).join(' · ')}</span>
+        <span>{visibleTags.slice(0, 3).map(tag => tag.name).join(' · ')}</span>
       </>
     )}
   </div>
