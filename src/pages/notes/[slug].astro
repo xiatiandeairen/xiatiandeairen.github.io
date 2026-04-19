@@ -1316,7 +1316,7 @@ const articleJsonLd = {
         container.innerHTML = sections.map(function(s) {
           var ratio = (s.end - s.start) / totalLen;
           var anchor = s.id ? ('#' + s.id) : '';
-          return '<a class="cp-seg" href="' + anchor + '" data-start="' + s.start + '" data-end="' + s.end + '" style="flex: ' + ratio.toFixed(4) + '" title="' + s.title.replace(/"/g, '&quot;') + '"><span class="cp-fill"></span></a>';
+          return '<a class="cp-seg" href="' + anchor + '" data-start="' + s.start + '" data-end="' + s.end + '" style="flex: ' + ratio.toFixed(4) + '" title="' + s.title.replace(/"/g, '&quot;') + '"><span class="cp-fill"></span><span class="cp-label">0%</span></a>';
         }).join('');
         var segs = container.querySelectorAll('.cp-seg');
 
@@ -1332,6 +1332,8 @@ const articleJsonLd = {
             seg.style.setProperty('--fill', fill + '%');
             seg.classList.toggle('cp-current', y > s.start && y < s.end);
             seg.classList.toggle('cp-done', y >= s.end);
+            var label = seg.querySelector('.cp-label');
+            if (label) label.textContent = Math.round(fill) + '%';
           }
         }
         window.addEventListener('scroll', updateProgress, { passive: true });
