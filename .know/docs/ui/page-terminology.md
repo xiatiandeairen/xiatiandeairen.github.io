@@ -13,7 +13,10 @@
 | Featured | .layout-featured-main | 首页特稿区（左栏） |
 | Sidebar | .layout-featured-side | 首页侧栏（右栏） |
 | Divider | .layout-featured-divider | 双栏分隔线 |
-| Post List / Post Card | .post-list / .post-card | 文章列表/卡片 |
+| Suggestions | .suggestions-section / .suggestion-card | 首页"猜你想读"客户端推荐 |
+| Series Block | .home-series-section / .home-series-card | 首页"系列进行中" |
+| Hot Chips | .home-hot-chips / .home-hot-chip | 首页热门标签（圆角）/ 主题（方角）chip |
+| Placeholder | .article-card-placeholder / .home-series-card-placeholder | 数据不足时占位 |
 | Article Header | header | 文章标题+meta |
 | Article Body | #article-body | 正文 prose |
 | TOC | .toc-nav | 目录导航 |
@@ -48,29 +51,26 @@
 └─────────────────────────────────┘
 ```
 
-### 首页 (index.astro)
+### 首页 (index.astro) — see [homepage-layout.md](./homepage-layout.md) for full spec
 
 ```
-┌────────────────────┬─┬─────────┐
-│  Featured          │D│Sidebar  │  .layout-featured
-│  特稿区            │i│ 侧栏   │
-│                    │v│         │
-│  Cat Label         │i│Section  │
-│  标题 (h2)         │d│Label    │
-│  Lead (italic)     │e│         │
-│  Body (正文预览)   │r│Sidebar  │
-│  阅读全文 →        │ │Item ×4  │
-│                    │ │ 标题    │
-│                    │ │ 摘要    │
-└────────────────────┴─┴─────────┘
-┌─────────────────────────────────┐
-│  Section Label: 更多文章         │  .remaining-section
-│  Post Card                      │
-│  Post Card                      │  .post-list
-│  Post Card                      │
-├─────────────────────────────────┤
-│  Pagination                     │
-└─────────────────────────────────┘
+┌────────────────────┬─┬──────────────────┐
+│  hero headline     │D│[近期文章]         │  .layout-featured
+│                    │i│ 04-14 · 标题…   │
+│                    │v│ (SIDEBAR_COUNT 篇)│
+│                    │ │                   │
+│                    │ │[热门标签 / 主题] │
+│                    │ │ [topic chips]     │
+│                    │ │ (tag chips)       │
+├────────────────────┴─┴──────────────────┤
+│  secondary (2 cols)                      │
+├━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┤
+│ [猜你想读] 2×2 cards（客户端）           │  .suggestions-section
+├━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┤
+│ [系列进行中] 2 cols（不足 placeholder）  │  .home-series-section
+├──────────────────────────────────────────┤
+│  Pagination                              │
+└──────────────────────────────────────────┘
 ```
 
 ### 文章详情页 (notes/[slug].astro)

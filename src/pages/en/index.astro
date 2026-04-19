@@ -3,6 +3,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import ArticleCard from '../../components/ArticleCard.astro';
 import Pagination from '../../components/Pagination.astro';
 import { getAllNotes, sortNotes, paginateNotes } from '../../utils/notes';
+import { SIDEBAR_COUNT, SERIES_SLOT_COUNT, getActiveSeries } from '../../utils/home-data';
 import { generatePageMeta } from '../../utils/seo';
 import { useT } from '../../i18n';
 
@@ -16,9 +17,9 @@ const seo = generatePageMeta({ title: t('site.title'), description: t('site.tagl
 
 const featuredNote = sortedNotes.find((n: any) => n.featured === true);
 const featured = featuredNote || notes[0];
-const sidebarNotes = notes.slice(1, 4);
+const sidebarNotes = notes.slice(1, 1 + SIDEBAR_COUNT);
 const secondaryNotes = notes.slice(4, 6);
-const remainingNotes = notes.slice(6);
+const activeSeries = getActiveSeries(allNotes);
 ---
 
 <BaseLayout title={t('site.title')} description={t('site.tagline')} seo={seo} lang={lang}>
@@ -48,15 +49,37 @@ const remainingNotes = notes.slice(6);
         )}
       </div>
 
-      {remainingNotes.length > 0 && (
-        <div class="remaining-section">
-          <div class="post-list">
-            {remainingNotes.map((note) => (
-              <ArticleCard note={note} variant="list" lang={lang} />
-            ))}
-          </div>
+      <section class="home-series-section">
+        <header class="home-series-head">
+          <div class="section-label">Ongoing Series</div>
+          <a class="home-series-more font-sans" href="/en/series">All series →</a>
+        </header>
+        <div class="home-series-grid">
+          {activeSeries.map((s) => (
+            <article class="home-series-card">
+              <div class="home-series-card-meta font-sans">Series · {s.count} posts</div>
+              <h3 class="home-series-card-name font-display">
+                <a href={`/en/series/${encodeURIComponent(s.name)}`}>{s.name}</a>
+              </h3>
+              <ul class="home-series-card-list">
+                {s.notes.slice(0, 3).map((n, i) => (
+                  <li>
+                    <span class="home-series-card-num font-sans">{String(i + 1).padStart(2, '0')}</span>
+                    <a href={`/en/notes/${n.slug}`} class="home-series-card-title">{n.title}</a>
+                  </li>
+                ))}
+              </ul>
+            </article>
+          ))}
+          {Array.from({ length: Math.max(0, SERIES_SLOT_COUNT - activeSeries.length) }).map(() => (
+            <article class="home-series-card home-series-card-placeholder">
+              <div class="home-series-card-meta font-sans">Series · Coming soon</div>
+              <h3 class="home-series-card-name font-display">Coming soon</h3>
+              <p class="home-series-card-empty font-sans">A new series is in the works…</p>
+            </article>
+          ))}
         </div>
-      )}
+      </section>
       <Pagination currentPage={pagination.currentPage} totalPages={pagination.totalPages} baseUrl="/en" lang={lang} />
     </>
   )}

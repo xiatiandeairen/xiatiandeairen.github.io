@@ -39,7 +39,79 @@ function readingTime(content: string): number {
   return Math.max(1, Math.round(content.replace(/\s+/g, ' ').trim().length / 300));
 }
 
+function charCount(content: string): number {
+  return content.replace(/\s+/g, '').length;
+}
+
 const types = [...new Set(sorted.map(n => n.question.type))].sort();
+
+// ── Writing rhythm: count notes per YYYY-MM across the full timeline ──
+type RhythmBin = { key: string; year: string; month: string; count: number };
+const rhythmMap = new Map<string, RhythmBin>();
+for (const note of sorted) {
+  const d = new Date(note.date);
+  const year = String(d.getFullYear());
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const key = `${year}-${month}`;
+  const existing = rhythmMap.get(key);
+  if (existing) existing.count += 1;
+  else rhythmMap.set(key, { key, year, month, count: 1 });
+}
+// Fill gaps so empty months still render as 0-height bars.
+const rhythmBins: RhythmBin[] = [];
+if (rhythmMap.size > 0) {
+  const keys = [...rhythmMap.keys()].sort();
+  const [firstY, firstM] = keys[0].split('-').map(Number);
+  const [lastY, lastM] = keys[keys.length - 1].split('-').map(Number);
+  let y = firstY, m = firstM;
+  while (y < lastY || (y === lastY && m <= lastM)) {
+    const key = `${y}-${String(m).padStart(2, '0')}`;
+    rhythmBins.push(rhythmMap.get(key) ?? { key, year: String(y), month: String(m).padStart(2, '0'), count: 0 });
+    m += 1;
+    if (m > 12) { m = 1; y += 1; }
+  }
+}
+const rhythmMax = rhythmBins.reduce((max, b) => Math.max(max, b.count), 0);
+const maxBin = rhythmBins.reduce((best, b) => b.count > best.count ? b : best, rhythmBins[0] ?? { key: '', year: '', month: '', count: 0 });
+
+// ── Day-level rhythm (streak / gap / interval) ──
+const msPerDay = 86400000;
+function dayKey(iso: string): string { return iso.slice(0, 10); }
+const postDays = new Set(sorted.map(n => dayKey(n.date)));
+let longestGap = 0, longestStreak = 0, avgInterval = '—';
+let streakRecentDays = 0;
+if (sorted.length > 1) {
+  const dates = [...sorted].map(n => new Date(dayKey(n.date)).getTime()).sort((a, b) => a - b);
+  let maxGap = 0, currStreak = 1, maxStreak = 1;
+  for (let i = 1; i < dates.length; i++) {
+    const diff = Math.round((dates[i] - dates[i - 1]) / msPerDay);
+    if (diff > maxGap) maxGap = diff;
+    if (diff === 1) { currStreak += 1; if (currStreak > maxStreak) maxStreak = currStreak; }
+    else if (diff > 1) currStreak = 1;
+  }
+  longestGap = maxGap;
+  longestStreak = maxStreak;
+  const spanDays = Math.max(1, Math.round((dates[dates.length - 1] - dates[0]) / msPerDay));
+  avgInterval = (spanDays / (sorted.length - 1)).toFixed(1);
+}
+// Recent streak: consecutive days ending today-or-latest with a post
+if (sorted.length > 0) {
+  const latestMs = new Date(dayKey(sorted[0].date)).getTime();
+  let d = latestMs;
+  while (postDays.has(new Date(d).toISOString().slice(0, 10))) {
+    streakRecentDays += 1;
+    d -= msPerDay;
+  }
+}
+
+// ── Rich stats ──
+const totalChars = sorted.reduce((n, note) => n + charCount(note.content), 0);
+const totalReadingMin = sorted.reduce((n, note) => n + readingTime(note.content), 0);
+const activeMonths = rhythmBins.filter(b => b.count > 0).length;
+const perMonthAvg = activeMonths > 0 ? (sorted.length / activeMonths).toFixed(1) : '0';
+const longest = sorted.reduce((best, n) => charCount(n.content) > charCount(best.content) ? n : best, sorted[0]);
+const seriesCount = sorted.filter(n => n.series?.name).length;
+const seriesCoveragePct = sorted.length > 0 ? Math.round((seriesCount / sorted.length) * 100) : 0;
 ---
 
 <BaseLayout title={t('archive.title')} seo={seo} lang={lang}>
@@ -47,6 +119,75 @@ const types = [...new Set(sorted.map(n => n.question.type))].sort();
     <h1 class="font-display text-h1 mb-1">{t('archive.title')}</h1>
     <p class="font-sans text-small archive-subtitle">{t('archive.subtitle', { count: allNotes.length })}</p>
   </header>
+
+  {sorted.length > 0 && (
+    <section class="metric-strip" aria-label={lang === 'zh' ? '写作概览' : 'Writing overview'}>
+      <div class="metric-card">
+        <div class="metric-label font-sans">{lang === 'zh' ? '连续发文' : 'Recent streak'}</div>
+        <div class="metric-value">{streakRecentDays} <span class="metric-unit">{lang === 'zh' ? '天' : 'd'}</span></div>
+        <div class="metric-sub font-sans">{lang === 'zh' ? '最长 ' : 'Longest '}{longestStreak}{lang === 'zh' ? ' 连日' : 'd'}</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label font-sans">{lang === 'zh' ? '当前节奏' : 'Cadence'}</div>
+        <div class="metric-value">{perMonthAvg} <span class="metric-unit">{lang === 'zh' ? '篇 / 月' : '/ mo'}</span></div>
+        <div class="metric-sub font-sans">{lang === 'zh' ? '间隔 ' : 'Interval '}{avgInterval}{lang === 'zh' ? ' 天 / 篇' : 'd / post'}</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label font-sans">{lang === 'zh' ? '累计产出' : 'Total output'}</div>
+        <div class="metric-value">{(totalChars / 1000).toFixed(1)}<span class="metric-unit">{lang === 'zh' ? 'k 字' : 'k'}</span></div>
+        <div class="metric-sub font-sans">{lang === 'zh' ? '约 ' : '~'}{totalReadingMin}{lang === 'zh' ? ' 分钟阅读' : ' min read'}</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label font-sans">{lang === 'zh' ? '最高产月' : 'Peak month'}</div>
+        <div class="metric-value">{maxBin.month}<span class="metric-unit">{lang === 'zh' ? '月' : ''}</span></div>
+        <div class="metric-sub font-sans">{maxBin.count}{lang === 'zh' ? ' 篇 · ' : ' posts · '}{maxBin.year}</div>
+      </div>
+    </section>
+  )}
+
+  {rhythmBins.length > 0 && (
+    <section class="archive-rhythm" aria-label={lang === 'zh' ? '写作节奏' : 'Writing rhythm'}>
+      <div class="archive-rhythm-label font-sans">{lang === 'zh' ? '写作节奏' : 'Writing rhythm'}</div>
+      <div class="archive-rhythm-bars" role="presentation">
+        {rhythmBins.map(b => (
+          <span
+            class={`rhythm-bar ${b.count === 0 ? 'rhythm-bar-empty' : ''}`}
+            style={`--h: ${rhythmMax > 0 ? (b.count / rhythmMax) * 100 : 0}%`}
+            title={`${b.year}-${b.month} · ${b.count} ${lang === 'zh' ? '篇' : 'posts'}`}
+          ></span>
+        ))}
+      </div>
+      <div class="archive-rhythm-axis font-sans">
+        <span>{rhythmBins[0].year}-{rhythmBins[0].month}</span>
+        <span>{rhythmBins[rhythmBins.length - 1].year}-{rhythmBins[rhythmBins.length - 1].month}</span>
+      </div>
+    </section>
+  )}
+
+  {sorted.length > 1 && (
+    <section class="micro-stats font-sans">
+      <div class="micro-stat">
+        <span class="micro-stat-label">{lang === 'zh' ? '最长空档' : 'Longest gap'}</span>
+        <span class="micro-stat-value">{longestGap}</span>
+        <span class="micro-stat-unit">{lang === 'zh' ? '天' : 'd'}</span>
+      </div>
+      <div class="micro-stat">
+        <span class="micro-stat-label">{lang === 'zh' ? '最长连发' : 'Longest streak'}</span>
+        <span class="micro-stat-value">{longestStreak}</span>
+        <span class="micro-stat-unit">{lang === 'zh' ? '连日' : 'd'}</span>
+      </div>
+      <div class="micro-stat">
+        <span class="micro-stat-label">{lang === 'zh' ? '平均间隔' : 'Avg interval'}</span>
+        <span class="micro-stat-value">{avgInterval}</span>
+        <span class="micro-stat-unit">{lang === 'zh' ? '天 / 篇' : 'd / post'}</span>
+      </div>
+      <div class="micro-stat">
+        <span class="micro-stat-label">{lang === 'zh' ? '活跃月份' : 'Active months'}</span>
+        <span class="micro-stat-value">{activeMonths}</span>
+        <span class="micro-stat-unit">/ {rhythmBins.length}</span>
+      </div>
+    </section>
+  )}
 
   <div class="filter-bar">
     <button class="filter-btn active" data-filter="all">{t('archive.all')}</button>
@@ -67,9 +208,14 @@ const types = [...new Set(sorted.map(n => n.question.type))].sort();
               </div>
               {mg.notes.map(note => (
                 <a href={`/notes/${note.slug}`} class="archive-item" data-type={note.question.type}>
-                  <div>
+                  <div class="archive-item-main">
                     <div class="archive-item-title">{note.title}</div>
-                    <div class="cat-label">{note.question.type}</div>
+                    <div class="archive-item-kickers">
+                      <span class="cat-label">{note.question.type}</span>
+                      {note.tags.slice(0, 3).map(tag => (
+                        <span class="archive-item-tag font-sans">{tag.name}</span>
+                      ))}
+                    </div>
                   </div>
                   <div class="archive-item-meta font-sans">
                     <div>{formatDate(note.date).slice(5)}</div>
@@ -88,6 +234,33 @@ const types = [...new Set(sorted.map(n => n.question.type))].sort();
         <div class="stat-row font-sans">
           <span>{t('archive.total')}</span><span class="stat-value">{allNotes.length}</span>
         </div>
+        <div class="stat-row font-sans">
+          <span>{lang === 'zh' ? '总字数' : 'Total chars'}</span>
+          <span class="stat-value">{totalChars.toLocaleString()}</span>
+        </div>
+        <div class="stat-row font-sans">
+          <span>{lang === 'zh' ? '总阅读时长' : 'Total read time'}</span>
+          <span class="stat-value">{totalReadingMin} {lang === 'zh' ? '分钟' : 'min'}</span>
+        </div>
+        <div class="stat-row font-sans">
+          <span>{lang === 'zh' ? '活跃月份' : 'Active months'}</span>
+          <span class="stat-value">{activeMonths}</span>
+        </div>
+        <div class="stat-row font-sans">
+          <span>{lang === 'zh' ? '月均篇数' : 'Per active month'}</span>
+          <span class="stat-value">{perMonthAvg}</span>
+        </div>
+        <div class="stat-row font-sans">
+          <span>{lang === 'zh' ? '系列覆盖' : 'In series'}</span>
+          <span class="stat-value">{seriesCount} · {seriesCoveragePct}%</span>
+        </div>
+        {longest && (
+          <div class="stat-highlight font-sans">
+            <div class="stat-highlight-label">{lang === 'zh' ? '最长一篇' : 'Longest post'}</div>
+            <a href={`/notes/${longest.slug}`} class="stat-highlight-title">{longest.title}</a>
+            <div class="stat-highlight-meta">{charCount(longest.content).toLocaleString()} {lang === 'zh' ? '字 · 约 ' : 'chars · '}{readingTime(longest.content)} {lang === 'zh' ? '分钟' : 'min'}</div>
+          </div>
+        )}
       </div>
       <div class="mb-7">
         <div class="section-label">{t('archive.categories')}</div>
@@ -189,5 +362,166 @@ const types = [...new Set(sorted.map(n => n.question.type))].sort();
   .stat-value {
     font-weight: 600;
     color: var(--ink);
+  }
+
+  /* Metric strip */
+  .metric-strip {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-4);
+    margin-bottom: var(--space-4);
+    padding: var(--space-4) 0;
+  }
+  .metric-card {
+    padding: var(--space-3) var(--space-4);
+    background: var(--bg-subtle);
+    border-left: 3px solid var(--accent);
+    border-radius: var(--radius-sm);
+  }
+  .metric-label {
+    font-size: var(--font-label);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-ghost);
+    margin-bottom: var(--space-1);
+  }
+  .metric-value {
+    font-family: var(--font-display, Georgia, serif);
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+    margin-bottom: 4px;
+  }
+  .metric-unit {
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--ink-muted);
+    margin-left: 2px;
+  }
+  .metric-sub {
+    font-size: var(--font-caption);
+    color: var(--ink-ghost);
+  }
+  @media (max-width: 768px) { .metric-strip { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 480px) { .metric-strip { grid-template-columns: 1fr; } }
+
+  /* Micro stats row (after sparkline) */
+  .micro-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-5);
+    padding: var(--space-3) 0 var(--space-5);
+    border-bottom: 1px solid var(--rule-light);
+    margin-bottom: var(--space-5);
+  }
+  .micro-stat { display: inline-flex; align-items: baseline; gap: 4px; color: var(--ink-muted); }
+  .micro-stat-label {
+    color: var(--ink-ghost);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: var(--font-label);
+  }
+  .micro-stat-value {
+    font-weight: 700;
+    color: var(--ink);
+    font-size: var(--font-body);
+    font-variant-numeric: tabular-nums;
+    margin-left: 4px;
+  }
+  .micro-stat-unit { color: var(--ink-ghost); font-size: var(--font-caption); }
+
+  /* Writing rhythm sparkline */
+  .archive-rhythm {
+    margin-bottom: var(--space-5);
+    padding: var(--space-3) 0 var(--space-4);
+    border-bottom: 1px solid var(--rule-light);
+  }
+  .archive-rhythm-label {
+    font-size: var(--font-label);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-ghost);
+    margin-bottom: var(--space-2);
+  }
+  .archive-rhythm-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 48px;
+    margin-bottom: var(--space-1);
+  }
+  .rhythm-bar {
+    flex: 1;
+    min-width: 2px;
+    height: calc(var(--h, 0%) + 4px);
+    background: var(--accent);
+    opacity: 0.75;
+    border-radius: 1px;
+    transition: opacity var(--duration-fast);
+  }
+  .rhythm-bar:hover { opacity: 1; }
+  .rhythm-bar-empty {
+    height: 4px;
+    background: var(--rule-light);
+    opacity: 0.6;
+  }
+  .archive-rhythm-axis {
+    display: flex;
+    justify-content: space-between;
+    font-size: var(--font-xs);
+    color: var(--ink-ghost);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Archive item: main column with kickers row */
+  .archive-item-main { min-width: 0; }
+  .archive-item-kickers {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-2);
+    margin-top: 2px;
+  }
+  .archive-item-tag {
+    font-size: var(--font-xs);
+    color: var(--ink-muted);
+    padding: 1px 8px;
+    border: 1px solid var(--rule-light);
+    border-radius: 999px;
+  }
+  .archive-item:hover .archive-item-tag { border-color: var(--ink-muted); }
+
+  /* Stat highlight (longest post) */
+  .stat-highlight {
+    margin-top: var(--space-3);
+    padding: var(--space-3);
+    background: var(--bg-subtle);
+    border-left: 3px solid var(--accent);
+    border-radius: var(--radius-sm);
+  }
+  .stat-highlight-label {
+    font-size: var(--font-label);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    margin-bottom: var(--space-1);
+  }
+  .stat-highlight-title {
+    font-family: var(--font-display, Georgia, serif);
+    font-size: var(--font-small);
+    font-weight: 700;
+    color: var(--ink);
+    text-decoration: none;
+    line-height: 1.3;
+    display: block;
+    margin-bottom: 2px;
+  }
+  .stat-highlight-title:hover { color: var(--ink-hover); text-decoration: underline; text-underline-offset: 0.12em; }
+  .stat-highlight-meta {
+    font-size: var(--font-xs);
+    color: var(--ink-ghost);
+    font-variant-numeric: tabular-nums;
   }
 </style>

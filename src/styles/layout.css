@@ -157,7 +157,7 @@
    See src/pages/index.astro 顶部注释 + CLAUDE.md §首页首屏不变量 */
 .layout-featured {
   display: grid;
-  grid-template-columns: 1.6fr 1px 1fr;
+  grid-template-columns: minmax(0, 1.6fr) 1px minmax(0, 1fr);
   grid-template-rows: auto auto;
   gap: 0;
 }
@@ -168,19 +168,27 @@
 
 .layout-featured-main {
   padding-right: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.layout-featured-main > .article-card-headline {
+  flex: 1;
+  min-height: 0;
 }
 
 .layout-featured-side {
   padding-left: var(--space-6);
   display: flex;
   flex-direction: column;
-  /* grid cell already stretches to row height; flex layout lets children
-     use margin-top:auto to consume empty space without adding viewport pixels. */
+  min-height: 0;
+  /* grid cell stretches to row height; flex lets filler use margin-top:auto. */
 }
 
 .layout-featured-side-filler {
-  margin-top: auto; /* push to bottom of sidebar cell — the key to the invariant */
-  padding-top: var(--space-5);
+  padding-top: var(--space-3);
+  flex-shrink: 0;
 }
 
 /* ═══════════ Responsive: ≤ 767px ═══════════ */

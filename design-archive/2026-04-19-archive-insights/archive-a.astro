@@ -1,0 +1,269 @@
+---
+/*
+  归档页增强 · 方案 A 预览
+  在现有 header / sparkline / filter / list / sidebar 结构上加：
+    1. Metric Strip（4 指标卡：连续发文 / 节奏 / 累计 / 高产月）
+    2. Sparkline 强化（年份锚点 + hover tooltip + 空月虚线点）
+    3. 节奏微指标行（最长空档 / 最长连发 / 平均间隔）
+
+  注：为呈现视觉效果，数据采用合成分布（12 个月，数量 0~8 篇随机）。
+  实际部署时以 src/utils 真数据驱动。
+*/
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+// ── 合成数据：模拟一年跨度的写作分布 ──
+const synth = [
+  { ym: '2025-05', count: 2 },
+  { ym: '2025-06', count: 0 },
+  { ym: '2025-07', count: 4 },
+  { ym: '2025-08', count: 3 },
+  { ym: '2025-09', count: 0 },
+  { ym: '2025-10', count: 6 },
+  { ym: '2025-11', count: 2 },
+  { ym: '2025-12', count: 1 },
+  { ym: '2026-01', count: 0 },
+  { ym: '2026-02', count: 5 },
+  { ym: '2026-03', count: 3 },
+  { ym: '2026-04', count: 7 },
+];
+const total = synth.reduce((s, b) => s + b.count, 0);
+const activeMonths = synth.filter(b => b.count > 0).length;
+const maxBin = synth.reduce((m, b) => b.count > m.count ? b : m, synth[0]);
+const avgPerMonth = (total / activeMonths).toFixed(1);
+const max = Math.max(...synth.map(b => b.count));
+
+// 节奏微指标（模拟值）
+const longestGapDays = 28;
+const longestStreakDays = 5;
+const avgGapDays = 3.2;
+const streakRecentWeeks = 2;
+
+const totalChars = 76420;
+const totalReadingMin = 268;
+---
+
+<BaseLayout title="归档 · Insights Mockup">
+  <header class="archive-header">
+    <h1 class="font-display text-h1 mb-1">归档</h1>
+    <p class="font-sans text-small archive-subtitle">共 {total} 篇文章，按时间排列。</p>
+  </header>
+
+  {/* ── 1. Metric Strip ── */}
+  <section class="metric-strip" aria-label="写作概览">
+    <div class="metric-card">
+      <div class="metric-label font-sans">连续发文</div>
+      <div class="metric-value">{streakRecentWeeks} <span class="metric-unit">周</span></div>
+      <div class="metric-sub font-sans">最近 2 天活跃</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label font-sans">当前节奏</div>
+      <div class="metric-value">{avgPerMonth} <span class="metric-unit">篇 / 月</span></div>
+      <div class="metric-sub metric-sub-up font-sans">↑ 18% vs 去年同期</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label font-sans">累计产出</div>
+      <div class="metric-value">{(totalChars / 1000).toFixed(1)}<span class="metric-unit">k 字</span></div>
+      <div class="metric-sub font-sans">约 {totalReadingMin} 分钟阅读</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label font-sans">最高产月</div>
+      <div class="metric-value">{maxBin.ym.slice(5)}月</div>
+      <div class="metric-sub font-sans">{maxBin.count} 篇 · {maxBin.ym.slice(0, 4)}</div>
+    </div>
+  </section>
+
+  {/* ── 2. Sparkline 强化 ── */}
+  <section class="archive-rhythm">
+    <div class="archive-rhythm-label font-sans">写作节奏</div>
+    <div class="archive-rhythm-bars">
+      {synth.map(b => (
+        <span
+          class={`rhythm-bar ${b.count === 0 ? 'rhythm-bar-empty' : ''}`}
+          style={`--h: ${max > 0 ? (b.count / max) * 100 : 0}%`}
+          title={`${b.ym} · ${b.count} 篇`}
+          data-ym={b.ym}
+        ></span>
+      ))}
+    </div>
+    <div class="archive-rhythm-axis font-sans">
+      <span>{synth[0].ym}</span>
+      <span>{synth[synth.length - 1].ym}</span>
+    </div>
+  </section>
+
+  {/* ── 3. 节奏微指标 ── */}
+  <section class="micro-stats font-sans">
+    <div class="micro-stat">
+      <span class="micro-stat-label">最长空档</span>
+      <span class="micro-stat-value">{longestGapDays}</span>
+      <span class="micro-stat-unit">天</span>
+    </div>
+    <div class="micro-stat">
+      <span class="micro-stat-label">最长连发</span>
+      <span class="micro-stat-value">{longestStreakDays}</span>
+      <span class="micro-stat-unit">连日</span>
+    </div>
+    <div class="micro-stat">
+      <span class="micro-stat-label">平均间隔</span>
+      <span class="micro-stat-value">{avgGapDays}</span>
+      <span class="micro-stat-unit">天 / 篇</span>
+    </div>
+    <div class="micro-stat">
+      <span class="micro-stat-label">活跃月份</span>
+      <span class="micro-stat-value">{activeMonths}</span>
+      <span class="micro-stat-unit">/ {synth.length}</span>
+    </div>
+  </section>
+
+  {/* ── 以下为现有归档页结构示意（略） ── */}
+  <div class="mock-placeholder font-sans">
+    ↓ 以下是现有 filter + year/month 列表 + stats sidebar（本 mockup 省略，保持现状）
+  </div>
+
+</BaseLayout>
+
+<style>
+  /* Header */
+  .archive-header {
+    margin-bottom: var(--space-5);
+    padding-bottom: var(--space-4);
+    border-bottom: 1px solid var(--rule-light);
+  }
+  .archive-subtitle { color: var(--ink-muted); }
+
+  /* ── 1. Metric Strip ── */
+  .metric-strip {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-4);
+    margin-bottom: var(--space-5);
+    padding: var(--space-4) 0;
+  }
+  .metric-card {
+    padding: var(--space-3) var(--space-4);
+    background: var(--bg-subtle);
+    border-left: 3px solid var(--accent);
+    border-radius: var(--radius-sm);
+  }
+  .metric-label {
+    font-size: var(--font-label);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-ghost);
+    margin-bottom: var(--space-1);
+  }
+  .metric-value {
+    font-family: var(--font-display, Georgia, serif);
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+    margin-bottom: 4px;
+  }
+  .metric-unit {
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--ink-muted);
+    margin-left: 2px;
+  }
+  .metric-sub {
+    font-size: var(--font-caption);
+    color: var(--ink-ghost);
+  }
+  .metric-sub-up { color: var(--accent); }
+
+  @media (max-width: 768px) {
+    .metric-strip { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 480px) {
+    .metric-strip { grid-template-columns: 1fr; }
+  }
+
+  /* ── 2. Sparkline ── */
+  .archive-rhythm {
+    margin-bottom: var(--space-3);
+    padding: var(--space-3) 0 var(--space-3);
+    border-bottom: 1px solid var(--rule-faint);
+  }
+  .archive-rhythm-label {
+    font-size: var(--font-label);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-ghost);
+    margin-bottom: var(--space-2);
+  }
+  .archive-rhythm-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+    height: 56px;
+    margin-bottom: var(--space-1);
+  }
+  .rhythm-bar {
+    flex: 1;
+    min-width: 4px;
+    height: calc(var(--h, 0%) + 4px);
+    background: var(--accent);
+    opacity: 0.75;
+    border-radius: 1px;
+    transition: opacity var(--duration-fast);
+    cursor: pointer;
+  }
+  .rhythm-bar:hover { opacity: 1; }
+  .rhythm-bar-empty {
+    height: 2px;
+    background: var(--rule);
+    opacity: 0.4;
+    border-radius: 0;
+  }
+  .archive-rhythm-axis {
+    display: flex;
+    justify-content: space-between;
+    font-size: var(--font-xs);
+    color: var(--ink-ghost);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ── 3. 微指标 ── */
+  .micro-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-5);
+    padding: var(--space-3) 0 var(--space-5);
+    border-bottom: 1px solid var(--rule-light);
+    margin-bottom: var(--space-5);
+  }
+  .micro-stat {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 4px;
+    font-size: var(--font-caption);
+    color: var(--ink-muted);
+  }
+  .micro-stat-label {
+    color: var(--ink-ghost);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: var(--font-label);
+  }
+  .micro-stat-value {
+    font-weight: 700;
+    color: var(--ink);
+    font-size: var(--font-body);
+    font-variant-numeric: tabular-nums;
+    margin-left: 4px;
+  }
+  .micro-stat-unit {
+    color: var(--ink-ghost);
+    font-size: var(--font-caption);
+  }
+
+  .mock-placeholder {
+    padding: var(--space-6) var(--space-4);
+    text-align: center;
+    color: var(--ink-ghost);
+    border: 1px dashed var(--rule);
+    border-radius: var(--radius-md);
+  }
+</style>
