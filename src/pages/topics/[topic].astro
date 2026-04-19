@@ -1,8 +1,6 @@
 ---
-import IndexLayout from '../../layouts/IndexLayout.astro';
-import NoteCard from '../../components/NoteCard.astro';
-import Pagination from '../../components/Pagination.astro';
-import { getAllNotes, getNotesByTopic, sortNotes, paginateNotes } from '../../utils/notes';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getAllNotes, getNotesByTopic, sortNotes } from '../../utils/notes';
 import { resolveTopicAlias } from '../../utils/tags';
 import { getCoTopics, getTopTagsInTopic } from '../../utils/rank';
 import { generatePageMeta } from '../../utils/seo';
@@ -10,111 +8,335 @@ import { generatePageMeta } from '../../utils/seo';
 export async function getStaticPaths() {
   const allNotes = getAllNotes();
   const topicSet = new Set<string>();
-
   for (const note of allNotes) {
     for (const topic of note.topics) {
       topicSet.add(topic.name);
-      if (topic.alias) {
-        topic.alias.forEach(alias => topicSet.add(alias));
-      }
+      if (topic.alias) topic.alias.forEach(a => topicSet.add(a));
     }
   }
-
-  const paths = [];
-  for (const topicName of topicSet) {
+  return Array.from(topicSet).map(topicName => {
     const resolvedTopic = resolveTopicAlias(topicName, allNotes);
-    const notes = getNotesByTopic(resolvedTopic, allNotes);
-    const totalPages = Math.ceil(notes.length / 20);
-
-    for (let page = 1; page <= totalPages; page++) {
-      paths.push({
-        params: { topic: topicName, page: page.toString() }
-      });
-    }
-    if (totalPages === 0) {
-      paths.push({ params: { topic: topicName, page: '1' } });
-    }
-  }
-
-  return paths.map(({ params }) => {
-    const topicName = params.topic;
-    const page = parseInt(params.page || '1');
-    const resolvedTopic = resolveTopicAlias(topicName, allNotes);
-    const notes = getNotesByTopic(resolvedTopic, allNotes);
-    const sortedNotes = sortNotes(notes, 'date', 'desc');
-    const { notes: paginatedNotes, pagination } = paginateNotes(sortedNotes, page);
-    
+    const notes = sortNotes(getNotesByTopic(resolvedTopic, allNotes), 'date', 'desc');
     const seo = generatePageMeta({
       title: `主题: ${topicName}`,
       description: `主题 "${topicName}" 下的笔记`,
-      path: `/topics/${topicName}`
+      path: `/topics/${topicName}`,
     });
-
     return {
-      params,
-      props: {
-        topicName: resolvedTopic,
-        notes: paginatedNotes,
-        pagination,
-        seo
-      }
+      params: { topic: topicName },
+      props: { topicName: resolvedTopic, notes, seo },
     };
   });
 }
 
-const { topicName, notes, pagination, seo } = Astro.props;
-const allNotesForBridge = getAllNotes();
-const topTagsInTopic = getTopTagsInTopic(topicName, allNotesForBridge, 5);
-const coTopics = getCoTopics(topicName, allNotesForBridge, 5);
+const { topicName, notes, seo } = Astro.props;
+const allNotes = getAllNotes();
+const topTags = getTopTagsInTopic(topicName, allNotes, 8);
+const coTopics = getCoTopics(topicName, allNotes, 5);
+
+// ── Tagline lookup (hardcoded; migrate to content collection later) ──
+const TOPIC_TAGLINES: Record<string, string> = {
+  'AI 工程化': '讲如何把 AI 变成能用的工具而不是聊天玩具',
+  '开发工具': '工具即方法论 — 写给懂一点但总想更快的人',
+  '方法论': '可复制的思维路径 — 从反复碰壁中沉淀的规则',
+};
+const tagline = TOPIC_TAGLINES[topicName];
+
+// ── Stats ──
+function readingTime(content: string): number {
+  return Math.max(1, Math.round(content.replace(/\s+/g, ' ').trim().length / 300));
+}
+function plainText(content: string): string {
+  return content
+    .replace(/```[\s\S]*?```/g, '')
+    .replace(/`[^`]+`/g, '')
+    .replace(/#{1,6}\s/g, '')
+    .replace(/\*\*?|__?/g, '')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/[<>]/g, '')
+    .replace(/\n+/g, ' ')
+    .trim();
+}
+function charCount(content: string): number {
+  return content.replace(/\s+/g, '').length;
+}
+const totalChars = notes.reduce((n, note) => n + charCount(note.content), 0);
+const totalMin = notes.reduce((n, note) => n + readingTime(note.content), 0);
+const spanDays = (() => {
+  if (notes.length < 2) return 0;
+  const ms = notes.map(n => new Date(n.date).getTime()).sort((a, b) => a - b);
+  return Math.round((ms[ms.length - 1] - ms[0]) / 86400000);
+})();
+
+// ── Entry note: featured → quality.overall desc → first by order ──
+const entryNote = (() => {
+  const featured = notes.find(n => (n as any).featured === true);
+  if (featured) return featured;
+  const seriesFirst = notes.find(n => (n as any).series?.order === 1);
+  if (seriesFirst) return seriesFirst;
+  const byQuality = [...notes].sort((a, b) => {
+    const qa = (a as any).quality?.overall ?? 0;
+    const qb = (b as any).quality?.overall ?? 0;
+    return qb - qa;
+  })[0];
+  return byQuality || notes[0];
+})();
+
+// ── Series under this topic ──
+const topicSeriesMap = new Map<string, any[]>();
+for (const note of notes) {
+  const sName = (note as any).series?.name;
+  if (!sName) continue;
+  if (!topicSeriesMap.has(sName)) topicSeriesMap.set(sName, []);
+  topicSeriesMap.get(sName)!.push(note);
+}
+const topicSeries = Array.from(topicSeriesMap.entries()).map(([name, list]) => {
+  const allInSeries = allNotes.filter(n => (n as any).series?.name === name);
+  return {
+    name,
+    id: name.replace(/\s+/g, '-').toLowerCase(),
+    countInTopic: list.length,
+    totalCount: allInSeries.length,
+  };
+});
+
+// ── Notes grouped by question.type ──
+const byType = new Map<string, typeof notes>();
+for (const note of notes) {
+  const type = note.question.type || '其他';
+  if (!byType.has(type)) byType.set(type, []);
+  byType.get(type)!.push(note);
+}
+const typeEntries = Array.from(byType.entries()).sort((a, b) => b[1].length - a[1].length);
+
+function fmt(d: string): string { return d.slice(5, 10); }
 ---
 
-<IndexLayout title={`主题: ${topicName}`} seo={seo}>
-  {(topTagsInTopic.length > 0 || coTopics.length > 0) && (
-    <div class="topic-bridge">
-      {topTagsInTopic.length > 0 && (
+<BaseLayout title={`主题: ${topicName}`} seo={seo}>
+  <nav class="topic-breadcrumb font-sans">
+    <a href="/topics">← 主题索引</a>
+  </nav>
+
+  <header class="topic-head">
+    <div class="topic-kicker font-sans">主题 · {notes.length} 篇 · {totalMin} min · 跨度 {spanDays} 天</div>
+    <h1 class="topic-title font-display">{topicName}</h1>
+    {tagline && <p class="topic-tagline font-serif">—— {tagline}</p>}
+  </header>
+
+  {entryNote && (
+    <section class="topic-entry">
+      <div class="topic-section-label">从这里开始</div>
+      <a href={`/notes/${entryNote.slug}`} class="entry-card">
+        <div class="entry-kicker font-sans">入口 · 约 {readingTime(entryNote.content)} 分钟</div>
+        <h2 class="entry-title font-display">{entryNote.title}</h2>
+        <p class="entry-excerpt font-sans">{plainText(entryNote.content).slice(0, 140)}…</p>
+        <span class="entry-cta font-sans">阅读 →</span>
+      </a>
+    </section>
+  )}
+
+  {topicSeries.length > 0 && (
+    <section class="topic-series-list">
+      <div class="topic-section-label">系列深入</div>
+      {topicSeries.map(s => (
+        <a href={`/series#${s.id}`} class="series-inline-card">
+          <div class="series-inline-kicker font-sans">系列 · {s.totalCount} 篇</div>
+          <div class="series-inline-name font-display">{s.name}</div>
+          <span class="series-inline-cta font-sans">看系列 →</span>
+        </a>
+      ))}
+    </section>
+  )}
+
+  <section class="topic-byType">
+    <div class="type-nav font-sans">
+      <span class="type-nav-label">按类型浏览：</span>
+      <a href="#all" class="type-nav-chip is-active">全部 {notes.length}</a>
+      {typeEntries.map(([type, list]) => (
+        <a href={`#type-${type}`} class="type-nav-chip">{type} {list.length}</a>
+      ))}
+    </div>
+
+    {typeEntries.map(([type, list]) => (
+      <div class="type-group" id={`type-${type}`}>
+        <h3 class="type-group-title font-display">
+          {type} <span class="type-group-count font-sans">· {list.length} 篇</span>
+        </h3>
+        <ul class="note-list">
+          {list.map(note => (
+            <li class="note-item">
+              <a href={`/notes/${note.slug}`} class="note-link">
+                <time class="note-date font-sans" datetime={note.date}>{fmt(note.date)}</time>
+                <div class="note-body">
+                  <div class="note-title font-display">{note.title}</div>
+                  <p class="note-excerpt font-sans">{plainText(note.content).slice(0, 100)}…</p>
+                  <div class="note-kickers">
+                    {note.tags.slice(0, 3).map(t => <span class="note-tag font-sans">{t.name}</span>)}
+                    <span class="note-time font-sans">约 {readingTime(note.content)} min</span>
+                  </div>
+                </div>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    ))}
+  </section>
+
+  {(topTags.length > 0 || coTopics.length > 0) && (
+    <aside class="topic-bridge">
+      {topTags.length > 0 && (
         <div class="topic-bridge-row">
-          <span class="topic-bridge-label">包含标签</span>
+          <span class="topic-bridge-label font-sans">包含标签</span>
           <div class="topic-bridge-chips">
-            {topTagsInTopic.map(t => (
-              <a href={`/tags/${encodeURIComponent(t.name)}`} class="bridge-chip">{t.name} <span class="bridge-chip-count">{t.count}</span></a>
+            {topTags.map(t => (
+              <a href={`/tags/${encodeURIComponent(t.name)}`} class="bridge-chip font-sans">
+                {t.name} <span class="bridge-chip-count">{t.count}</span>
+              </a>
             ))}
           </div>
         </div>
       )}
       {coTopics.length > 0 && (
         <div class="topic-bridge-row">
-          <span class="topic-bridge-label">关联主题</span>
+          <span class="topic-bridge-label font-sans">关联主题</span>
           <div class="topic-bridge-chips">
             {coTopics.map(t => (
-              <a href={`/topics/${encodeURIComponent(t.name)}`} class="bridge-chip bridge-chip-primary">{t.name}</a>
+              <a href={`/topics/${encodeURIComponent(t.name)}`} class="bridge-chip bridge-chip-primary font-sans">{t.name}</a>
             ))}
           </div>
         </div>
       )}
-    </div>
+    </aside>
   )}
-
-  {notes.length === 0 ? (
-    <p class="text-text-secondary">该主题下暂无笔记</p>
-  ) : (
-    <>
-      <div class="space-y-4">
-        {notes.map((note) => (
-          <NoteCard note={note} showQuality={true} />
-        ))}
-      </div>
-      <Pagination
-        currentPage={pagination.currentPage}
-        totalPages={pagination.totalPages}
-        baseUrl={`/topics/${topicName}`}
-      />
-    </>
-  )}
-</IndexLayout>
+</BaseLayout>
 
 <style>
+  .topic-breadcrumb { font-size: var(--font-small); color: var(--ink-muted); margin-bottom: var(--space-3); }
+  .topic-breadcrumb a { color: inherit; text-decoration: none; }
+  .topic-breadcrumb a:hover { color: var(--ink); }
+
+  .topic-head {
+    padding: 0 0 var(--space-4) 0;
+    margin-bottom: var(--space-5);
+    border-bottom: 1px solid var(--rule-light);
+  }
+  .topic-kicker { font-size: var(--font-label); text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); margin-bottom: var(--space-1); }
+  .topic-title { font-size: var(--font-h1); font-weight: 700; line-height: 1.15; margin: 0 0 var(--space-1); color: var(--ink); letter-spacing: -0.01em; }
+  .topic-tagline { font-size: var(--font-body); font-style: italic; color: var(--ink-muted); margin: 0; line-height: 1.5; }
+
+  /* Local section label — avoid .section-label's ::before/::after brackets */
+  .topic-section-label {
+    font-family: var(--font-display, Georgia, serif);
+    font-size: var(--font-h3);
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: var(--space-3);
+  }
+
+  /* Entry card */
+  .topic-entry { margin-bottom: var(--space-6); }
+  .entry-card {
+    display: block;
+    padding: var(--space-5);
+    background: var(--bg-subtle);
+    border: 1px solid var(--rule-faint);
+    border-left: 4px solid var(--accent);
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    color: inherit;
+    transition: box-shadow var(--duration-fast);
+  }
+  .entry-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); color: inherit; }
+  .entry-kicker { font-size: var(--font-label); text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); margin-bottom: var(--space-2); }
+  .entry-title { font-size: var(--font-h2); font-weight: 700; line-height: 1.2; margin: 0 0 var(--space-2); color: var(--ink); }
+  .entry-excerpt { font-size: var(--font-small); color: var(--ink-muted); line-height: 1.6; margin: 0 0 var(--space-3); }
+  .entry-cta { font-size: var(--font-small); color: var(--accent); font-weight: 600; }
+  .entry-card:hover .entry-cta { text-decoration: underline; text-underline-offset: 0.15em; }
+
+  /* Series inline list */
+  .topic-series-list { margin-bottom: var(--space-6); }
+  .series-inline-card {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: var(--space-3);
+    align-items: baseline;
+    padding: var(--space-3) var(--space-4);
+    background: var(--paper);
+    border: 1px solid var(--rule-faint);
+    border-left: 3px solid var(--accent);
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    color: inherit;
+    margin-bottom: var(--space-2);
+  }
+  .series-inline-card:hover { border-color: var(--ink-muted); color: inherit; }
+  .series-inline-kicker { font-size: var(--font-label); color: var(--accent); letter-spacing: 0.08em; text-transform: uppercase; }
+  .series-inline-name { font-size: var(--font-body); font-weight: 700; color: var(--ink); }
+  .series-inline-cta { font-size: var(--font-small); color: var(--ink-muted); }
+
+  /* Type nav + group */
+  .topic-byType { margin-bottom: var(--space-6); }
+  .type-nav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-2);
+    padding-bottom: var(--space-3);
+    border-bottom: 1px solid var(--rule-light);
+    margin-bottom: var(--space-4);
+  }
+  .type-nav-label { font-size: var(--font-caption); color: var(--ink-ghost); margin-right: var(--space-2); }
+  .type-nav-chip {
+    padding: 2px 10px;
+    font-size: var(--font-caption);
+    color: var(--ink-muted);
+    background: var(--bg-subtle);
+    border: 1px solid var(--rule-light);
+    border-radius: 999px;
+    text-decoration: none;
+    transition: border-color var(--duration-fast), color var(--duration-fast);
+  }
+  .type-nav-chip.is-active { border-color: var(--ink); color: var(--ink); }
+  .type-nav-chip:hover { border-color: var(--ink-muted); color: var(--ink); }
+
+  .type-group { margin-bottom: var(--space-5); }
+  .type-group-title { font-size: var(--font-h3); font-weight: 700; color: var(--ink); margin: 0 0 var(--space-3); }
+  .type-group-count { color: var(--ink-ghost); font-weight: 400; font-size: var(--font-small); }
+
+  .note-list { list-style: none; padding: 0; margin: 0; }
+  .note-item { border-bottom: 1px solid var(--rule-faint); }
+  .note-item:last-child { border-bottom: none; }
+  .note-link {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: var(--space-4);
+    padding: var(--space-3) 0;
+    text-decoration: none;
+    color: inherit;
+    transition: padding-left var(--duration-fast);
+  }
+  .note-link:hover { padding-left: var(--space-2); }
+  .note-link:hover .note-title { color: var(--ink-hover); text-decoration: underline; text-underline-offset: 0.12em; }
+  .note-date { font-size: var(--font-caption); color: var(--ink-ghost); font-variant-numeric: tabular-nums; padding-top: 4px; min-width: 48px; }
+  .note-body { min-width: 0; }
+  .note-title { font-size: var(--font-body); font-weight: 700; color: var(--ink); line-height: 1.3; margin-bottom: var(--space-1); }
+  .note-excerpt {
+    font-size: var(--font-small);
+    color: var(--ink-muted);
+    line-height: 1.5;
+    margin: 0 0 var(--space-1);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .note-kickers { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-2); font-size: var(--font-caption); color: var(--ink-ghost); }
+  .note-tag { padding: 1px 8px; background: var(--paper); border: 1px solid var(--rule-light); border-radius: 999px; color: var(--ink-muted); font-size: var(--font-xs); }
+  .note-time { font-variant-numeric: tabular-nums; }
+
+  /* Bridge */
   .topic-bridge {
-    margin-bottom: var(--space-6);
     padding: var(--space-4);
     background: var(--bg-subtle);
     border: 1px solid var(--rule-faint);
@@ -122,41 +344,23 @@ const coTopics = getCoTopics(topicName, allNotesForBridge, 5);
     display: grid;
     gap: var(--space-3);
   }
-  .topic-bridge-row {
-    display: flex;
-    align-items: baseline;
-    gap: var(--space-3);
-    flex-wrap: wrap;
-  }
-  .topic-bridge-label {
-    font-family: Inter, sans-serif;
-    font-size: var(--font-label);
-    font-weight: 600;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--ink-muted);
-    flex-shrink: 0;
-  }
+  .topic-bridge-row { display: flex; align-items: baseline; gap: var(--space-3); flex-wrap: wrap; }
+  .topic-bridge-label { font-size: var(--font-label); text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-ghost); flex-shrink: 0; }
   .topic-bridge-chips { display: flex; flex-wrap: wrap; gap: 6px; }
   .bridge-chip {
     display: inline-flex;
     align-items: center;
     gap: 4px;
     padding: 2px 10px;
-    font-family: Inter, sans-serif;
     font-size: var(--font-caption);
-    color: var(--ink-light);
+    color: var(--ink-muted);
     background: var(--paper);
     border: 1px solid var(--rule-light);
     border-radius: 999px;
     text-decoration: none;
-    transition: border-color var(--duration-fast), color var(--duration-fast);
   }
   .bridge-chip:hover { color: var(--ink); border-color: var(--ink-muted); }
-  .bridge-chip-primary {
-    color: var(--accent);
-    border-color: color-mix(in srgb, var(--accent) 30%, transparent);
-  }
+  .bridge-chip-primary { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 30%, transparent); }
   .bridge-chip-primary:hover { border-color: var(--accent); }
   .bridge-chip-count { font-size: var(--font-xs); color: var(--ink-ghost); }
 </style>
