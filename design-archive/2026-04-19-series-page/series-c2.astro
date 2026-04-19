@@ -1,0 +1,378 @@
+---
+/*
+  系列页方向 C2：Master-Detail 双栏
+  左列 sticky 系列卡列表，右列显示选中系列的 timeline。
+  URL hash 控制选择。1 系列时退化为单栏全展开。
+*/
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+type Chapter = { order: number; title: string; date: string; minutes: number; excerpt: string; slug: string };
+type SeriesMock = {
+  id: string;
+  name: string;
+  tagline: string;
+  chapters: Chapter[];
+};
+
+const seriesList: SeriesMock[] = [
+  {
+    id: 'ai-skills',
+    name: 'AI Skills 系列',
+    tagline: '从碎片经验到可复用的 skill — 让 AI 把你的"默会"变成可调用的能力',
+    chapters: [
+      { order: 1, slug: 'sprint', title: 'Sprint：给 AI 一条流水线而不是一句话', date: '2026-04-10', minutes: 11, excerpt: '一个任务，两种执行方式。假设你的任务是：把博客的标签系统从扁平列表改成层级结构…' },
+      { order: 2, slug: 'diagnose', title: 'Diagnose：AI 调试不应该是碰运气', date: '2026-04-12', minutes: 10, excerpt: 'AI 调试的默认模式：随机搜索。你告诉 AI：「部署后首屏白屏」，它给你 3 个可能原因…' },
+      { order: 3, slug: 'skill', title: 'Skill 设计模式：如何写出 AI 真正能执行的指令', date: '2026-04-13', minutes: 12, excerpt: '为什么你的 prompt 无法成为 Skill？因为它不具备可复用性…' },
+      { order: 4, slug: 'know', title: 'Know：让 AI 不再重复犯同样的错', date: '2026-04-14', minutes: 9, excerpt: '同一个坑，踩了三次。我的博客项目有一个约定：工具函数不能引入外部依赖…' },
+      { order: 5, slug: 'long-sprint', title: 'Long Sprint 实践：让 AI 自主完成大型任务', date: '2026-04-15', minutes: 14, excerpt: '当一个 Sprint 放不下。Sprint 设计上是为单一、聚焦的任务优化的…' },
+    ],
+  },
+  {
+    id: 'ai-reading',
+    name: 'AI 阅读习惯',
+    tagline: '从碎片阅读到结构化吸收 — 把对话变成知识资产',
+    chapters: [
+      { order: 1, slug: 'anti-trend', title: '为什么个人博客不该追热点', date: '2025-11-02', minutes: 7, excerpt: '追热点是反杠杆的。你花 2 小时抓住的流量，热度过去后归零…' },
+      { order: 2, slug: 'edit-discipline', title: '改稿的三条纪律', date: '2025-12-18', minutes: 8, excerpt: '纪律一：先删再改。删字是最便宜的结构优化…' },
+      { order: 3, slug: 'problem-first', title: '从问题到文章：不写废话的结构法', date: '2026-02-10', minutes: 10, excerpt: '写作是一个从模糊到精确的过程…' },
+    ],
+  },
+  {
+    id: 'demo-3',
+    name: '其他系列 A（占位）',
+    tagline: '多个系列时双栏的扩展性演示',
+    chapters: [
+      { order: 1, slug: 'demo-1', title: '第一篇示例', date: '2025-08-01', minutes: 5, excerpt: '示例摘要…' },
+      { order: 2, slug: 'demo-2', title: '第二篇示例', date: '2025-08-15', minutes: 6, excerpt: '示例摘要…' },
+    ],
+  },
+];
+
+function fmt(d: string) { return d.slice(5, 10); }
+function spanDays(s: SeriesMock): number {
+  const dates = s.chapters.map(c => c.date).sort();
+  if (dates.length < 2) return 0;
+  return Math.round((new Date(dates[dates.length - 1]).getTime() - new Date(dates[0]).getTime()) / 86400000);
+}
+function totalMin(s: SeriesMock): number {
+  return s.chapters.reduce((n, c) => n + c.minutes, 0);
+}
+---
+
+<BaseLayout title="系列 · Master-Detail Mockup">
+  <header class="series-header">
+    <h1 class="font-display text-h1 mb-1">系列</h1>
+    <p class="font-sans text-small series-subtitle">按主题组织的连续写作，共 {seriesList.length} 组。</p>
+  </header>
+
+  <div class="series-md" data-series-count={seriesList.length}>
+    {/* 左列：系列列表 */}
+    <aside class="series-md-list">
+      <div class="series-md-list-label font-sans">所有系列</div>
+      {seriesList.map((s, i) => (
+        <a
+          href={`#${s.id}`}
+          class={`series-md-card ${i === 0 ? 'is-selected' : ''}`}
+          data-series-id={s.id}
+        >
+          <div class="series-md-card-kicker font-sans">系列 · {s.chapters.length} 篇 · {totalMin(s)} min</div>
+          <div class="series-md-card-name font-display">{s.name}</div>
+          <div class="series-md-card-tagline font-sans">{s.tagline}</div>
+          <div class="series-md-card-dates font-sans">
+            {s.chapters[0].date.slice(0, 7)} → {s.chapters[s.chapters.length - 1].date.slice(0, 7)}
+          </div>
+        </a>
+      ))}
+    </aside>
+
+    {/* 右列：选中系列的 timeline */}
+    <main class="series-md-detail">
+      {seriesList.map((s, i) => (
+        <section
+          class={`series-panel ${i === 0 ? 'is-visible' : ''}`}
+          data-series-id={s.id}
+          id={`panel-${s.id}`}
+        >
+          <header class="series-panel-head">
+            <div class="series-panel-kicker font-sans">
+              系列 · {s.chapters.length} 篇 · {totalMin(s)} min · 跨度 {spanDays(s)} 天
+            </div>
+            <h2 class="series-panel-title font-display">{s.name}</h2>
+            <p class="series-panel-tagline font-serif">—— {s.tagline}</p>
+          </header>
+
+          <ol class="timeline">
+            {s.chapters.map((c, idx) => {
+              const isLast = idx === s.chapters.length - 1;
+              return (
+                <li class={`timeline-node ${isLast ? 'timeline-node-latest' : ''}`}>
+                  <span class="timeline-dot" aria-hidden="true"></span>
+                  <time class="timeline-date font-sans" datetime={c.date}>{fmt(c.date)}</time>
+                  <div class="timeline-body">
+                    <a href="#" class="timeline-title font-display">
+                      <span class="timeline-order font-sans">#{String(c.order).padStart(2, '0')}</span>
+                      {c.title}
+                    </a>
+                    {isLast && <span class="timeline-latest font-sans">最新</span>}
+                    <p class="timeline-excerpt font-sans">{c.excerpt}</p>
+                    <div class="timeline-meta font-sans">约 {c.minutes} min</div>
+                  </div>
+                </li>
+              );
+            })}
+          </ol>
+        </section>
+      ))}
+    </main>
+  </div>
+
+  <script is:inline>
+    (function() {
+      function showSeries(id) {
+        document.querySelectorAll('.series-md-card').forEach(function(c) {
+          c.classList.toggle('is-selected', c.dataset.seriesId === id);
+        });
+        document.querySelectorAll('.series-panel').forEach(function(p) {
+          p.classList.toggle('is-visible', p.dataset.seriesId === id);
+        });
+      }
+      function handleHash() {
+        var id = location.hash.slice(1);
+        if (!id) return;
+        var card = document.querySelector('.series-md-card[data-series-id="' + id + '"]');
+        if (card) showSeries(id);
+      }
+      window.addEventListener('hashchange', handleHash);
+      handleHash(); // initial
+      document.querySelectorAll('.series-md-card').forEach(function(card) {
+        card.addEventListener('click', function(e) {
+          e.preventDefault();
+          var id = card.dataset.seriesId;
+          history.replaceState(null, '', '#' + id);
+          showSeries(id);
+        });
+      });
+    })();
+  </script>
+</BaseLayout>
+
+<style>
+  .series-header {
+    margin-bottom: var(--space-5);
+    padding-bottom: var(--space-4);
+    border-bottom: 1px solid var(--rule-light);
+  }
+  .series-subtitle { color: var(--ink-muted); }
+
+  /* ── Master-Detail layout ── */
+  .series-md {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: var(--space-6);
+    align-items: start;
+  }
+  .series-md[data-series-count="1"] { grid-template-columns: 1fr; }
+  .series-md[data-series-count="1"] .series-md-list { display: none; }
+
+  /* Left column — series list */
+  .series-md-list {
+    position: sticky;
+    top: var(--space-3);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    max-height: calc(100vh - var(--space-5));
+    overflow-y: auto;
+    padding-right: var(--space-2);
+  }
+  .series-md-list-label {
+    font-size: var(--font-label);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-ghost);
+    margin-bottom: var(--space-1);
+  }
+  .series-md-card {
+    padding: var(--space-3) var(--space-4);
+    background: var(--bg-subtle);
+    border: 1px solid var(--rule-faint);
+    border-left: 3px solid var(--rule);
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    color: inherit;
+    transition: border-color var(--duration-fast), background var(--duration-fast);
+  }
+  .series-md-card:hover { border-left-color: var(--ink-muted); }
+  .series-md-card.is-selected {
+    border-left-color: var(--accent);
+    background: var(--paper);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .series-md-card-kicker {
+    font-size: var(--font-label);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    margin-bottom: var(--space-1);
+  }
+  .series-md-card-name {
+    font-size: var(--font-h3);
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.25;
+    margin-bottom: var(--space-1);
+  }
+  .series-md-card-tagline {
+    font-size: var(--font-caption);
+    color: var(--ink-muted);
+    line-height: 1.45;
+    margin-bottom: var(--space-2);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .series-md-card-dates {
+    font-size: var(--font-xs);
+    color: var(--ink-ghost);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Right column — detail panel */
+  .series-md-detail { min-width: 0; }
+  .series-panel { display: none; }
+  .series-panel.is-visible { display: block; }
+  .series-panel-head {
+    padding: 0 0 var(--space-4) 0;
+    margin-bottom: var(--space-4);
+    border-bottom: 1px solid var(--rule-light);
+  }
+  .series-panel-kicker {
+    font-size: var(--font-label);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    margin-bottom: var(--space-1);
+  }
+  .series-panel-title { font-size: var(--font-h1); font-weight: 700; line-height: 1.15; margin: 0 0 var(--space-1); color: var(--ink); letter-spacing: -0.01em; }
+  .series-panel-tagline { font-size: var(--font-body); font-style: italic; color: var(--ink-muted); margin: 0; }
+
+  /* Timeline — reused from series-c */
+  .timeline {
+    list-style: none;
+    padding: 0 0 0 120px;
+    margin: 0;
+    position: relative;
+  }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 90px;
+    top: 8px;
+    bottom: 8px;
+    width: 2px;
+    background: var(--rule-light);
+  }
+  .timeline-node {
+    position: relative;
+    padding: var(--space-3) 0 var(--space-4);
+  }
+  .timeline-dot {
+    position: absolute;
+    left: -37px;
+    top: calc(var(--space-3) + 4px);
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--paper);
+    border: 2px solid var(--accent);
+    z-index: 1;
+  }
+  .timeline-node-latest .timeline-dot {
+    background: var(--accent);
+    box-shadow: 0 0 0 4px color-mix(in oklab, var(--accent) 20%, transparent);
+  }
+  .timeline-date {
+    position: absolute;
+    left: -120px;
+    top: calc(var(--space-3) + 2px);
+    width: 72px;
+    text-align: right;
+    font-size: var(--font-caption);
+    color: var(--ink-ghost);
+    font-variant-numeric: tabular-nums;
+  }
+  .timeline-body { min-width: 0; }
+  .timeline-title {
+    display: block;
+    font-size: var(--font-h3);
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.3;
+    text-decoration: none;
+    margin-bottom: var(--space-1);
+  }
+  .timeline-title:hover { color: var(--ink-hover); text-decoration: underline; text-underline-offset: 0.15em; }
+  .timeline-order {
+    display: inline-block;
+    font-size: var(--font-caption);
+    color: var(--ink-ghost);
+    font-weight: 400;
+    margin-right: var(--space-2);
+    font-variant-numeric: tabular-nums;
+  }
+  .timeline-latest {
+    display: inline-block;
+    padding: 1px 8px;
+    font-size: var(--font-xs);
+    background: var(--accent);
+    color: var(--paper);
+    border-radius: var(--radius-sm);
+    letter-spacing: 0.05em;
+    margin-bottom: var(--space-2);
+  }
+  .timeline-excerpt {
+    font-size: var(--font-small);
+    color: var(--ink-muted);
+    line-height: 1.55;
+    margin: var(--space-1) 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .timeline-meta { font-size: var(--font-caption); color: var(--ink-ghost); font-variant-numeric: tabular-nums; }
+
+  /* Responsive: collapse to single column (chip row at top) */
+  @media (max-width: 900px) {
+    .series-md { grid-template-columns: 1fr; }
+    .series-md-list {
+      position: static;
+      flex-direction: row;
+      overflow-x: auto;
+      max-height: none;
+      padding-bottom: var(--space-2);
+      margin-bottom: var(--space-4);
+      border-bottom: 1px solid var(--rule-faint);
+    }
+    .series-md-list-label { display: none; }
+    .series-md-card {
+      flex: 0 0 240px;
+      padding: var(--space-2) var(--space-3);
+    }
+    .series-md-card-tagline { display: none; }
+    .series-md-card-dates { display: none; }
+  }
+  @media (max-width: 640px) {
+    .timeline { padding-left: 44px; }
+    .timeline::before { left: 14px; }
+    .timeline-date {
+      position: static;
+      left: auto;
+      width: auto;
+      text-align: left;
+      margin-bottom: var(--space-1);
+      display: block;
+    }
+  }
+</style>
