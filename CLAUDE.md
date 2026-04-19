@@ -59,6 +59,26 @@ tokens.css → base/layout/masthead/dropdown/search → components.css → pages
 | **引入 `global.css` 规则** | 只允许跨切面激活类（`.dark` / `.reading-mode`），不是"公共样式" |
 | **探索新设计方向** | 放到 `design-archive/<YYYY-MM-DD>-<topic>/`；用 `./scripts/view-design.sh <folder>` 预览；归档见 [Design Archive](.know/docs/arch/design-archive.md) |
 | **提交前 / 清理后** | `npm run build && npm run lint:unused`。死代码要么删，要么登记登记表 |
+| **修改首页 hero 布局**（`src/pages/index.astro` 的 `.layout-featured`） | 首屏不变量：hero + sidebar + secondary headline 必须完整落在首屏 viewport。sidebar 想加内容 → 放进 `.layout-featured-side-filler`（`margin-top: auto` 吸底）；不得新增第 3 grid row；不得给 sidebar 加 >3 篇文章或大图使其变 tall |
+
+## 首页首屏不变量
+
+`.layout-featured` 是刚性的 2 行 grid：
+
+```
+row 1: [ hero (main)  | divider | sidebar ]
+row 2: [         secondary headline (2 cols)        ]
+```
+
+**不变量**：桌面默认视窗下，row 1 + row 2 必须一屏看全（secondary 不能滚出屏幕）。
+
+**扩展规则**
+- 要在右侧加内容（如热门标签、订阅 CTA）→ 放 `.layout-featured-side-filler`；该块 `margin-top: auto` 会把自己推到 sidebar 单元格的底部，填充 3 篇文章下方的空白，**不增加 row 高度**
+- 想加新"报纸头条级"内容块 → 放 `.suggestions-section` 或 `.remaining-section` 下面（first fold 之外）
+- 不得将 sidebar 文章数量 >3；不得在 sidebar 加图片/大块文本
+- 不得 emit 新的 `grid-column: 1 / -1` 子元素（会成为 row 3 把 secondary 挤出）
+
+参考实现：`src/styles/layout.css::.layout-featured` 注释 + `src/pages/index.astro::layout-featured` 注释。
 
 ## Commit 约定
 

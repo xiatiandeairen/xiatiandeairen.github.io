@@ -149,10 +149,16 @@
   max-width: 900px;
 }
 
-/* ── Featured layout (index hero) ── */
+/* ── Featured layout (index hero) ──
+   FIRST-FOLD INVARIANT: 2 rows only. row 1 = hero + sidebar, row 2 = secondary.
+   secondary headline 必须落在首屏视窗内。任何增补都只能放进 sidebar 底部的
+   .layout-featured-side-filler（flex grows + margin-top:auto 吸底）。
+   不得 emit 新 grid row（例如 grid-column: 1/-1 的第 3 块）。
+   See src/pages/index.astro 顶部注释 + CLAUDE.md §首页首屏不变量 */
 .layout-featured {
   display: grid;
   grid-template-columns: 1.6fr 1px 1fr;
+  grid-template-rows: auto auto;
   gap: 0;
 }
 
@@ -166,6 +172,15 @@
 
 .layout-featured-side {
   padding-left: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  /* grid cell already stretches to row height; flex layout lets children
+     use margin-top:auto to consume empty space without adding viewport pixels. */
+}
+
+.layout-featured-side-filler {
+  margin-top: auto; /* push to bottom of sidebar cell — the key to the invariant */
+  padding-top: var(--space-5);
 }
 
 /* ═══════════ Responsive: ≤ 767px ═══════════ */
