@@ -1,5 +1,5 @@
 {
-  "version": "1.0",
+  "version": "1.1",
   "notes": [
     {
       "slug": "ai-agent-operating-system",
@@ -10,11 +10,14 @@
         "agent",
         "engineering"
       ],
+      "tagAliases": [],
       "topics": [
         "AI 工程化",
         "开发工具"
       ],
+      "topicAliases": [],
       "questionType": "系统设计",
+      "series": "AI Skills 系列",
       "date": "2026-04-14T10:00:00Z"
     },
     {
@@ -27,11 +30,14 @@
         "engineering",
         "sprint"
       ],
+      "tagAliases": [],
       "topics": [
         "AI 工程化",
         "开发工具"
       ],
+      "topicAliases": [],
       "questionType": "系统设计",
+      "series": "AI Skills 系列",
       "date": "2026-04-14T12:00:00Z"
     },
     {
@@ -44,11 +50,14 @@
         "engineering",
         "know"
       ],
+      "tagAliases": [],
       "topics": [
         "AI 工程化",
         "开发工具"
       ],
+      "topicAliases": [],
       "questionType": "系统设计",
+      "series": "AI Skills 系列",
       "date": "2026-04-14T14:00:00Z"
     },
     {
@@ -61,11 +70,14 @@
         "engineering",
         "diagnose"
       ],
+      "tagAliases": [],
       "topics": [
         "AI 工程化",
         "开发工具"
       ],
+      "topicAliases": [],
       "questionType": "系统设计",
+      "series": "AI Skills 系列",
       "date": "2026-04-14T16:00:00Z"
     },
     {
@@ -79,11 +91,14 @@
         "rust",
         "decay"
       ],
+      "tagAliases": [],
       "topics": [
         "AI 工程化",
         "开发工具"
       ],
+      "topicAliases": [],
       "questionType": "系统设计",
+      "series": "AI Skills 系列",
       "date": "2026-04-14T18:00:00Z"
     },
     {
@@ -96,11 +111,14 @@
         "engineering",
         "methodology"
       ],
+      "tagAliases": [],
       "topics": [
         "AI 工程化",
         "方法论"
       ],
+      "topicAliases": [],
       "questionType": "方法论",
+      "series": "AI Skills 系列",
       "date": "2026-04-14T20:00:00Z"
     },
     {
@@ -113,11 +131,14 @@
         "engineering",
         "sprint"
       ],
+      "tagAliases": [],
       "topics": [
         "AI 工程化",
         "开发工具"
       ],
+      "topicAliases": [],
       "questionType": "系统设计",
+      "series": "AI Skills 系列",
       "date": "2026-04-14T22:00:00Z"
     }
   ],
@@ -136,5 +157,21 @@
     "AI 工程化",
     "开发工具",
     "方法论"
-  ]
+  ],
+  "tagCounts": {
+    "AI": 7,
+    "agent": 7,
+    "engineering": 7,
+    "sprint": 2,
+    "know": 1,
+    "diagnose": 1,
+    "rust": 1,
+    "decay": 1,
+    "methodology": 1
+  },
+  "topicCounts": {
+    "AI 工程化": 7,
+    "开发工具": 6,
+    "方法论": 1
+  }
 }
