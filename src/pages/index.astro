@@ -33,9 +33,17 @@ const websiteJsonLd = {
 
 const featuredNote = sortedNotes.find((n: any) => n.featured === true);
 const featured = featuredNote || notes[0];
-const sidebarNotes = notes.slice(1, 4);
+const sidebarNotes = notes.slice(1, 4);      // first-fold invariant: keep at 3 items
 const secondaryNotes = notes.slice(4, 6);
 const remainingNotes = notes.slice(6);
+
+// Hot tags — rendered as filler at BOTTOM of sidebar via margin-top: auto.
+// DO NOT move this into a new grid row — see "first-fold invariant" below.
+const tagCountMap = new Map<string, number>();
+for (const n of allNotes) {
+  for (const tag of n.tags) tagCountMap.set(tag.name, (tagCountMap.get(tag.name) || 0) + 1);
+}
+const homeHotTags = Array.from(tagCountMap.entries()).sort((a, b) => b[1] - a[1]).slice(0, 8);
 
 // Build slug → related-slugs map (top 6 each) for client-side suggestions.
 const relatedMap: Record<string, string[]> = {};
@@ -55,6 +63,16 @@ for (const n of allNotes) {
     <p class="text-ink-muted text-center py-16 font-sans">{t('common.empty')}</p>
   ) : (
     <>
+      {/* ═══ FIRST-FOLD INVARIANT ═══
+          layout-featured 是 2 行固定布局：row 1 = hero + sidebar；row 2 = secondary。
+          必须保证 "hero + sidebar + secondary" 完整落在首屏 viewport 内。
+
+          扩展规则：
+          - 右侧 sidebar 想加内容 → 放进 .layout-featured-side-filler（flex margin-top: auto）
+          - 不得新增 row（不得加 .layout-featured-third 之类的 grid-column: 1/-1 块）
+          - 不得给 sidebar 追加使其变 tall 的元素（5 篇文章 / 大图等）
+          - 新特性必须先放 remaining-section 或 suggestions-section 下面
+          详见 CLAUDE.md "首页首屏不变量" 节 */}
       <div class="layout-featured">
         <div class="layout-featured-main">
           <ArticleCard note={featured} variant="headline" lang={lang} />
@@ -67,6 +85,18 @@ for (const n of allNotes) {
           {sidebarNotes.map((note) => (
             <ArticleCard note={note} variant="sidebar" lang={lang} />
           ))}
+          {homeHotTags.length > 0 && (
+            <div class="layout-featured-side-filler">
+              <div class="section-label section-label-sub">{lang === 'zh' ? '热门标签' : 'Hot tags'}</div>
+              <div class="home-hot-tags-chips">
+                {homeHotTags.map(([name, count]) => (
+                  <a href={`/tags/${encodeURIComponent(name)}`} class="home-hot-tag-chip font-sans">
+                    {name} <span class="home-hot-tag-count">{count}</span>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
         </aside>
         {secondaryNotes.length > 0 && (
           <div class="layout-featured-secondary">
@@ -187,5 +217,38 @@ for (const n of allNotes) {
     font-weight: 600;
     color: var(--ink);
     line-height: 1.35;
+  }
+
+  /* Sidebar filler sub-label — smaller than section-label */
+  .section-label-sub {
+    margin-bottom: var(--space-2);
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--rule-light);
+  }
+  .home-hot-tags-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .home-hot-tag-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 10px;
+    font-size: var(--font-caption);
+    color: var(--ink-muted);
+    background: var(--paper);
+    border: 1px solid var(--rule-light);
+    border-radius: 999px;
+    text-decoration: none;
+    transition: border-color var(--duration-fast), color var(--duration-fast);
+  }
+  .home-hot-tag-chip:hover {
+    color: var(--ink);
+    border-color: var(--ink-muted);
+  }
+  .home-hot-tag-count {
+    font-size: var(--font-xs);
+    color: var(--ink-ghost);
   }
 </style>
