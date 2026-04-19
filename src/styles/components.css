@@ -48,7 +48,7 @@
     transition: width 0.08s linear;
   }
 
-  /* ── Chapter progress: segmented bar with per-segment percentage ──
+  /* ── Chapter progress: segmented horizontal bar with per-segment percentage ──
      Uses distinct progress color (teal) instead of accent red to avoid
      visual confusion with links/chip primary. */
   .chapter-progress {
@@ -90,8 +90,8 @@
   .cp-fill {
     position: absolute;
     inset: 0;
-    background: var(--progress-color);
     width: var(--fill, 0%);
+    background: var(--progress-color);
     transition: width 0.1s linear;
   }
   .cp-label {
