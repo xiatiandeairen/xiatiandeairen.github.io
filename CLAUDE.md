@@ -134,6 +134,7 @@ row 2: [         secondary headline (2 cols)        ]
 - [Design Governance 架构](.know/docs/arch/design-governance.md) | 4 治理机制：Rule of Three / 变更前 grep / Primitive 登记表 / lint:unused CI
 - [Design Archive 架构](.know/docs/arch/design-archive.md) | 候选方向 mockup 归档 + view-design.sh 流程 + 生产构建隔离不变量
 - [Design Iteration 反模式](.know/docs/methodology/design-iteration.md) | Constraint Protocol 5 步 + 布局 4 范式 + 18 轮迭代教训
+- [Entry Context Routing 架构](.know/docs/arch/entry-context-routing.md) | BaseLayout dispatcher → sessionStorage → reader → CSS 隐藏，按入口（topic/series/tag）裁剪文章页底部块
 
 #### UI
 
@@ -143,6 +144,7 @@ row 2: [         secondary headline (2 cols)        ]
 - [Masthead 交互设计](.know/docs/ui/masthead.md) | 导航 + 工具栏 + dropdown
 - [Search Overlay 交互设计](.know/docs/ui/search-overlay.md) | 弹层 + 实时搜索
 - [Sidebar Drawer 交互设计](.know/docs/ui/sidebar-drawer.md) | hover 抽屉
+- [文章页底部导航 交互设计](.know/docs/ui/article-bottom-nav.md) | 4 候选块（series-continue / topic-continue / series-nav / 通用 prev-next）渲染矩阵 + ctx 隐藏规则
 
 #### Requirements
 
