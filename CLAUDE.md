@@ -6,6 +6,30 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 个人内容站，报纸/杂志风格，Astro + Tailwind CSS 构建，部署于 GitHub Pages。
 
+## ⚠ UI / 布局 / 视觉改动硬规则（每次会话必读）
+
+触发：改 `.astro` / `.css`，涉及 flex / grid / 间距 / 字号 / 颜色 / line-clamp / 高宽约束 / 任何布局属性。
+
+**动代码前先回答 3 问**（回答不出就停）：
+
+1. **这是「新约束 / 废弃旧约束 / 补 edge case」哪种？**
+   模糊就当场问用户，不硬猜。用户"陆续给的反馈"有时是补约束，有时是改变主意，不是同一回事。
+
+2. **本任务当前约束档案是什么？**
+   首轮改动前先列档案（≤6 条，表格：ID / 描述 / 类型 / 来源）。后续改动先 print 档案再改。
+
+3. **本次改动打破哪条已有约束？**
+   物理冲突（例："摘要撑满 + 评论吸底 + 固定高度 + 变长文字"）→ 必须当场推回："C2 和 C5 冲突，选一个"，不硬试。
+
+**改完立即用 playwright 测数值**：`getBoundingClientRect()` 关键元素（列宽比例 / 行高度 / 元素是否在首屏）。不靠肉眼，不说"看起来对"。
+
+**违反信号**（自检）：
+- 同一 UI 区域改了 >2 轮未收敛 → 立即停手，回去跑约束档案
+- 用户说"又变形了" / "又不对了" / "左右不一致" → 立即停手，列所有已知约束
+- 本次改动影响 >1 个视觉维度（宽/高/间距/字号同时变）→ 必须先列档案
+
+详细 5 步 Constraint Protocol + 18 轮反例 + 布局 4 范式，见 [.know/docs/methodology/design-iteration.md](.know/docs/methodology/design-iteration.md)。
+
 ## Commands
 
 ```bash
@@ -59,7 +83,8 @@ tokens.css → base/layout/masthead/dropdown/search → components.css → pages
 | **引入 `global.css` 规则** | 只允许跨切面激活类（`.dark` / `.reading-mode`），不是"公共样式" |
 | **探索新设计方向** | 放到 `design-archive/<YYYY-MM-DD>-<topic>/`；用 `./scripts/view-design.sh <folder>` 预览；归档见 [Design Archive](.know/docs/arch/design-archive.md) |
 | **提交前 / 清理后** | `npm run build && npm run lint:unused`。死代码要么删，要么登记登记表 |
-| **修改首页 hero 布局**（`src/pages/index.astro` 的 `.layout-featured`） | 首屏不变量：hero + sidebar + secondary headline 必须完整落在首屏 viewport。sidebar 想加内容 → 放进 `.layout-featured-side-filler`（`margin-top: auto` 吸底）；不得新增第 3 grid row；不得给 sidebar 加 >3 篇文章或大图使其变 tall |
+| **修改首页 hero 布局**（`src/pages/index.astro` 的 `.layout-featured`） | 首屏不变量：hero + sidebar + secondary headline 必须完整落在 1280×900 基线 viewport。sidebar = `SIDEBAR_COUNT` 篇紧凑列表 + 热门标签/主题；不得新增第 3 grid row；不得给 sidebar 加大图 / 堆积 block 使其变 tall。首屏下方新 section（suggestions / series） 放 `.layout-featured` 外。详见 §首页首屏不变量 |
+| **多约束布局迭代（同一区域 >3 轮改不对 / 用户反馈"又变形"）** | 停止打补丁。读 [Design Iteration 反模式](.know/docs/methodology/design-iteration.md)，跑 5 步 Constraint Protocol：列约束 → 查矛盾 → 枚举 edge case → 钉死变量 → 数值验证 |
 
 ## 首页首屏不变量
 
@@ -70,13 +95,25 @@ row 1: [ hero (main)  | divider | sidebar ]
 row 2: [         secondary headline (2 cols)        ]
 ```
 
-**不变量**：桌面默认视窗下，row 1 + row 2 必须一屏看全（secondary 不能滚出屏幕）。
+**不变量**：基线 viewport 1280×900 下，row 1 + row 2 必须一屏看全（secondary 不能滚出屏幕）。
+
+**sidebar 内容构成**（不可偏离）：
+1. `section-label`（如"近期文章"）
+2. `SIDEBAR_COUNT` 篇紧凑列表（日期 + 标题单行截断，不含 excerpt 和大图）
+3. 不足时用 `.article-card-placeholder` 占位凑齐
+4. `.layout-featured-side-filler` 底部块 = 热门标签/主题（2 行 chip，单行截断）
 
 **扩展规则**
-- 要在右侧加内容（如热门标签、订阅 CTA）→ 放 `.layout-featured-side-filler`；该块 `margin-top: auto` 会把自己推到 sidebar 单元格的底部，填充 3 篇文章下方的空白，**不增加 row 高度**
-- 想加新"报纸头条级"内容块 → 放 `.suggestions-section` 或 `.remaining-section` 下面（first fold 之外）
-- 不得将 sidebar 文章数量 >3；不得在 sidebar 加图片/大块文本
+- sidebar 想加内容 → 只能加进 `.layout-featured-side-filler`（filler 块内部可自由堆叠 label + chips，但整体高度不能超出 hero 决定的 row 高度）
+- 想加独立新区块（suggestions / series / CTA）→ 放 `.layout-featured` 的 **兄弟元素**，不是子元素
+- 不得改 `SIDEBAR_COUNT`（目前 6）时不重新测首屏
 - 不得 emit 新的 `grid-column: 1 / -1` 子元素（会成为 row 3 把 secondary 挤出）
+- 不得给 sidebar 列表项加 excerpt / 图片 / 多行文本（会破坏"紧凑列表"假设）
+
+**首屏当前下方区块顺序**（row 2 之外）：
+1. `.suggestions-section`（client-hydrated，cold 时 hidden） — "猜你想读"（2×2 卡带推荐理由）
+2. `.home-series-section` — "系列进行中"（2 列卡，不足用 placeholder 补齐）
+3. `Pagination`（若有多页）
 
 参考实现：`src/styles/layout.css::.layout-featured` 注释 + `src/pages/index.astro::layout-featured` 注释。
 
@@ -96,6 +133,7 @@ row 2: [         secondary headline (2 cols)        ]
 - [UI Architecture 架构](.know/docs/arch/ui-architecture.md) | CSS 5 层 + Component 4 类 + Page 组成（路由/i18n/Layout/渲染管线/数据流）
 - [Design Governance 架构](.know/docs/arch/design-governance.md) | 4 治理机制：Rule of Three / 变更前 grep / Primitive 登记表 / lint:unused CI
 - [Design Archive 架构](.know/docs/arch/design-archive.md) | 候选方向 mockup 归档 + view-design.sh 流程 + 生产构建隔离不变量
+- [Design Iteration 反模式](.know/docs/methodology/design-iteration.md) | Constraint Protocol 5 步 + 布局 4 范式 + 18 轮迭代教训
 
 #### UI
 

@@ -2,21 +2,22 @@
 /* Category: Content
    Patterns: hover-indicator, hover-shift, card-divider, text-hierarchy
    Tokens: --font-h3, --font-small, --ink-muted, --ink-hover, --space-2, --space-3
-   Variants: headline | sidebar | secondary | list
-   See: .know/docs/design-system.md §2, §3.1 */
+   Variants: headline | sidebar | secondary
+   See: .know/docs/arch/design-tokens.md + design-patterns.md §2.1 */
 import type { Note } from '../utils/notes';
-import { formatDate } from '../utils/notes';
+import { getRealComments } from '../utils/comments';
 import { useT, type Lang } from '../i18n';
 
 interface Props {
   note: Note;
-  variant: 'headline' | 'sidebar' | 'secondary' | 'list';
+  variant: 'headline' | 'sidebar' | 'secondary';
   lang?: Lang;
 }
 
 const { note, variant, lang = 'zh' } = Astro.props;
 const t = useT(lang);
 const url = `/notes/${note.slug}`;
+const realComments = variant === 'headline' ? getRealComments(note.slug, 3) : [];
 
 function plainText(content: string): string {
   return content
@@ -30,45 +31,37 @@ function plainText(content: string): string {
     .trim();
 }
 
-const excerptLen = variant === 'headline' ? 500 : variant === 'sidebar' ? 50 : variant === 'secondary' ? 80 : 120;
-const excerpt = plainText(note.content).slice(0, excerptLen) + '…';
-
-const dateFormatted = variant === 'list' ? formatDate(note.date, lang === 'en' ? 'en-US' : 'zh-CN') : '';
-const charCount = note.content.replace(/\s+/g, '').length;
-const readingMinutes = Math.max(1, Math.round(charCount / 300));
+const excerptLen = variant === 'headline' ? 500 : 80;
+const excerpt = variant === 'sidebar' ? '' : plainText(note.content).slice(0, excerptLen) + '…';
 ---
 
 {variant === 'headline' && (
-  <a href={url} class="article-card article-card-headline">
-    <h2 class="article-card-title font-display">
-      {note.title}
-    </h2>
-    <p class="article-card-excerpt">{excerpt}</p>
-    <div class="article-card-comments">
-      <div class="reader-letter">
-        <span class="reader-letter-quote">"</span>
-        <blockquote class="reader-letter-text font-serif">
-          {lang === 'zh' ? '热门评论即将上线，敬请期待…' : 'Hot comments coming soon…'}
-        </blockquote>
-        <cite class="reader-letter-author">— {lang === 'zh' ? '读者' : 'A Reader'}</cite>
+  <div class="article-card article-card-headline">
+    <a href={url} class="article-card-headline-link">
+      <h2 class="article-card-title font-display">
+        {note.title}
+      </h2>
+      <p class="article-card-excerpt">{excerpt}</p>
+    </a>
+    {realComments.length > 0 && (
+      <div class="article-card-comments">
+        {realComments.map((c, i) => (
+          <a href={`${url}#comments`} class="reader-letter">
+            {i === 0 && <span class="reader-letter-quote">"</span>}
+            <blockquote class="reader-letter-text font-serif">{c.body}</blockquote>
+            <cite class="reader-letter-author">— @{c.author}</cite>
+          </a>
+        ))}
       </div>
-      <div class="reader-letter">
-        <blockquote class="reader-letter-text font-serif">
-          {lang === 'zh' ? '这篇关于任务编排的思路很有启发性' : 'Great insights on task orchestration'}
-        </blockquote>
-        <cite class="reader-letter-author">— {lang === 'zh' ? '读者' : 'A Reader'}</cite>
-      </div>
-    </div>
-  </a>
+    )}
+  </div>
 )}
 
 {variant === 'sidebar' && (
-  <article class="article-card article-card-sidebar">
-    <h4 class="article-card-title">
-      <a href={url}>{note.title}</a>
-    </h4>
-    <p class="article-card-excerpt font-sans">{excerpt}</p>
-  </article>
+  <a href={url} class="article-card article-card-sidebar">
+    <time class="article-card-sidebar-date font-sans" datetime={note.date}>{note.date.slice(5, 10)}</time>
+    <span class="article-card-sidebar-title font-display">{note.title}</span>
+  </a>
 )}
 
 {variant === 'secondary' && (
@@ -80,22 +73,3 @@ const readingMinutes = Math.max(1, Math.round(charCount / 300));
   </article>
 )}
 
-{variant === 'list' && (
-  <article class="article-card article-card-list">
-    <h2 class="article-card-title font-serif">
-      <a href={url}>{note.title}</a>
-    </h2>
-    <p class="article-card-excerpt font-sans">{excerpt}</p>
-    <div class="article-card-meta font-sans">
-      <time datetime={note.date}>{dateFormatted}</time>
-      <span>·</span>
-      <span>{t('article.readingTime', { min: readingMinutes })}</span>
-      {note.tags.length > 0 && (
-        <>
-          <span>·</span>
-          <span>{note.tags.slice(0, 3).map(tag => tag.name).join(' · ')}</span>
-        </>
-      )}
-    </div>
-  </article>
-)}

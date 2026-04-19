@@ -7,100 +7,112 @@
 ### 1.1 信息架构
 
 ```
-吸引（headline）→ 留住（sidebar + secondary）→ 服务（list + drawer）
+吸引（headline）→ 留住（sidebar + secondary）→ 发现（suggestions + series）→ 翻页
 ```
 
-| 区域 | 目的 | 数据切片 |
+| 区域 | 目的 | 数据来源 |
 |------|------|---------|
-| headline | 编辑选择，最重要的一篇 | `notes[0]` |
-| sidebar | 快速浏览近期内容 | `notes[1:4]`（3 篇）|
-| secondary | 编辑推荐，双栏补充 | `notes[4:6]`（2 篇）|
-| list | 翻阅剩余文章 | `notes[6:]` |
-| drawer | 侧边发现（热门+专栏+RSS）| 独立数据源 |
+| **hero headline** | 编辑选择的焦点文章 | `featured` 优先，fallback `notes[0]` |
+| **sidebar**（近期文章） | 快速扫读近期 N 篇 | `notes[1 : 1+SIDEBAR_COUNT]`，不足用 placeholder 补齐 |
+| **sidebar filler**（热门标签 / 主题） | 站点维度导航入口 | tag/topic 频次 top 3 各一行 |
+| **secondary** | 双栏副头条 | `notes[4:6]` |
+| **suggestions**（猜你想读） | 个性化推荐（客户端） | `localStorage.recentlyViewed` × 预构 `relatedMap` |
+| **series**（系列进行中） | 长线写作入口 | 按 `series.name` 聚合，取 latest 2 |
+| pagination | 翻到下一页 | `Pagination` 组件 |
+| drawer | 右边缘侧栏发现（与首页独立） | 独立数据 |
 
 ### 1.2 区域排布
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                     masthead                             │
-│              夏天的爱人（brand）                           │
-│     tagline  |  nav(文章/关于)  |  tools(搜索/语言/主题)   │
-├━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┤
-│                                   │                      │
-│  headline (1.6fr)                 │ 1px │  sidebar (1fr)  │
-│  ┌─────────────────────────┐      │rule │  ┌───────────┐  │
-│  │ 标题 (h2, -0.02em)     │      │     │  │ 近期文章   │  │
-│  │                         │      │     │  ├───────────┤  │
-│  │ 摘要 (斜体, flex:1)    │      │     │  │ card ×3   │  │
-│  │                         │      │     │  │ (sidebar)  │  │
-│  │ ─── 读者来信 ───        │      │     │  └───────────┘  │
-│  │ " 评论... — 读者        │      │     │                 │
-│  └─────────────────────────┘      │     │                 │
-│                                   │     │                 │
-├───────────────────────────────────┴─────┴─────────────────┤
-│  secondary (grid: 1fr | 1px rule | 1fr)                   │
-│  ┌─────────────────┐  │  ┌─────────────────┐              │
-│  │ card (secondary) │  │  │ card (secondary) │              │
-│  └─────────────────┘  │  └─────────────────┘              │
+┌────────────────────────────────────────────────────────────┐
+│                        masthead                             │
+├━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┤
+│                                   │                         │
+│  hero headline (1.6fr)            │1px│ [ 近期文章 ]        │
+│  ┌─────────────────────────┐      │rule│ 04-14 · 标题…     │
+│  │ 标题 (h2)               │      │    │ 04-14 · 标题…     │
+│  │ 摘要 (斜体)             │      │    │ …共 SIDEBAR_COUNT │
+│  │ 读者来信 ×3             │      │    │                    │
+│  │                         │      │    │ [ 热门标签 / 主题 ]│
+│  │                         │      │    │ [AI 工程化][方法论]│
+│  │                         │      │    │ (AI)(agent)(…)     │
+│  └─────────────────────────┘      │    │                    │
+├───────────────────────────────────┴────┴──────────────────┤
+│  secondary (grid: 1fr | 1px rule | 1fr)                    │
+│  Know: …让 AI 不再重复犯错  │  Sprint: …给 AI 一条流水线   │
 ├━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┤
-│  remaining-section (3px solid ink 顶线)                    │
-│  ┌───────────────────────────────────────────────────────┐ │
-│  │ card (list) × N                                       │ │
-│  │ card (list)                                           │ │
-│  │ card (list)                                           │ │
-│  └───────────────────────────────────────────────────────┘ │
+│  [ 猜你想读 ] （客户端 hydrate，冷启动隐藏）                 │
+│  ┌──────────────┐  ┌──────────────┐                        │
+│  │ 01 kicker    │  │ 02 kicker    │                        │
+│  │ 标题         │  │ 标题         │                        │
+│  │ 因为你读过《…》│  │ 因为你读过《…》│                        │
+│  └──────────────┘  └──────────────┘   …2×2                  │
+├━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┤
+│  [ 系列进行中 ]                              全部系列 →      │
+│  ┌──────────────┐  ┌──────────────┐                        │
+│  │ 系列·N 篇    │  │ 系列·筹备中  │ ← placeholder           │
+│  │ 系列名       │  │ 敬请期待     │                        │
+│  │ 01 最新篇 1  │  │ (虚线 border) │                        │
+│  │ 02 最新篇 2  │  │              │                        │
+│  └──────────────┘  └──────────────┘                        │
 ├───────────────────────────────────────────────────────────┤
-│  pagination                                               │
-├───────────────────────────────────────────────────────────┤
-│  footer                                                   │
+│  pagination                                                │
+│  footer                                                    │
 └───────────────────────────────────────────────────────────┘
 
-                                          ┌──┐ ← drawer indicator
-                                          │◂ │   (屏幕右边缘)
-                                          └──┘
+                                     ┌──┐ ← drawer indicator
+                                     │◂ │   (屏幕右边缘)
+                                     └──┘
 ```
 
 ### 1.3 Grid 定义
 
 | Primitive | CSS | 用途 |
 |-----------|-----|------|
-| `layout-featured` | `grid: 1.6fr 1px 1fr` | 头条 + 分隔线 + 侧栏 |
-| `layout-featured-secondary` | `grid: 1fr 1px 1fr`, `grid-column: 1/-1` | 双栏推荐，嵌在 featured 内部 |
-| `remaining-section` | 单栏 + `border-top: 3px solid ink` | 列表区 |
+| `layout-featured` | `grid: 1.6fr 1px 1fr; rows: auto auto` | 首屏 2 行（hero+sidebar / secondary） |
+| `layout-featured-secondary` | `grid: 1fr 1px 1fr; column: 1/-1` | 双栏副头条（内嵌 row 2） |
+| `layout-featured-side-filler` | block in sidebar flex column | 热门标签/主题 block |
+| `suggestions-grid` | `grid: repeat(2, 1fr)` | 猜你想读 2×2 |
+| `home-series-grid` | `grid: repeat(2, minmax(0,1fr))` | 系列进行中 2 列，不足用 placeholder |
 
 ### 1.4 响应式
 
 | 断点 | 变化 |
 |------|------|
-| ≤767px | featured → 单栏；分隔线隐藏；secondary → 单栏；sidebar 下移 |
+| ≤767px | `.layout-featured` → 单栏；`.layout-featured-secondary` → 单栏；sidebar 下移 |
+| ≤768px | `.home-series-grid` → 1 列 |
+| ≤640px | `.suggestions-grid` → 1 列 |
 
 ## 2. 交互流程
 
-### 2.1 文章浏览
+### 2.1 浏览
 
 ```
 用户到达首页
-  → 视线落在 headline 大标题（视觉锚点）
-  → 扫描 sidebar 三篇近期文章（快速判断）
-  → 下滑看 secondary 双栏推荐
-  → 继续下滑翻阅 list 列表
-  → 任意卡片点击 → 跳转文章详情页
+  → 视线落在 hero headline 大标题
+  → 扫描 sidebar N 篇紧凑列表（快速判断日期+主题）
+  → 下滑看 secondary 副头条
+  → 进入 suggestions（若个性化触发）/ series（知识线入口）
+  → pagination 或 footer
 ```
 
-### 2.2 侧边栏发现
+### 2.2 个性化推荐（suggestions）
 
 ```
-鼠标移到屏幕右边缘 indicator
-  → drawer 滑出（300ms ease-out）
-  → 浏览热门文章 / 系列专栏 / RSS
-  → 鼠标移开 → drawer 收回（250ms ease-in）
+首次访问：section[hidden]，不渲染
+多次阅读后：
+  → 读取 localStorage.recentlyViewed
+  → 用 relatedMap 计算 picks
+  → 对每个 pick 记录触发源（score 最高的那篇）
+  → 展示 2×2 卡，每张底部 "因为你读过《X》"
 ```
 
-### 2.3 全局工具
+### 2.3 系列入口（series）
 
 ```
-搜索图标 hover → expandable 展开显示快捷键
-语言/主题图标 hover → dropdown 弹出选项列表
+用户想看完整主题 → 点系列卡名或子条目
+系列少于 2 → placeholder 占位（视觉平衡）
+点"全部系列 →" → 跳 /series
 ```
 
 ## 3. 状态与样式
@@ -109,61 +121,63 @@
 
 | state | trigger | visual | timing |
 |-------|---------|--------|--------|
-| normal | default | h2 标题 `letter-spacing: -0.02em`, `margin-left: -0.04em`; 摘要斜体 `ink-light`; 读者来信区（装饰引号 `"` 3.5rem + 斜体引用 + small-caps 署名） | — |
-| hover | mouse enter | 标题 → `ink-hover` + 下划线（`underline-offset: 0.15em`, `thickness: 1px`） | `--transition-color` |
+| normal | default | h2 `-0.02em`；摘要斜体；读者来信 | — |
+| hover | mouse enter | 标题 → `ink-hover` + 下划线 | `--transition-color` |
 | active | mouse down | `translateY(0.5px)` | 0.05s ease |
-| focus-visible | keyboard tab | `outline: 2px solid ink-hover; offset: 3px` | — |
+| focus-visible | keyboard | outline 2px ink-hover | — |
 
-### 3.2 ArticleCard — sidebar
+### 3.2 ArticleCard — sidebar（紧凑列表）
 
-| state | trigger | visual | timing |
-|-------|---------|--------|--------|
-| normal | default | 紧凑：`font-body` 标题 + `font-caption` 摘要 `ink-faint`; `rule-faint` 底线分隔 | — |
-| hover | mouse enter | 行背景 `rgba(0,0,0,0.02)` + 标题 → `ink-hover` | `--transition-color` |
-| active | mouse down | 背景加深 `rgba(0,0,0,0.04)` | `--transition-color` |
-| focus-within | keyboard tab | `outline: 2px solid ink-hover; offset: 2px` | — |
+| state | trigger | visual |
+|-------|---------|--------|
+| normal | default | grid `auto minmax(0,1fr)`: 日期 (caption, ghost) + 标题 (small, serif, ellipsis)；`1px rule-faint` 下分隔 |
+| hover | mouse enter | 标题 `ink-hover` + 下划线 |
+| focus | keyboard | outline 2px ink-hover |
+| placeholder | 文章不足 | `.article-card-placeholder` opacity 0.4；日期 "—"；标题 "敬请期待" |
 
-### 3.3 ArticleCard — secondary
+### 3.3 ArticleCard — secondary（裸文本）
 
-| state | trigger | visual | timing |
-|-------|---------|--------|--------|
-| normal | default | `font-h3` 标题 + 标题下 `1px rule-faint` 分隔线 + 摘要 | — |
-| hover | mouse enter | 左线 2px `ink-hover` 50% 高 + `padding-left` 偏移 + 标题下划线 + 标题 → `ink-hover` | `--transition-all` |
-| active | mouse down | `translateY(0.5px)` | 0.05s ease |
-| focus-within | keyboard tab | `outline: 2px solid ink-hover; offset: 3px` | — |
+| state | trigger | visual |
+|-------|---------|--------|
+| normal | default | h3 标题 + 标题下 `rule-faint` + 摘要 |
+| hover | mouse enter | 标题 → `ink-hover` + 下划线（无 padding 位移，无左条） |
+| focus-within | keyboard | outline 2px ink-hover |
 
-### 3.4 ArticleCard — list
+### 3.4 Hot chips（热门标签 / 主题）
 
-| state | trigger | visual | timing |
-|-------|---------|--------|--------|
-| normal | default | `font-h3` 标题 + 摘要 + meta 行（`letter-spacing: 0.04em`）; `rule-faint` 底线 | — |
-| hover | mouse enter | 行背景 `rgba(0,0,0,0.02)` + 左线 2px `ink-hover` 60% 高 + 标题 → `ink-hover` | `--transition-color` + `--transition-all` |
-| active | mouse down | 背景加深 `rgba(0,0,0,0.04)` | `--transition-color` |
-| focus-within | keyboard tab | `outline: 2px solid ink-hover; offset: 2px` | — |
+| 变体 | border-radius | 用途 |
+|------|---------------|------|
+| `.home-hot-chip--tag` | `999px`（圆角胶囊） | 具体 tag |
+| `.home-hot-chip--topic` | `var(--radius-sm)`（方角） | 广义 topic |
 
-### 3.5 Hover 不对称设计
+两者颜色、border 色、字重一致，**仅形状区分**。单行 `flex-wrap: nowrap + overflow: hidden`，超出直接截断。
 
-| 变体 | 主信号 | 理由 |
-|------|--------|------|
-| headline | 标题下划线 | 大面积卡片，排版变化比空间变化更优雅 |
-| sidebar | 行背景色 | 紧凑项，整行命中反馈 |
-| secondary | 左线 + 下划线 | 双栏内方向引导 + 排版变化 |
-| list | 行背景 + 左线 | 长列表扫描定位，双信号 |
+### 3.5 Suggestion card
 
-### 3.6 Sidebar Drawer
+| state | trigger | visual |
+|-------|---------|--------|
+| normal | default | bg-subtle + rule-faint border + radius-md；kicker 在顶（accent），标题 (h3, clamp 2)，底部 hairline + "因为你读过《…》"；右上角序号 `01–04` |
+| hover | mouse enter | border → ink-muted；`box-shadow`；`translateY(-1px)`；标题 → ink-hover |
 
-| state | trigger | visual | timing |
-|-------|---------|--------|--------|
-| closed | default | `translateX(220px)`, indicator 可见 | — |
-| open | hover indicator | `translateX(0)`, indicator 淡出 | slide-in 300ms ease-out, indicator 200ms fade |
-| closing | mouse leave | `translateX(220px)`, indicator 淡入 | slide-out 250ms ease-in |
+### 3.6 Series card
 
-### 3.7 评论区（读者来信）
+| state | trigger | visual |
+|-------|---------|--------|
+| normal | default | bg-subtle + 左 `3px solid accent` + radius-md；顶 meta (accent)，系列名 (h3)，列表 3 篇编号 + 标题 |
+| placeholder | 系列不足 | opacity 0.55；左条改为 `dashed rule`；标题 "敬请期待" + 斜体 empty 文案 |
 
-| 元素 | 样式 |
-|------|------|
-| 装饰引号 `"` | Georgia 3.5rem, `rule-light` 色, 绝对定位左上角 |
-| 引用文字 | 斜体 serif, `--font-small`, `ink-muted` |
-| 署名 | Inter, `font-variant: small-caps`, `letter-spacing: 0.05em`, `ink-ghost`, `— 读者` |
-| 上方分隔 | `1px solid rule-light` |
-| 评论间分隔 | `1px solid rule-faint` |
+### 3.7 Sidebar Drawer
+
+参见 [sidebar-drawer.md](./sidebar-drawer.md)。
+
+## 4. 固定参数与约束
+
+| 参数 | 值 | 约束 |
+|------|-----|------|
+| `SIDEBAR_COUNT` | 6 | 改动前必须 playwright 实测首屏 |
+| `HOT_CHIP_COUNT` | 3 | 每行 |
+| 系列卡数 | 2 | 不足用 placeholder |
+| suggestions picks | 4 | 固定 2×2 |
+| 基线 viewport | 1280×900 | 首屏不变量基线 |
+
+详见 [CLAUDE.md §首页首屏不变量](../../../CLAUDE.md#首页首屏不变量)。

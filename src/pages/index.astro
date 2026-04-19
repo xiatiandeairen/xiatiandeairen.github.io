@@ -3,7 +3,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import ArticleCard from '../components/ArticleCard.astro';
 import Pagination from '../components/Pagination.astro';
 import { getAllNotes, sortNotes, paginateNotes } from '../utils/notes';
-import { getRelated } from '../utils/rank';
+import { SIDEBAR_COUNT, SERIES_SLOT_COUNT, getActiveSeries, getHotChips, getSuggestionsData } from '../utils/home-data';
 import { generatePageMeta } from '../utils/seo';
 import { getLang, useT } from '../i18n';
 
@@ -33,29 +33,13 @@ const websiteJsonLd = {
 
 const featuredNote = sortedNotes.find((n: any) => n.featured === true);
 const featured = featuredNote || notes[0];
-const sidebarNotes = notes.slice(1, 4);      // first-fold invariant: keep at 3 items
+const sidebarNotes = notes.slice(1, 1 + SIDEBAR_COUNT);
 const secondaryNotes = notes.slice(4, 6);
-const remainingNotes = notes.slice(6);
 
-// Hot tags — rendered as filler at BOTTOM of sidebar via margin-top: auto.
-// DO NOT move this into a new grid row — see "first-fold invariant" below.
-const tagCountMap = new Map<string, number>();
-for (const n of allNotes) {
-  for (const tag of n.tags) tagCountMap.set(tag.name, (tagCountMap.get(tag.name) || 0) + 1);
-}
-const homeHotTags = Array.from(tagCountMap.entries()).sort((a, b) => b[1] - a[1]).slice(0, 8);
-
-// Build slug → related-slugs map (top 6 each) for client-side suggestions.
-const relatedMap: Record<string, string[]> = {};
-const titleMap: Record<string, string> = {};
-const dateMap: Record<string, string> = {};
-const typeMap: Record<string, string> = {};
-for (const n of allNotes) {
-  titleMap[n.slug] = n.title;
-  dateMap[n.slug] = n.date;
-  typeMap[n.slug] = n.question.type;
-  relatedMap[n.slug] = getRelated(n, allNotes, { max: 6 }).map(r => r.slug);
-}
+const activeSeries = getActiveSeries(allNotes);
+const homeHotTags = getHotChips(allNotes, 'tags');
+const homeHotTopics = getHotChips(allNotes, 'topics');
+const suggestionsData = getSuggestionsData(allNotes);
 ---
 
 <BaseLayout title={t('site.title')} description={t('site.tagline')} seo={seo} lang={lang} jsonLd={websiteJsonLd}>
@@ -68,10 +52,10 @@ for (const n of allNotes) {
           必须保证 "hero + sidebar + secondary" 完整落在首屏 viewport 内。
 
           扩展规则：
-          - 右侧 sidebar 想加内容 → 放进 .layout-featured-side-filler（flex margin-top: auto）
-          - 不得新增 row（不得加 .layout-featured-third 之类的 grid-column: 1/-1 块）
-          - 不得给 sidebar 追加使其变 tall 的元素（5 篇文章 / 大图等）
-          - 新特性必须先放 remaining-section 或 suggestions-section 下面
+          - sidebar = SIDEBAR_COUNT 篇紧凑列表（单行截断，不放 excerpt）+ 热门标签/主题 block
+          - 右侧 sidebar 底部如要加内容 → 放进 .layout-featured-side-filler
+          - 不得新增 row（不得加 grid-column: 1/-1 的第 3 块）
+          - 新功能区块（如 suggestions / series）放在 .layout-featured 下方独立 section
           详见 CLAUDE.md "首页首屏不变量" 节 */}
       <div class="layout-featured">
         <div class="layout-featured-main">
@@ -85,16 +69,33 @@ for (const n of allNotes) {
           {sidebarNotes.map((note) => (
             <ArticleCard note={note} variant="sidebar" lang={lang} />
           ))}
-          {homeHotTags.length > 0 && (
+          {Array.from({ length: Math.max(0, SIDEBAR_COUNT - sidebarNotes.length) }).map(() => (
+            <div class="article-card article-card-sidebar article-card-placeholder">
+              <span class="article-card-sidebar-date font-sans">—</span>
+              <span class="article-card-sidebar-title font-display">{lang === 'zh' ? '敬请期待' : 'Coming soon'}</span>
+            </div>
+          ))}
+          {(homeHotTags.length > 0 || homeHotTopics.length > 0) && (
             <div class="layout-featured-side-filler">
-              <div class="section-label section-label-sub">{lang === 'zh' ? '热门标签' : 'Hot tags'}</div>
-              <div class="home-hot-tags-chips">
-                {homeHotTags.map(([name, count]) => (
-                  <a href={`/tags/${encodeURIComponent(name)}`} class="home-hot-tag-chip font-sans">
-                    {name} <span class="home-hot-tag-count">{count}</span>
-                  </a>
-                ))}
-              </div>
+              <div class="section-label section-label-sub">{lang === 'zh' ? '热门标签 / 主题' : 'Hot tags / topics'}</div>
+              {homeHotTopics.length > 0 && (
+                <div class="home-hot-chips">
+                  {homeHotTopics.map(([name, count]) => (
+                    <a href={`/topics/${encodeURIComponent(name)}`} class="home-hot-chip home-hot-chip--topic font-sans">
+                      {name} <span class="home-hot-chip-count">{count}</span>
+                    </a>
+                  ))}
+                </div>
+              )}
+              {homeHotTags.length > 0 && (
+                <div class="home-hot-chips">
+                  {homeHotTags.map(([name, count]) => (
+                    <a href={`/tags/${encodeURIComponent(name)}`} class="home-hot-chip home-hot-chip--tag font-sans">
+                      {name} <span class="home-hot-chip-count">{count}</span>
+                    </a>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </aside>
@@ -113,17 +114,41 @@ for (const n of allNotes) {
         <div class="suggestions-grid" id="home-suggestions-grid"></div>
       </section>
 
-      {remainingNotes.length > 0 && (
-        <div class="remaining-section">
-          <div class="post-list">
-            {remainingNotes.map((note) => (
-              <ArticleCard note={note} variant="list" lang={lang} />
-            ))}
-          </div>
+      <section class="home-series-section">
+        <header class="home-series-head">
+          <div class="section-label">{lang === 'zh' ? '系列进行中' : 'Ongoing Series'}</div>
+          <a class="home-series-more font-sans" href="/series">{lang === 'zh' ? '全部系列 →' : 'All series →'}</a>
+        </header>
+        <div class="home-series-grid">
+          {activeSeries.map((s) => (
+            <article class="home-series-card">
+              <div class="home-series-card-meta font-sans">
+                {lang === 'zh' ? `系列 · ${s.count} 篇` : `Series · ${s.count} posts`}
+              </div>
+              <h3 class="home-series-card-name font-display">
+                <a href={`/series/${encodeURIComponent(s.name)}`}>{s.name}</a>
+              </h3>
+              <ul class="home-series-card-list">
+                {s.notes.slice(0, 3).map((n, i) => (
+                  <li>
+                    <span class="home-series-card-num font-sans">{String(i + 1).padStart(2, '0')}</span>
+                    <a href={`/notes/${n.slug}`} class="home-series-card-title">{n.title}</a>
+                  </li>
+                ))}
+              </ul>
+            </article>
+          ))}
+          {Array.from({ length: Math.max(0, SERIES_SLOT_COUNT - activeSeries.length) }).map(() => (
+            <article class="home-series-card home-series-card-placeholder">
+              <div class="home-series-card-meta font-sans">{lang === 'zh' ? '系列 · 筹备中' : 'Series · Coming soon'}</div>
+              <h3 class="home-series-card-name font-display">{lang === 'zh' ? '敬请期待' : 'Coming soon'}</h3>
+              <p class="home-series-card-empty font-sans">{lang === 'zh' ? '新的系列还在打磨中……' : 'A new series is in the works…'}</p>
+            </article>
+          ))}
         </div>
-      )}
+      </section>
 
-      <script type="application/json" id="home-suggest-data" set:html={JSON.stringify({ related: relatedMap, titles: titleMap, dates: dateMap, types: typeMap })}></script>
+      <script type="application/json" id="home-suggest-data" set:html={JSON.stringify(suggestionsData)}></script>
       <script is:inline>
         (function() {
           var section = document.getElementById('home-suggestions');
@@ -136,14 +161,21 @@ for (const n of allNotes) {
           try { recent = JSON.parse(localStorage.getItem('recentlyViewed') || '[]'); } catch (e) { return; }
           if (!recent.length) return;
           // Aggregate related slugs across recent visits, score by frequency.
+          // Also track the single recent source that contributed the most — used
+          // as the "because you read: …" reason shown on each card.
           var scores = {};
+          var reasonSrc = {};
           var seenRecent = {};
           recent.forEach(function(r) { seenRecent[r.slug] = true; });
           recent.forEach(function(r) {
             var rel = (data.related || {})[r.slug] || [];
             rel.forEach(function(slug, i) {
               if (seenRecent[slug]) return; // skip already-read
-              scores[slug] = (scores[slug] || 0) + (6 - i); // earlier-ranked weighs more
+              var add = 6 - i;
+              scores[slug] = (scores[slug] || 0) + add; // earlier-ranked weighs more
+              if (!reasonSrc[slug] || reasonSrc[slug].best < add) {
+                reasonSrc[slug] = { src: r.slug, best: add };
+              }
             });
           });
           var picks = Object.keys(scores)
@@ -153,12 +185,19 @@ for (const n of allNotes) {
             })
             .slice(0, 4);
           if (!picks.length) return;
+          var esc = function(s){ return String(s || '').replace(/[<>&]/g, function(c){ return {'<':'&lt;','>':'&gt;','&':'&amp;'}[c]; }); };
+          var isEn = document.documentElement.lang === 'en';
+          var reasonPrefix = isEn ? 'Because you read: ' : '因为你读过《';
+          var reasonSuffix = isEn ? '' : '》';
           grid.innerHTML = picks.map(function(slug) {
-            var title = (data.titles[slug] || slug).replace(/[<>&]/g, function(c){ return {'<':'&lt;','>':'&gt;','&':'&amp;'}[c]; });
-            var type = (data.types[slug] || '').replace(/[<>&]/g, function(c){ return {'<':'&lt;','>':'&gt;','&':'&amp;'}[c]; });
+            var title = esc(data.titles[slug] || slug);
+            var type = esc(data.types[slug] || '');
+            var srcSlug = reasonSrc[slug] && reasonSrc[slug].src;
+            var srcTitle = srcSlug ? esc(data.titles[srcSlug] || srcSlug) : '';
             return '<a href="/notes/' + encodeURIComponent(slug) + '" class="suggestion-card">' +
               (type ? '<div class="suggestion-card-kicker">' + type + '</div>' : '') +
               '<div class="suggestion-card-title">' + title + '</div>' +
+              (srcTitle ? '<div class="suggestion-card-reason">' + reasonPrefix + srcTitle + reasonSuffix + '</div>' : '') +
             '</a>';
           }).join('');
           section.hidden = false;
@@ -175,80 +214,118 @@ for (const n of allNotes) {
   )}
 </BaseLayout>
 
-<style>
+<style is:global>
   .suggestions-section {
-    margin: var(--space-7) 0 var(--space-6);
-    padding-top: var(--space-5);
+    margin: var(--space-5) 0 var(--space-6);
+    padding-top: var(--space-4);
     border-top: 1px solid var(--rule);
   }
   .suggestions-section[hidden] { display: none !important; }
   .suggestions-grid {
+    counter-reset: pick;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: var(--space-3);
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-4);
     margin-top: var(--space-3);
   }
   .suggestion-card {
+    counter-increment: pick;
+    position: relative;
     display: block;
-    padding: var(--space-3) var(--space-4);
-    background: var(--paper);
-    border: 1px solid var(--rule-light);
+    padding: var(--space-4) var(--space-5);
+    background: var(--bg-subtle);
+    border: 1px solid var(--rule-faint);
     border-radius: var(--radius-md);
     text-decoration: none;
     color: inherit;
-    transition: border-color var(--duration-fast), box-shadow var(--duration-fast);
+    transition: border-color var(--duration-fast), box-shadow var(--duration-fast), transform var(--duration-fast);
+  }
+  .suggestion-card::before {
+    content: counter(pick, decimal-leading-zero);
+    position: absolute;
+    right: var(--space-4);
+    top: var(--space-3);
+    font-family: Inter, sans-serif;
+    font-weight: 500;
+    font-size: var(--font-caption);
+    letter-spacing: 0.08em;
+    color: var(--ink-ghost);
+    pointer-events: none;
   }
   .suggestion-card:hover {
     border-color: var(--ink-muted);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    transform: translateY(-1px);
     color: inherit;
   }
+  .suggestion-card:hover .suggestion-card-title { color: var(--ink-hover); }
   .suggestion-card-kicker {
     font-family: Inter, sans-serif;
     font-size: var(--font-label);
     color: var(--accent);
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    margin-bottom: 4px;
+    margin-bottom: var(--space-1);
   }
   .suggestion-card-title {
     font-family: var(--font-display, Georgia, serif);
-    font-size: var(--font-small);
-    font-weight: 600;
+    font-size: var(--font-h3);
+    font-weight: 700;
     color: var(--ink);
     line-height: 1.35;
+    margin-bottom: var(--space-2);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    transition: color var(--transition-color);
+  }
+  .suggestion-card-reason {
+    font-family: Inter, sans-serif;
+    font-size: var(--font-caption);
+    color: var(--ink-ghost);
+    line-height: 1.4;
+    padding-top: var(--space-2);
+    border-top: 1px solid var(--rule-faint);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  @media (max-width: 640px) {
+    .suggestions-grid { grid-template-columns: 1fr; }
   }
 
   /* Sidebar filler sub-label — smaller than section-label */
   .section-label-sub {
     margin-bottom: var(--space-2);
-    padding-top: var(--space-3);
-    border-top: 1px solid var(--rule-light);
+    margin-top: var(--space-3);
   }
-  .home-hot-tags-chips {
+  .home-hot-chips {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 6px;
+    overflow: hidden;
+    min-width: 0;
   }
-  .home-hot-tag-chip {
+  .home-hot-chips + .home-hot-chips { margin-top: var(--space-2); }
+  .home-hot-chip {
     display: inline-flex;
     align-items: center;
     gap: 4px;
     padding: 2px 10px;
+    white-space: nowrap;
     font-size: var(--font-caption);
     color: var(--ink-muted);
     background: var(--paper);
     border: 1px solid var(--rule-light);
-    border-radius: 999px;
     text-decoration: none;
     transition: border-color var(--duration-fast), color var(--duration-fast);
   }
-  .home-hot-tag-chip:hover {
-    color: var(--ink);
-    border-color: var(--ink-muted);
-  }
-  .home-hot-tag-count {
-    font-size: var(--font-xs);
-    color: var(--ink-ghost);
-  }
+  .home-hot-chip:hover { color: var(--ink); border-color: var(--ink-muted); }
+  .home-hot-chip--tag { border-radius: 999px; }
+  .home-hot-chip--topic { border-radius: var(--radius-sm); }
+  .home-hot-chip-count { font-size: var(--font-xs); color: var(--ink-ghost); font-weight: 400; }
+  .article-card-placeholder { opacity: 0.4; pointer-events: none; }
+  .article-card-placeholder .article-card-title { color: var(--ink-ghost); }
+  /* Series block styles live in components.css (shared with en). */
 </style>
