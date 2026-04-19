@@ -1,44 +1,426 @@
 ---
-import IndexLayout from '../../layouts/IndexLayout.astro';
-import { getAllNotes } from '../../utils/notes';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getAllNotes, sortNotes } from '../../utils/notes';
+import { getCoTopics, getTopTagsInTopic } from '../../utils/rank';
 import { generatePageMeta } from '../../utils/seo';
 
 const allNotes = getAllNotes();
-const topicMap = new Map<string, number>();
 
+// ── Build per-topic data ──
+type TopicEntry = {
+  id: string;
+  name: string;
+  notes: any[];
+  count: number;
+  topTags: { name: string; count: number }[];
+  coTopics: { name: string; count: number }[];
+};
+
+const topicMap = new Map<string, any[]>();
 for (const note of allNotes) {
   for (const topic of note.topics) {
-    const count = topicMap.get(topic.name) || 0;
-    topicMap.set(topic.name, count + 1);
+    if (!topicMap.has(topic.name)) topicMap.set(topic.name, []);
+    topicMap.get(topic.name)!.push(note);
   }
 }
 
-const topics = Array.from(topicMap.entries())
-  .map(([name, count]) => ({ name, count }))
+function slugifyName(name: string): string {
+  return name.replace(/\s+/g, '-').toLowerCase();
+}
+
+const topics: TopicEntry[] = Array.from(topicMap.entries())
+  .map(([name, notes]) => ({
+    id: slugifyName(name),
+    name,
+    notes: sortNotes(notes, 'date', 'desc'),
+    count: notes.length,
+    topTags: getTopTagsInTopic(name, allNotes, 5),
+    coTopics: getCoTopics(name, allNotes, 5),
+  }))
   .sort((a, b) => b.count - a.count);
 
-const seo = generatePageMeta({
-  title: '主题索引',
-  description: '浏览所有主题',
-  path: '/topics'
-});
+function readingTime(content: string): number {
+  return Math.max(1, Math.round(content.replace(/\s+/g, ' ').trim().length / 300));
+}
+function plainText(content: string): string {
+  return content
+    .replace(/```[\s\S]*?```/g, '')
+    .replace(/`[^`]+`/g, '')
+    .replace(/#{1,6}\s/g, '')
+    .replace(/\*\*?|__?/g, '')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/[<>]/g, '')
+    .replace(/\n+/g, ' ')
+    .trim();
+}
+function fmt(d: string): string { return d.slice(5, 10); }
+function totalMinutes(notes: any[]): number {
+  return notes.reduce((n, note) => n + readingTime(note.content), 0);
+}
+
+const seo = generatePageMeta({ title: '主题索引', description: '按主题浏览笔记。', path: '/topics' });
 ---
 
-<IndexLayout title="主题索引" description="按主题浏览笔记。" seo={seo}>
+<BaseLayout title="主题索引" description="按主题浏览笔记。" seo={seo}>
+  <header class="topics-header">
+    <h1 class="font-display text-h1 mb-1">主题</h1>
+    <p class="font-sans text-small topics-subtitle">按领域组织的笔记，共 {topics.length} 个主题。</p>
+  </header>
+
   {topics.length === 0 ? (
-    <p class="text-ink-muted text-center py-16 font-sans">暂无主题</p>
+    <p class="font-sans text-small topics-empty">暂无主题</p>
   ) : (
-    <div>
-      {topics.map((topic) => (
-        <a href={`/topics/${topic.name}`} class="archive-item">
-          <div>
-            <div class="archive-item-title">{topic.name}</div>
-          </div>
-          <div class="archive-item-meta font-sans">
-            <span>{topic.count} 篇笔记</span>
-          </div>
-        </a>
-      ))}
+    <div class="topics-md" data-topics-count={topics.length}>
+      <aside class="topics-md-list">
+        <div class="topics-md-list-label font-sans">所有主题</div>
+        {topics.map((topic, i) => (
+          <a
+            href={`#${topic.id}`}
+            class={`topics-md-card ${i === 0 ? 'is-selected' : ''}`}
+            data-topic-id={topic.id}
+          >
+            <div class="topics-md-card-kicker font-sans">主题 · {topic.count} 篇 · {totalMinutes(topic.notes)} min</div>
+            <div class="topics-md-card-name font-display">{topic.name}</div>
+            {topic.topTags.length > 0 && (
+              <div class="topics-md-card-tags font-sans">
+                {topic.topTags.slice(0, 3).map(t => <span class="md-card-chip">{t.name}</span>)}
+              </div>
+            )}
+          </a>
+        ))}
+      </aside>
+
+      <main class="topics-md-detail">
+        {topics.map((topic, i) => (
+          <section
+            class={`topics-panel ${i === 0 ? 'is-visible' : ''}`}
+            data-topic-id={topic.id}
+            id={`panel-${topic.id}`}
+          >
+            <header class="topics-panel-head">
+              <div class="topics-panel-kicker font-sans">主题 · {topic.count} 篇 · {totalMinutes(topic.notes)} min 阅读</div>
+              <h2 class="topics-panel-title font-display">{topic.name}</h2>
+              <a href={`/topics/${encodeURIComponent(topic.name)}`} class="topics-panel-deep font-sans">专题页 →</a>
+            </header>
+
+            {(topic.topTags.length > 0 || topic.coTopics.length > 0) && (
+              <div class="topics-bridge">
+                {topic.topTags.length > 0 && (
+                  <div class="topics-bridge-row">
+                    <span class="topics-bridge-label font-sans">包含标签</span>
+                    <div class="topics-bridge-chips">
+                      {topic.topTags.map(tag => (
+                        <a href={`/tags/${encodeURIComponent(tag.name)}`} class="bridge-chip font-sans">
+                          {tag.name} <span class="bridge-chip-count">{tag.count}</span>
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {topic.coTopics.length > 0 && (
+                  <div class="topics-bridge-row">
+                    <span class="topics-bridge-label font-sans">关联主题</span>
+                    <div class="topics-bridge-chips">
+                      {topic.coTopics.map(co => (
+                        <a href={`#${slugifyName(co.name)}`} class="bridge-chip bridge-chip-primary font-sans" data-jump-topic-id={slugifyName(co.name)}>
+                          {co.name}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <ol class="topic-notes-list">
+              {topic.notes.map((note: any) => (
+                <li class="topic-note-item">
+                  <a href={`/notes/${note.slug}`} class="topic-note-link">
+                    <time class="topic-note-date font-sans" datetime={note.date}>{fmt(note.date)}</time>
+                    <div class="topic-note-body">
+                      <div class="topic-note-title font-display">{note.title}</div>
+                      <p class="topic-note-excerpt font-sans">{plainText(note.content).slice(0, 100)}…</p>
+                      <div class="topic-note-meta font-sans">
+                        <span>{note.question.type}</span>
+                        <span>·</span>
+                        <span>约 {readingTime(note.content)} 分钟</span>
+                      </div>
+                    </div>
+                  </a>
+                </li>
+              ))}
+            </ol>
+          </section>
+        ))}
+      </main>
     </div>
   )}
-</IndexLayout>
+
+  <script is:inline>
+    (function() {
+      function showTopic(id) {
+        document.querySelectorAll('.topics-md-card').forEach(function(c) {
+          c.classList.toggle('is-selected', c.dataset.topicId === id);
+        });
+        document.querySelectorAll('.topics-panel').forEach(function(p) {
+          p.classList.toggle('is-visible', p.dataset.topicId === id);
+        });
+      }
+      function handleHash() {
+        var id = location.hash.slice(1);
+        if (!id) return;
+        var card = document.querySelector('.topics-md-card[data-topic-id="' + id + '"]');
+        if (card) showTopic(id);
+      }
+      window.addEventListener('hashchange', handleHash);
+      handleHash();
+      document.querySelectorAll('.topics-md-card').forEach(function(card) {
+        card.addEventListener('click', function(e) {
+          e.preventDefault();
+          var id = card.dataset.topicId;
+          history.replaceState(null, '', '#' + id);
+          showTopic(id);
+        });
+      });
+      // Co-topic chip jump within same page
+      document.querySelectorAll('[data-jump-topic-id]').forEach(function(el) {
+        el.addEventListener('click', function(e) {
+          var id = el.dataset.jumpTopicId;
+          if (document.querySelector('.topics-md-card[data-topic-id="' + id + '"]')) {
+            e.preventDefault();
+            history.replaceState(null, '', '#' + id);
+            showTopic(id);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+        });
+      });
+    })();
+  </script>
+</BaseLayout>
+
+<style>
+  .topics-header {
+    margin-bottom: var(--space-5);
+    padding-bottom: var(--space-4);
+    border-bottom: 1px solid var(--rule-light);
+  }
+  .topics-subtitle { color: var(--ink-muted); }
+  .topics-empty { color: var(--ink-muted); text-align: center; padding: var(--space-7) 0; }
+
+  /* Master-Detail layout */
+  .topics-md {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: var(--space-6);
+    align-items: start;
+  }
+  .topics-md[data-topics-count="1"] { grid-template-columns: 1fr; }
+  .topics-md[data-topics-count="1"] .topics-md-list { display: none; }
+
+  /* Left column */
+  .topics-md-list {
+    position: sticky;
+    top: var(--space-3);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    max-height: calc(100vh - var(--space-5));
+    overflow-y: auto;
+    padding-right: var(--space-2);
+  }
+  .topics-md-list-label {
+    font-size: var(--font-label);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-ghost);
+    margin-bottom: var(--space-1);
+  }
+  .topics-md-card {
+    padding: var(--space-3) var(--space-4);
+    background: var(--bg-subtle);
+    border: 1px solid var(--rule-faint);
+    border-left: 3px solid var(--rule);
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    color: inherit;
+    transition: border-color var(--duration-fast), background var(--duration-fast);
+  }
+  .topics-md-card:hover { border-left-color: var(--ink-muted); }
+  .topics-md-card.is-selected {
+    border-left-color: var(--accent);
+    background: var(--paper);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .topics-md-card-kicker {
+    font-size: var(--font-label);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    margin-bottom: var(--space-1);
+  }
+  .topics-md-card-name {
+    font-size: var(--font-h3);
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.25;
+    margin-bottom: var(--space-2);
+  }
+  .topics-md-card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .md-card-chip {
+    padding: 1px 8px;
+    font-size: var(--font-xs);
+    color: var(--ink-muted);
+    background: var(--paper);
+    border: 1px solid var(--rule-light);
+    border-radius: 999px;
+  }
+
+  /* Right column */
+  .topics-md-detail { min-width: 0; }
+  .topics-panel { display: none; }
+  .topics-panel.is-visible { display: block; }
+  .topics-panel-head {
+    padding: 0 0 var(--space-4) 0;
+    margin-bottom: var(--space-4);
+    border-bottom: 1px solid var(--rule-light);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: baseline;
+    gap: var(--space-3);
+  }
+  .topics-panel-kicker {
+    font-size: var(--font-label);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    grid-column: 1 / -1;
+    margin-bottom: var(--space-1);
+  }
+  .topics-panel-title {
+    font-size: var(--font-h1);
+    font-weight: 700;
+    line-height: 1.15;
+    margin: 0;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+  }
+  .topics-panel-deep {
+    font-size: var(--font-small);
+    color: var(--ink-muted);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .topics-panel-deep:hover { color: var(--ink-hover); text-decoration: underline; text-underline-offset: 0.15em; }
+
+  /* Bridge row (top tags / co-topics) */
+  .topics-bridge {
+    padding: var(--space-3) var(--space-4);
+    background: var(--bg-subtle);
+    border: 1px solid var(--rule-faint);
+    border-radius: var(--radius-sm);
+    display: grid;
+    gap: var(--space-2);
+    margin-bottom: var(--space-5);
+  }
+  .topics-bridge-row {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+  }
+  .topics-bridge-label {
+    font-size: var(--font-label);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-ghost);
+    flex-shrink: 0;
+  }
+  .topics-bridge-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .bridge-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 10px;
+    font-size: var(--font-caption);
+    color: var(--ink-muted);
+    background: var(--paper);
+    border: 1px solid var(--rule-light);
+    border-radius: 999px;
+    text-decoration: none;
+    transition: border-color var(--duration-fast), color var(--duration-fast);
+  }
+  .bridge-chip:hover { color: var(--ink); border-color: var(--ink-muted); }
+  .bridge-chip-primary { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 30%, transparent); }
+  .bridge-chip-primary:hover { border-color: var(--accent); }
+  .bridge-chip-count { font-size: var(--font-xs); color: var(--ink-ghost); }
+
+  /* Notes list */
+  .topic-notes-list { list-style: none; padding: 0; margin: 0; }
+  .topic-note-item { border-bottom: 1px solid var(--rule-faint); }
+  .topic-note-item:last-child { border-bottom: none; }
+  .topic-note-link {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: var(--space-4);
+    padding: var(--space-3) 0;
+    text-decoration: none;
+    color: inherit;
+    transition: padding-left var(--duration-fast);
+  }
+  .topic-note-link:hover { padding-left: var(--space-2); }
+  .topic-note-link:hover .topic-note-title { color: var(--ink-hover); text-decoration: underline; text-underline-offset: 0.12em; }
+  .topic-note-date {
+    font-size: var(--font-caption);
+    color: var(--ink-ghost);
+    font-variant-numeric: tabular-nums;
+    padding-top: 4px;
+    min-width: 48px;
+  }
+  .topic-note-body { min-width: 0; }
+  .topic-note-title {
+    font-size: var(--font-body);
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.3;
+    margin-bottom: var(--space-1);
+  }
+  .topic-note-excerpt {
+    font-size: var(--font-small);
+    color: var(--ink-muted);
+    line-height: 1.5;
+    margin: 0 0 var(--space-1);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .topic-note-meta {
+    display: flex;
+    gap: 6px;
+    font-size: var(--font-caption);
+    color: var(--ink-ghost);
+  }
+
+  @media (max-width: 900px) {
+    .topics-md { grid-template-columns: 1fr; }
+    .topics-md-list {
+      position: static;
+      flex-direction: row;
+      overflow-x: auto;
+      max-height: none;
+      padding-bottom: var(--space-2);
+      margin-bottom: var(--space-4);
+      border-bottom: 1px solid var(--rule-faint);
+    }
+    .topics-md-list-label { display: none; }
+    .topics-md-card {
+      flex: 0 0 240px;
+      padding: var(--space-2) var(--space-3);
+    }
+    .topics-md-card-tags { display: none; }
+  }
+</style>
