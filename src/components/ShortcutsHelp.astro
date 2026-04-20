@@ -40,7 +40,39 @@ const t = useT(lang);
           <dt><kbd>Esc</kbd></dt><dd>{t('shortcuts.closeOrExit')}</dd>
         </dl>
       </section>
-      {/* page-specific sections appended here by window.__registerShortcuts */}
+      <section class="shortcuts-section">
+        <h3>{lang === 'zh' ? '模式切换' : 'Mode toggle'} <span class="shortcuts-scope">{lang === 'zh' ? '· 文章页' : '· article pages'}</span></h3>
+        <dl>
+          <dt><kbd>r</kbd></dt><dd>{lang === 'zh' ? '进入 / 退出阅读模式' : 'Enter / exit reading mode'}</dd>
+          <dt><kbd>b</kbd></dt><dd>{lang === 'zh' ? '进入 / 退出翻页模式' : 'Enter / exit book mode'}</dd>
+        </dl>
+      </section>
+      <section class="shortcuts-section">
+        <h3>{lang === 'zh' ? '阅读模式' : 'Reading mode'} <span class="shortcuts-scope">{lang === 'zh' ? '· 文章页' : '· article pages'}</span></h3>
+        <dl>
+          <dt><kbd>Space</kbd></dt><dd>{lang === 'zh' ? '向下翻一屏' : 'Page down'}</dd>
+          <dt><kbd>Shift</kbd> <kbd>Space</kbd></dt><dd>{lang === 'zh' ? '向上翻一屏' : 'Page up'}</dd>
+          <dt><kbd>PgDn</kbd></dt><dd>{lang === 'zh' ? '向下翻一屏' : 'Page down'}</dd>
+          <dt><kbd>PgUp</kbd></dt><dd>{lang === 'zh' ? '向上翻一屏' : 'Page up'}</dd>
+          <dt><kbd>n</kbd></dt><dd>{lang === 'zh' ? '下一个章节' : 'Next section'}</dd>
+          <dt><kbd>p</kbd></dt><dd>{lang === 'zh' ? '上一个章节' : 'Previous section'}</dd>
+          <dt><kbd>g</kbd></dt><dd>{lang === 'zh' ? '回到顶部' : 'Jump to top'}</dd>
+          <dt><kbd>G</kbd></dt><dd>{lang === 'zh' ? '到达底部' : 'Jump to bottom'}</dd>
+        </dl>
+      </section>
+      <section class="shortcuts-section">
+        <h3>{lang === 'zh' ? '翻页模式' : 'Book mode'} <span class="shortcuts-scope">{lang === 'zh' ? '· 文章页' : '· article pages'}</span></h3>
+        <dl>
+          <dt><kbd>→</kbd></dt><dd>{lang === 'zh' ? '下一页' : 'Next page'}</dd>
+          <dt><kbd>←</kbd></dt><dd>{lang === 'zh' ? '上一页' : 'Previous page'}</dd>
+          <dt><kbd>Space</kbd></dt><dd>{lang === 'zh' ? '下一页' : 'Next page'}</dd>
+          <dt><kbd>PgDn</kbd></dt><dd>{lang === 'zh' ? '下一页' : 'Next page'}</dd>
+          <dt><kbd>PgUp</kbd></dt><dd>{lang === 'zh' ? '上一页' : 'Previous page'}</dd>
+          <dt><kbd>Home</kbd> / <kbd>g</kbd></dt><dd>{lang === 'zh' ? '第一页' : 'First page'}</dd>
+          <dt><kbd>End</kbd> / <kbd>G</kbd></dt><dd>{lang === 'zh' ? '最后一页' : 'Last page'}</dd>
+        </dl>
+      </section>
+      {/* page-specific sections still appended by window.__registerShortcuts for dynamic cases */}
       <div id="shortcuts-extras"></div>
     </div>
   </div>
@@ -130,6 +162,13 @@ const t = useT(lang);
     letter-spacing: 0.12em;
     text-transform: uppercase;
     color: var(--accent);
+  }
+  :global(#shortcuts-body .shortcuts-section h3 .shortcuts-scope) {
+    font-weight: 400;
+    letter-spacing: 0.06em;
+    text-transform: none;
+    color: var(--ink-ghost);
+    margin-left: var(--space-1);
   }
   :global(#shortcuts-body .shortcuts-section dl) {
     display: grid;
