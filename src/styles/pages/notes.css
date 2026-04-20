@@ -353,8 +353,8 @@
       }
     }
 
-    /* ── Typography controls (Aa) — shown only when typography-controls is on
-         (reading + book modes; default mode hides both button and effect). ── */
+    /* ── Typography controls (Aa) — reading mode only.
+         Book mode uses fixed pagination sizing, default mode hides chrome. ── */
     .type-float {
       display: none;
       position: fixed;
@@ -362,7 +362,7 @@
       right: var(--space-6);
       z-index: 40;
     }
-    html[data-typography-controls="on"] .type-float {
+    html[data-mode="reading"] .type-float {
       display: block;
     }
     .type-float-btn {
@@ -446,37 +446,37 @@
     .type-opt.serif { font-family: Georgia, 'Songti SC', serif; }
     .type-opt sup { font-size: 0.7em; margin-left: 1px; }
 
-    /* Typography variable drivers — gated by data-typography-controls="on" */
+    /* Typography variable drivers — gated by data-mode="reading" */
     #article-body { --article-font-size: 1rem; }
-    html[data-typography-controls="on"][data-font-size="s"] #article-body { --article-font-size: 0.9375rem; }
-    html[data-typography-controls="on"][data-font-size="l"] #article-body { --article-font-size: 1.1875rem; }
-    html[data-typography-controls="on"] #article-body,
-    html[data-typography-controls="on"] #article-body p,
-    html[data-typography-controls="on"] #article-body li,
-    html[data-typography-controls="on"] #article-body blockquote {
+    html[data-mode="reading"][data-font-size="s"] #article-body { --article-font-size: 0.9375rem; }
+    html[data-mode="reading"][data-font-size="l"] #article-body { --article-font-size: 1.1875rem; }
+    html[data-mode="reading"] #article-body,
+    html[data-mode="reading"] #article-body p,
+    html[data-mode="reading"] #article-body li,
+    html[data-mode="reading"] #article-body blockquote {
       font-size: var(--article-font-size) !important;
     }
-    html[data-typography-controls="on"][data-font-family="sans"] #article-body,
-    html[data-typography-controls="on"][data-font-family="sans"] #article-body p,
-    html[data-typography-controls="on"][data-font-family="sans"] #article-body li,
-    html[data-typography-controls="on"][data-font-family="sans"] #article-body blockquote {
+    html[data-mode="reading"][data-font-family="sans"] #article-body,
+    html[data-mode="reading"][data-font-family="sans"] #article-body p,
+    html[data-mode="reading"][data-font-family="sans"] #article-body li,
+    html[data-mode="reading"][data-font-family="sans"] #article-body blockquote {
       font-family: Inter, -apple-system, 'PingFang SC', 'Hiragino Sans GB', sans-serif !important;
     }
-    html[data-typography-controls="on"][data-font-family="serif"] #article-body,
-    html[data-typography-controls="on"][data-font-family="serif"] #article-body p,
-    html[data-typography-controls="on"][data-font-family="serif"] #article-body li,
-    html[data-typography-controls="on"][data-font-family="serif"] #article-body blockquote {
+    html[data-mode="reading"][data-font-family="serif"] #article-body,
+    html[data-mode="reading"][data-font-family="serif"] #article-body p,
+    html[data-mode="reading"][data-font-family="serif"] #article-body li,
+    html[data-mode="reading"][data-font-family="serif"] #article-body blockquote {
       font-family: var(--font-display, Georgia, 'Songti SC', serif) !important;
     }
-    html[data-typography-controls="on"][data-width="narrow"] main,
-    html[data-typography-controls="on"][data-width="narrow"] .article-header,
-    html[data-typography-controls="on"][data-width="narrow"] #article-body { max-width: 62ch !important; margin-left: auto; margin-right: auto; }
-    html[data-typography-controls="on"][data-width="default"] main,
-    html[data-typography-controls="on"][data-width="default"] .article-header,
-    html[data-typography-controls="on"][data-width="default"] #article-body { max-width: 820px !important; margin-left: auto; margin-right: auto; }
-    html[data-typography-controls="on"][data-width="wide"] main,
-    html[data-typography-controls="on"][data-width="wide"] .article-header,
-    html[data-typography-controls="on"][data-width="wide"] #article-body { max-width: min(95vw, 1100px) !important; margin-left: auto; margin-right: auto; }
+    html[data-mode="reading"][data-width="narrow"] main,
+    html[data-mode="reading"][data-width="narrow"] .article-header,
+    html[data-mode="reading"][data-width="narrow"] #article-body { max-width: 62ch !important; margin-left: auto; margin-right: auto; }
+    html[data-mode="reading"][data-width="default"] main,
+    html[data-mode="reading"][data-width="default"] .article-header,
+    html[data-mode="reading"][data-width="default"] #article-body { max-width: 820px !important; margin-left: auto; margin-right: auto; }
+    html[data-mode="reading"][data-width="wide"] main,
+    html[data-mode="reading"][data-width="wide"] .article-header,
+    html[data-mode="reading"][data-width="wide"] #article-body { max-width: min(95vw, 1100px) !important; margin-left: auto; margin-right: auto; }
 
     /* ── Mode toggle (unified button, stacked above TOC) ── */
     .mode-toggle-float {
@@ -555,10 +555,10 @@
     html[data-reading-progress="off"] .chapter-progress { display: none; }
 
     /* Reading density — when typography controls are on, relax line + paragraph rhythm */
-    html[data-typography-controls="on"] #article-body {
+    html[data-mode="reading"] #article-body {
       line-height: 1.85;
     }
-    html[data-typography-controls="on"] #article-body p {
+    html[data-mode="reading"] #article-body p {
       margin-top: 1.3em;
       margin-bottom: 1.3em;
     }
