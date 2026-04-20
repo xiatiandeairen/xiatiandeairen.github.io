@@ -29,6 +29,20 @@ const seoData = seo || {
 
 const switchPath = switchLangPath(currentPath, lang);
 const matchPath = currentPath.replace(/^\/en/, '') || '/';
+
+// Paths with real en-mirror routes. Keep this in sync with src/pages/en/*.astro.
+// Notes / tags / topics detail pages have no en mirror (content stays zh), so
+// they skip hreflang entirely rather than pointing at a 404.
+const MIRRORED_PATHS = new Set(['/', '/archive', '/search', '/series', '/about']);
+const hasHreflang = MIRRORED_PATHS.has(matchPath);
+const zhHref = SITE_CONFIG.url + (matchPath === '/' ? '/' : matchPath);
+const enHref = SITE_CONFIG.url + '/en' + (matchPath === '/' ? '' : matchPath);
+
+// Search-engine verification — values come from build env so codes aren't
+// committed. Set in the GH Actions workflow (secrets.GOOGLE_SITE_VERIFICATION,
+// secrets.BING_SITE_VERIFICATION) once you register the site.
+const googleVerify = import.meta.env.GOOGLE_SITE_VERIFICATION || '';
+const bingVerify = import.meta.env.BING_SITE_VERIFICATION || '';
 ---
 
 <!doctype html>
@@ -56,6 +70,14 @@ const matchPath = currentPath.replace(/^\/en/, '') || '/';
     {seoData.ogDescription && <meta name="twitter:description" content={seoData.ogDescription} />}
     {seoData.ogImage && <meta name="twitter:image" content={seoData.ogImage} />}
     {seoData.canonical && <link rel="canonical" href={seoData.canonical} />}
+
+    {hasHreflang && <link rel="alternate" hreflang="zh-CN" href={zhHref} />}
+    {hasHreflang && <link rel="alternate" hreflang="en" href={enHref} />}
+    {hasHreflang && <link rel="alternate" hreflang="x-default" href={zhHref} />}
+
+    {googleVerify && <meta name="google-site-verification" content={googleVerify} />}
+    {bingVerify && <meta name="msvalidate.01" content={bingVerify} />}
+
     {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
 
     {/* Shared client runtime — loaded synchronously so inline IIFEs can use window.SiteRuntime */}
