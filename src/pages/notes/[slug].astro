@@ -802,46 +802,8 @@ const articleJsonLd = {
         });
       }
 
-      // Register article-specific shortcuts into the global help modal
-      if (window.__registerShortcuts) {
-        window.__registerShortcuts({
-          id: 'article-modes',
-          section: '模式切换',
-          items: [
-            { keys: ['r'], label: '进入 / 退出阅读模式' },
-            { keys: ['b'], label: '进入 / 退出翻页模式' },
-          ]
-        });
-        window.__registerShortcuts({
-          id: 'article-reading',
-          section: '阅读模式',
-          items: [
-            { keys: ['Space'], label: '向下翻一屏' },
-            { keys: ['Shift', 'Space'], label: '向上翻一屏' },
-            { keys: ['PgDn'], label: '向下翻一屏' },
-            { keys: ['PgUp'], label: '向上翻一屏' },
-            { keys: ['n'], label: '下一个章节' },
-            { keys: ['p'], label: '上一个章节' },
-            { keys: ['g'], label: '回到顶部' },
-            { keys: ['G'], label: '到达底部' },
-          ]
-        });
-        window.__registerShortcuts({
-          id: 'article-book',
-          section: '翻页模式',
-          items: [
-            { keys: ['→'], label: '下一页' },
-            { keys: ['←'], label: '上一页' },
-            { keys: ['Space'], label: '下一页' },
-            { keys: ['PgDn'], label: '下一页' },
-            { keys: ['PgUp'], label: '上一页' },
-            { keys: ['Home'], label: '第一页' },
-            { keys: ['End'], label: '最后一页' },
-            { keys: ['g'], label: '第一页' },
-            { keys: ['G'], label: '最后一页' },
-          ]
-        });
-      }
+      // Article-scoped shortcut help lives in ShortcutsHelp.astro static markup —
+      // visible on every page so readers know r/b exist before opening an article.
 
       // Idle fade — dim floats after 2s of inactivity
       var idleTimer = null;
