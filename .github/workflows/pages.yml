@@ -8,6 +8,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      discussions: read
     steps:
       - uses: actions/checkout@v4
         with:
@@ -39,6 +42,11 @@ jobs:
           fi
       
       - name: Build
+        env:
+          # Used by src/integrations/fetch-giscus-comments.ts to query
+          # GitHub Discussions at build time; without it, home hero cards
+          # silently skip the "reader letters" block.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           if [ -f pnpm-lock.yaml ]; then
             pnpm build
