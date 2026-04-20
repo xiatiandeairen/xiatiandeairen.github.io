@@ -353,13 +353,17 @@
       }
     }
 
-    /* ── Typography controls (Aa) — always visible across modes ── */
+    /* ── Typography controls (Aa) — shown only when typography-controls is on
+         (reading + book modes; default mode hides both button and effect). ── */
     .type-float {
-      display: block;
+      display: none;
       position: fixed;
       bottom: calc(var(--space-6) + 112px);
       right: var(--space-6);
       z-index: 40;
+    }
+    html[data-typography-controls="on"] .type-float {
+      display: block;
     }
     .type-float-btn {
       width: 44px;
