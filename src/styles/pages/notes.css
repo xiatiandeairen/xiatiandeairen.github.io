@@ -618,15 +618,21 @@
     }
 
     /* ── Book mode (data-article-layout="columns") ──
-       Two-column spread, fixed viewport, horizontal flip via translateX.
-       Double-attr selector for specificity to beat typography width rules.
+       Two-column spread mimicking a hardcover book:
+       - warm paper tint + dashed gutter (spine)
+       - justified serif body with 2em first-line indent (zh book convention)
+       - drop-cap on the opening paragraph of each chapter (h2)
+       - generous outer margins; page number styled like book folio
+       Double-attr selector specificity beats typography width rules.
     */
     html[data-article-layout="columns"] {
       overflow: hidden;
+      background: color-mix(in srgb, var(--paper) 90%, #f5e5bf 10%);
     }
     html[data-article-layout="columns"] body {
       overflow: hidden;
       height: 100vh;
+      background: transparent;
     }
     html[data-article-layout="columns"][data-mode] .site-main {
       max-width: none !important;
@@ -634,11 +640,12 @@
       height: 100vh !important;
       min-height: 0 !important;
       max-height: 100vh !important;
-      padding: var(--space-8) var(--space-9) !important;
+      padding: var(--space-9) clamp(var(--space-8), 8vw, var(--space-11)) var(--space-8) !important;
       overflow: hidden;
       margin: 0 !important;
       display: flex;
       align-items: stretch;
+      background: transparent;
     }
     html[data-article-layout="columns"] .article-header {
       display: none !important;
@@ -651,12 +658,18 @@
       min-height: 0 !important;
       max-height: 100% !important;
       column-count: 2;
-      column-gap: 4rem;
+      column-gap: clamp(3rem, 6vw, 5rem);
+      column-rule: 1px dashed color-mix(in srgb, var(--ink) 14%, transparent);
       column-fill: auto;
       overflow: visible;
-      padding-right: 2px; /* safety: avoid sub-pixel right-edge clipping of last column */
+      padding-right: 2px;
       transform: translateX(var(--book-offset, 0px));
       transition: transform 420ms cubic-bezier(.4, 0, .2, 1);
+      /* Book typography: forced serif, justified, generous leading */
+      font-family: var(--font-display, Georgia, 'Songti SC', 'Noto Serif SC', serif) !important;
+      line-height: 1.9 !important;
+      text-align: justify;
+      hyphens: auto;
     }
     html[data-article-layout="columns"] #article-body h2,
     html[data-article-layout="columns"] #article-body h3,
@@ -670,22 +683,68 @@
     html[data-article-layout="columns"] #article-body li {
       break-inside: avoid-column;
     }
-    /* TOC float repurposed: in book mode clicking still works but positioning stays */
+    /* Paragraph rhythm: first-line indent replaces margin gap (zh book style) */
+    html[data-article-layout="columns"] #article-body p {
+      text-indent: 2em;
+      margin-top: 0 !important;
+      margin-bottom: 0 !important;
+    }
+    /* First paragraph of a chapter/section: no indent (drop-cap carries it) */
+    html[data-article-layout="columns"] #article-body h2 + p,
+    html[data-article-layout="columns"] #article-body h3 + p {
+      text-indent: 0;
+      margin-top: 0.4em !important;
+    }
+    /* Drop cap: opening paragraph of each chapter */
+    html[data-article-layout="columns"] #article-body h2 + p::first-letter {
+      float: left;
+      font-family: Georgia, 'Songti SC', 'Noto Serif SC', serif;
+      font-weight: 700;
+      font-size: 3.4em;
+      line-height: 0.85;
+      padding: 0.08em 0.08em 0 0;
+      color: var(--accent);
+    }
+    /* Chapter headings: centered small-caps */
+    html[data-article-layout="columns"] #article-body h2 {
+      text-align: center;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      margin-top: 0.3em !important;
+      margin-bottom: 1em !important;
+      font-size: 1.25em !important;
+      color: var(--ink);
+    }
+    html[data-article-layout="columns"] #article-body h2::before {
+      content: "— ";
+      color: var(--ink-ghost);
+    }
+    html[data-article-layout="columns"] #article-body h2::after {
+      content: " —";
+      color: var(--ink-ghost);
+    }
+    html[data-article-layout="columns"] #article-body h3 {
+      font-weight: 500;
+      margin-top: 1em !important;
+      margin-bottom: 0.4em !important;
+      font-size: 1.05em !important;
+    }
+    /* Page folio — minimal italic serif, like hardcover page numbers */
     .book-page-indicator {
       display: none;
       position: fixed;
-      bottom: var(--space-3);
+      bottom: var(--space-4);
       left: 50%;
       transform: translateX(-50%);
       z-index: 40;
-      font-family: Inter, sans-serif;
-      font-size: var(--font-caption);
-      color: var(--ink-faint);
-      letter-spacing: 0.1em;
-      padding: 4px var(--space-3);
-      background: var(--paper);
-      border: 1px solid var(--rule-light);
-      border-radius: 999px;
+      font-family: Georgia, 'Songti SC', serif;
+      font-style: italic;
+      font-size: 0.8125rem;
+      color: var(--ink-muted);
+      letter-spacing: 0.18em;
+      padding: 0;
+      background: transparent;
+      border: none;
       pointer-events: none;
     }
     html[data-article-layout="columns"] .book-page-indicator {
