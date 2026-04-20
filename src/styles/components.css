@@ -45,8 +45,10 @@
   }
   .card:hover { border-color: var(--rule); }
 
-  /* ── Reading progress bar (single fallback) ── */
+  /* ── Reading progress bar (single fallback). Hidden by default;
+       notes.css re-enables inside reading mode when user opts in. ── */
   .reading-progress {
+    display: none;
     position: fixed;
     top: 0;
     left: 0;
@@ -63,12 +65,12 @@
   .chapter-progress {
     --progress-color: #5a7d6e; /* muted sage — harmonizes with cream paper + brown accent */
     --progress-color-light: color-mix(in srgb, var(--progress-color) 20%, transparent);
+    display: none; /* re-enabled in reading mode by notes.css */
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     height: 22px;
-    display: flex;
     gap: 2px;
     z-index: var(--z-progress);
     pointer-events: none;
