@@ -550,9 +550,11 @@
       color: var(--accent);
       background: color-mix(in srgb, var(--accent) 10%, transparent);
     }
-    /* Gate chapter-progress rendering on reading-progress=on.
-       Default is off (set via mode preset) so the bar is hidden until user opts in. */
-    html[data-reading-progress="off"] .chapter-progress { display: none; }
+    /* Progress bars — reading mode only, further gated on the per-user
+       "进度 显示/隐藏" preference stored in data-reading-progress.
+       components.css defaults both to display:none; only this selector shows them. */
+    html[data-mode="reading"][data-reading-progress="on"] .chapter-progress { display: flex; }
+    html[data-mode="reading"][data-reading-progress="on"] .reading-progress { display: block; }
 
     /* Reading density — when typography controls are on, relax line + paragraph rhythm */
     html[data-mode="reading"] #article-body {
