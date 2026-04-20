@@ -618,43 +618,29 @@
     }
 
     /* ── Book mode (data-article-layout="columns") ──
-       Two-column spread mimicking a hardcover book:
-       - warm paper tint + dashed gutter (spine)
-       - justified serif body with 2em first-line indent (zh book convention)
-       - drop-cap on the opening paragraph of each chapter (h2)
-       - generous outer margins; page number styled like book folio
-       Double-attr selector specificity beats typography width rules.
+       "极简印本" (Minimal Print): two columns separated by whitespace only,
+       no frame/shadow/tint, flush-left h2 with underline, no per-chapter
+       drop cap. Keeps paginated flipping + forced serif + first-line indent.
     */
     html[data-article-layout="columns"] {
       overflow: hidden;
-      /* desk — slightly dimmer than paper so the book floats on it */
-      background: color-mix(in srgb, var(--bg-subtle) 80%, #8a7959 20%);
+      /* same paper as rest of site — no desk metaphor */
     }
     html[data-article-layout="columns"] body {
       overflow: hidden;
       height: 100vh;
-      background: transparent;
-      display: flex;
-      align-items: center;
-      justify-content: center;
     }
     html[data-article-layout="columns"][data-mode] .site-main {
-      max-width: min(1200px, 94vw) !important;
+      max-width: min(1080px, 92vw) !important;
       width: 100% !important;
-      height: min(calc(100vh - var(--space-6) * 2), 860px) !important;
+      height: 100vh !important;
       min-height: 0 !important;
-      max-height: calc(100vh - var(--space-6) * 2) !important;
-      padding: var(--space-7) clamp(var(--space-6), 5vw, var(--space-9)) var(--space-6) !important;
+      max-height: 100vh !important;
+      padding: var(--space-8) 0 var(--space-7) !important;
       overflow: hidden;
       margin: 0 auto !important;
       display: flex;
       align-items: stretch;
-      background: color-mix(in srgb, var(--paper) 92%, #f5e5bf 8%);
-      border: 1px solid color-mix(in srgb, var(--ink) 12%, transparent);
-      border-radius: 3px;
-      box-shadow:
-        0 20px 48px rgba(40, 32, 20, 0.22),
-        0 4px 12px rgba(40, 32, 20, 0.08);
     }
     html[data-article-layout="columns"] .article-header {
       display: none !important;
@@ -668,13 +654,15 @@
       max-height: 100% !important;
       column-count: 2;
       column-gap: clamp(3rem, 6vw, 5rem);
-      column-rule: 1px dashed color-mix(in srgb, var(--ink) 14%, transparent);
+      column-rule: none;
       column-fill: auto;
       overflow: visible;
-      padding-right: 2px;
+      /* No inner padding: pagination step = clientWidth + column-gap assumes
+         content fills the full width. site-main provides the outer breathing
+         room via horizontal padding. */
+      padding: 0;
       transform: translateX(var(--book-offset, 0px));
       transition: transform 420ms cubic-bezier(.4, 0, .2, 1);
-      /* Book typography: forced serif, justified, generous leading */
       font-family: var(--font-display, Georgia, 'Songti SC', 'Noto Serif SC', serif) !important;
       line-height: 1.9 !important;
       text-align: justify;
@@ -692,65 +680,48 @@
     html[data-article-layout="columns"] #article-body li {
       break-inside: avoid-column;
     }
-    /* Paragraph rhythm: first-line indent replaces margin gap (zh book style) */
+    /* Paragraph rhythm: first-line indent, no margin gap (zh book convention) */
     html[data-article-layout="columns"] #article-body p {
       text-indent: 2em;
       margin-top: 0 !important;
       margin-bottom: 0 !important;
     }
-    /* First paragraph of a chapter/section: no indent (drop-cap carries it) */
     html[data-article-layout="columns"] #article-body h2 + p,
     html[data-article-layout="columns"] #article-body h3 + p {
       text-indent: 0;
       margin-top: 0.4em !important;
     }
-    /* Drop cap: opening paragraph of each chapter */
-    html[data-article-layout="columns"] #article-body h2 + p::first-letter {
-      float: left;
-      font-family: Georgia, 'Songti SC', 'Noto Serif SC', serif;
-      font-weight: 700;
-      font-size: 3.4em;
-      line-height: 0.85;
-      padding: 0.08em 0.08em 0 0;
-      color: var(--accent);
-    }
-    /* Chapter headings: centered small-caps */
+    /* Chapter heading: flush-left, weight shift + hairline underline. No centering,
+       no em-dashes, no small-caps (was over-ornamented). */
     html[data-article-layout="columns"] #article-body h2 {
-      text-align: center;
-      font-weight: 500;
-      letter-spacing: 0.06em;
-      margin-top: 0.3em !important;
-      margin-bottom: 1em !important;
-      font-size: 1.25em !important;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      margin-top: 1.2em !important;
+      margin-bottom: 0.6em !important;
+      padding-bottom: 0.3em;
+      font-size: 1.1em !important;
       color: var(--ink);
-    }
-    html[data-article-layout="columns"] #article-body h2::before {
-      content: "— ";
-      color: var(--ink-ghost);
-    }
-    html[data-article-layout="columns"] #article-body h2::after {
-      content: " —";
-      color: var(--ink-ghost);
+      border-bottom: 1px solid var(--rule-light);
     }
     html[data-article-layout="columns"] #article-body h3 {
-      font-weight: 500;
-      margin-top: 1em !important;
-      margin-bottom: 0.4em !important;
-      font-size: 1.05em !important;
+      font-weight: 600;
+      margin-top: 0.9em !important;
+      margin-bottom: 0.3em !important;
+      font-size: 1em !important;
     }
-    /* Page folio — minimal italic serif, like hardcover page numbers */
+    /* Page folio — small mono number bottom-center, on paper (no chrome) */
     .book-page-indicator {
       display: none;
       position: fixed;
-      bottom: var(--space-4);
+      bottom: var(--space-3);
       left: 50%;
       transform: translateX(-50%);
       z-index: 40;
-      font-family: Georgia, 'Songti SC', serif;
-      font-style: italic;
-      font-size: 0.8125rem;
-      color: var(--ink-muted);
-      letter-spacing: 0.18em;
+      font-family: Inter, sans-serif;
+      font-size: 0.75rem;
+      font-variant-numeric: tabular-nums;
+      color: var(--ink-ghost);
+      letter-spacing: 0.2em;
       padding: 0;
       background: transparent;
       border: none;
