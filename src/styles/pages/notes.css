@@ -727,7 +727,14 @@
     html[data-mode="book"][data-book-font-size="l"] #article-body li,
     html[data-mode="book"][data-book-font-size="l"] #article-body blockquote { font-size: 1.125rem !important; }
     html[data-mode="book"][data-book-cols="1"] #article-body { column-count: 1 !important; }
-    html[data-mode="book"][data-book-cols="3"] #article-body { column-count: 3 !important; }
+    html[data-mode="book"][data-book-cols="3"] #article-body {
+      column-count: 3 !important;
+      column-gap: clamp(2rem, 3.5vw, 3.5rem) !important; /* tighter gap for 3-up so each column has usable measure */
+    }
+    /* 3-col needs a wider "book" — default 1080 makes each column ~300px. */
+    html[data-mode="book"][data-book-cols="3"] .site-main {
+      max-width: min(1440px, 96vw) !important;
+    }
     html[data-mode="book"][data-book-align="left"] #article-body,
     html[data-mode="book"][data-book-align="left"] #article-body p,
     html[data-mode="book"][data-book-align="left"] #article-body li { text-align: left !important; }
