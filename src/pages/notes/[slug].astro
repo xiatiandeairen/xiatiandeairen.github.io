@@ -184,7 +184,8 @@ const articleJsonLd = {
       <span class="type-aa">Aa</span>
     </button>
     <div class="type-panel" id="type-panel" role="dialog" aria-label="排版设置">
-      <div class="type-row">
+      {/* ── Reading-mode rows ── */}
+      <div class="type-row" data-scope="reading">
         <span class="type-label">字号</span>
         <div class="type-options" data-group="font-size">
           <button class="type-opt" data-value="s" aria-label="小">A<sup>-</sup></button>
@@ -192,14 +193,14 @@ const articleJsonLd = {
           <button class="type-opt" data-value="l" aria-label="大">A<sup>+</sup></button>
         </div>
       </div>
-      <div class="type-row">
+      <div class="type-row" data-scope="reading">
         <span class="type-label">字体</span>
         <div class="type-options" data-group="font-family">
           <button class="type-opt type-opt-text serif" data-value="serif">衬线</button>
           <button class="type-opt type-opt-text" data-value="sans">无衬线</button>
         </div>
       </div>
-      <div class="type-row">
+      <div class="type-row" data-scope="reading">
         <span class="type-label">行宽</span>
         <div class="type-options" data-group="width">
           <button class="type-opt type-opt-text" data-value="narrow">窄</button>
@@ -207,11 +208,42 @@ const articleJsonLd = {
           <button class="type-opt type-opt-text" data-value="wide">宽</button>
         </div>
       </div>
-      <div class="type-row">
+      <div class="type-row" data-scope="reading">
         <span class="type-label">进度</span>
         <div class="type-options" data-group="progress">
           <button class="type-opt type-opt-text" data-value="off" id="progress-off">隐藏</button>
           <button class="type-opt type-opt-text" data-value="on" id="progress-on">显示</button>
+        </div>
+      </div>
+      {/* ── Book-mode rows ── */}
+      <div class="type-row" data-scope="book">
+        <span class="type-label">字号</span>
+        <div class="type-options" data-group="book-font-size">
+          <button class="type-opt" data-value="s" aria-label="小">A<sup>-</sup></button>
+          <button class="type-opt" data-value="m" aria-label="中">A</button>
+          <button class="type-opt" data-value="l" aria-label="大">A<sup>+</sup></button>
+        </div>
+      </div>
+      <div class="type-row" data-scope="book">
+        <span class="type-label">栏数</span>
+        <div class="type-options" data-group="book-cols">
+          <button class="type-opt type-opt-text" data-value="1">1</button>
+          <button class="type-opt type-opt-text" data-value="2">2</button>
+          <button class="type-opt type-opt-text" data-value="3">3</button>
+        </div>
+      </div>
+      <div class="type-row" data-scope="book">
+        <span class="type-label">对齐</span>
+        <div class="type-options" data-group="book-align">
+          <button class="type-opt type-opt-text" data-value="left">左</button>
+          <button class="type-opt type-opt-text" data-value="justify">两端</button>
+        </div>
+      </div>
+      <div class="type-row" data-scope="book">
+        <span class="type-label">缩进</span>
+        <div class="type-options" data-group="book-indent">
+          <button class="type-opt type-opt-text" data-value="on">首行缩进</button>
+          <button class="type-opt type-opt-text" data-value="off">无缩进</button>
         </div>
       </div>
     </div>
@@ -409,11 +441,17 @@ const articleJsonLd = {
 
   <script is:inline>
     (function() {
-      // Typography controls (font-size / font-family / width / progress)
+      // Typography controls. Reading-mode keys + book-mode keys are stored
+      // independently (different attrs + localStorage slots) so switching
+      // between modes preserves each mode's prefs.
       var TYPE_KEYS = { 'font-size': { default: 'm', attr: 'data-font-size' },
                         'font-family': { default: 'serif', attr: 'data-font-family' },
                         'width': { default: 'default', attr: 'data-width' },
-                        'progress': { default: 'off', attr: 'data-reading-progress' } };
+                        'progress': { default: 'off', attr: 'data-reading-progress' },
+                        'book-font-size': { default: 'm', attr: 'data-book-font-size' },
+                        'book-cols': { default: '2', attr: 'data-book-cols' },
+                        'book-align': { default: 'justify', attr: 'data-book-align' },
+                        'book-indent': { default: 'on', attr: 'data-book-indent' } };
       function applyType(group, value) {
         var conf = TYPE_KEYS[group];
         if (!conf) return;
@@ -605,7 +643,9 @@ const articleJsonLd = {
           if (m.attributeName === 'data-article-layout') {
             if (bookInColumns()) bookEnter();
           }
-          if (m.attributeName === 'data-font-size' || m.attributeName === 'data-font-family' || m.attributeName === 'data-width') {
+          if (m.attributeName === 'data-font-size' || m.attributeName === 'data-font-family' || m.attributeName === 'data-width' ||
+              m.attributeName === 'data-book-font-size' || m.attributeName === 'data-book-cols' ||
+              m.attributeName === 'data-book-align' || m.attributeName === 'data-book-indent') {
             if (bookInColumns()) requestAnimationFrame(bookUpdateMetrics);
           }
         });

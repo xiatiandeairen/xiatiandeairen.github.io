@@ -353,8 +353,8 @@
       }
     }
 
-    /* ── Typography controls (Aa) — reading mode only.
-         Book mode uses fixed pagination sizing, default mode hides chrome. ── */
+    /* ── Typography controls (Aa) — reading + book; default hides.
+         Panel rows gate per-mode via data-scope. ── */
     .type-float {
       display: none;
       position: fixed;
@@ -362,9 +362,14 @@
       right: var(--space-6);
       z-index: 40;
     }
-    html[data-mode="reading"] .type-float {
+    html[data-mode="reading"] .type-float,
+    html[data-mode="book"] .type-float {
       display: block;
     }
+    .type-row[data-scope="reading"] { display: none; }
+    .type-row[data-scope="book"] { display: none; }
+    html[data-mode="reading"] .type-row[data-scope="reading"] { display: flex; }
+    html[data-mode="book"] .type-row[data-scope="book"] { display: flex; }
     .type-float-btn {
       width: 44px;
       height: 44px;
@@ -639,19 +644,19 @@
       padding: var(--space-8) 0 var(--space-7) !important;
       overflow: hidden;
       margin: 0 auto !important;
-      display: flex;
-      align-items: stretch;
+      display: block; /* block layout: body gets explicit 100% width, avoids flex min-content inflating it */
     }
     html[data-article-layout="columns"] .article-header {
       display: none !important;
     }
     html[data-article-layout="columns"][data-mode] #article-body {
-      flex: 1;
-      width: 100%;
-      max-width: none !important;
-      height: 100% !important;
+      display: block;
+      width: 100% !important;
+      max-width: 100% !important;
+      min-width: 0 !important;
+      height: calc(100vh - var(--space-8) - var(--space-7)) !important;
       min-height: 0 !important;
-      max-height: 100% !important;
+      max-height: calc(100vh - var(--space-8) - var(--space-7)) !important;
       column-count: 2;
       column-gap: clamp(3rem, 6vw, 5rem);
       column-rule: none;
@@ -709,6 +714,25 @@
       margin-bottom: 0.3em !important;
       font-size: 1em !important;
     }
+
+    /* ── Book-mode user-tunable axes ──
+       book-font-size · book-cols · book-align · book-indent
+       Each attr scoped to [data-mode="book"] so it never leaks into other modes. */
+    html[data-mode="book"][data-book-font-size="s"] #article-body,
+    html[data-mode="book"][data-book-font-size="s"] #article-body p,
+    html[data-mode="book"][data-book-font-size="s"] #article-body li,
+    html[data-mode="book"][data-book-font-size="s"] #article-body blockquote { font-size: 0.9375rem !important; }
+    html[data-mode="book"][data-book-font-size="l"] #article-body,
+    html[data-mode="book"][data-book-font-size="l"] #article-body p,
+    html[data-mode="book"][data-book-font-size="l"] #article-body li,
+    html[data-mode="book"][data-book-font-size="l"] #article-body blockquote { font-size: 1.125rem !important; }
+    html[data-mode="book"][data-book-cols="1"] #article-body { column-count: 1 !important; }
+    html[data-mode="book"][data-book-cols="3"] #article-body { column-count: 3 !important; }
+    html[data-mode="book"][data-book-align="left"] #article-body,
+    html[data-mode="book"][data-book-align="left"] #article-body p,
+    html[data-mode="book"][data-book-align="left"] #article-body li { text-align: left !important; }
+    html[data-mode="book"][data-book-indent="off"] #article-body p { text-indent: 0 !important; }
+
     /* Page folio — small mono number bottom-center, on paper (no chrome) */
     .book-page-indicator {
       display: none;
