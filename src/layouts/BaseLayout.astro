@@ -126,6 +126,13 @@ const bingVerify = import.meta.env.BING_SITE_VERIFICATION || '';
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
                 <kbd class="icon-label">{'⌘K'}</kbd>
               </button>
+              <a href="/rss.xml" class="icon-button" aria-label={lang === 'zh' ? 'RSS 订阅' : 'RSS feed'} title="RSS">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M4 11a9 9 0 0 1 9 9"/>
+                  <path d="M4 4a16 16 0 0 1 16 16"/>
+                  <circle cx="5" cy="19" r="1"/>
+                </svg>
+              </a>
               <div class="has-dropdown">
                 <a href={switchPath} class="icon-button" aria-label={lang === 'zh' ? 'English' : '中文'} title={lang === 'zh' ? 'English' : '中文'}>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
