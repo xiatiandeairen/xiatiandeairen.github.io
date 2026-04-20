@@ -52,7 +52,21 @@ v1 唯一骨架。所有 draft 都按此结构填充。
 5. **具体化**：抽象论述每出现一段，下一段必须给具体例子（命令、代码、对话片段、数字）。
 6. **元认知优先**：在"踩的坑"节解释"为什么会以为这样行"，比"做错了什么"更有价值。
 7. **长度控制**：总字数 1500-3000 中文字符。每节 200-700 字。
-8. **frontmatter 不动**：仅填正文，frontmatter 由 article-ctl.sh 模板生成，quality/analysis 字段保留 pending。
+8. **frontmatter 必填**：article-ctl.sh 模板生成 frontmatter 骨架后，你必须用 Edit 工具把以下字段改为实值，**不得留 pending / 0 / 空字符串**：
+
+| 字段 | 规则 |
+|------|------|
+| `title` | 改为实际标题字符串，≥1 字符 |
+| `question.type` | 从 `["方法论", "系统设计", "工程实践", "AI 工程化"]` 中选一个 |
+| `question.subType` | 更细类；无则删此行 |
+| `quality.overall/coverage/depth/specificity` | 填 1-10 整数（实话自评，不凑高分）|
+| `quality.reviewer` | `"ai"`（AI 扩写默认）|
+| `analysis.objectivity.{factRatio,inferenceRatio,opinionRatio}` | 三数之和必须 = 1.0（允差 0.01）；经验类典型：`0.6 / 0.25 / 0.15` |
+| `analysis.assumptions` / `analysis.limitations` | 字符串数组；空可保持 `[]` |
+| `tags` | ≥1 条，形如 `[{name: "github"}, {name: "ci", parent: "engineering"}]`；**对象数组，不是字符串数组** |
+| `topics` | ≥1 条，形如 `[{name: "AI 工程化"}, {name: "开发工具"}]` |
+| `review.status` | draft 阶段固定 `"draft"` |
+| `gate_passed` | 固定 `false`（gate 阶段用户勾选通过后才改 `true`）|
 
 输出：完整的草稿 markdown，含五节内容（不要把这条 prompt 写进去）。
 ```

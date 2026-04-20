@@ -69,6 +69,37 @@ EOF
 
 cmd_draft() {
   local slug="${1:?slug required}"
+  shift || true
+  # Default template: skill-experience. Use --template tutorial-intro for intro/tutorial articles.
+  local template="skill-experience"
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --template) template="${2:?template value required}"; shift 2 ;;
+      --template=*) template="${1#--template=}"; shift ;;
+      *) echo "unknown draft arg: $1" >&2; exit 1 ;;
+    esac
+  done
+
+  local blueprint_hint sections_hint default_question_type default_objectivity
+  case "$template" in
+    skill-experience)
+      blueprint_hint="blueprint.md"
+      sections_hint="起源 / 尝试方案 / 踩的坑 / 最终设计 / 反共识 takeaway"
+      default_question_type="方法论 / 系统设计 / 工程实践 / AI 工程化"
+      default_objectivity="0.6 / 0.25 / 0.15"
+      ;;
+    tutorial-intro)
+      blueprint_hint="blueprint-tutorial-intro.md"
+      sections_hint="这是什么 / 什么时候用 / 核心能力 / 典型用法 / 进阶建议"
+      default_question_type="工具使用 / 工程实践"
+      default_objectivity="0.7 / 0.15 / 0.15"
+      ;;
+    *)
+      echo "unknown template: $template (expected: skill-experience | tutorial-intro)" >&2
+      exit 1
+      ;;
+  esac
+
   local file="$DRAFTS/${slug}.md"
   if [ -e "$file" ]; then
     echo "draft already exists: $file" >&2
@@ -78,6 +109,11 @@ cmd_draft() {
   now="$(iso)"
   cat > "$file" <<EOF
 ---
+# ⚠ AI DRAFT CONTRACT: 本框架生成后，AI 必须用 Edit 改下列字段为实值：
+#   title / question.type / quality.{overall,coverage,depth,specificity}
+#   tags (≥1 条对象) / topics (≥1 条对象)
+# analysis.objectivity 三个 ratio 之和必须 = 1.0（允差 0.01）
+# 不得留: "" / 0 / pending / [] (tags/topics)
 # ── Site schema required fields (src/utils/schema.ts) ─────────────
 title: ""
 slug: "${slug}"
@@ -85,7 +121,7 @@ createdAt: "${now}"
 updatedAt: "${now}"
 date: "${now}"
 question:
-  type: ""            # e.g. 方法论 / 系统设计 / AI 工程化
+  type: ""            # e.g. ${default_question_type}
   subType: ""
 quality:
   overall: 0          # 0-10; fill before publish (will block on 0)
@@ -106,7 +142,7 @@ tags: []              # [{ name: "rust", parent?: "lang", alias?: ["rs"] }]
 topics: []            # [{ name: "AI 工程化", alias?: [] }]
 
 # ── Skill workflow metadata (passthrough; not consumed by site) ───
-template: skill-experience
+template: ${template}
 gate_passed: false
 quality_gate:
   contrarian_view: pending
@@ -115,7 +151,8 @@ quality_gate:
   real_skill: pending
 ---
 
-<!-- 由 AI 依 blueprint.md 五节骨架填充: 起源 / 尝试方案 / 踩的坑 / 最终设计 / 反共识 takeaway -->
+<!-- 由 AI 依 ${blueprint_hint} 五节骨架填充: ${sections_hint} -->
+<!-- analysis.objectivity 典型默认 (${template}): ${default_objectivity} -->
 EOF
   echo "$file"
 }
@@ -148,12 +185,17 @@ cmd_publish() {
   fi
 
   # Schema pre-check: site zod requires numeric quality + filled question.type.
-  # Catch common empty/pending values that would crash the build.
+  # Scan only the frontmatter (between the first two `---` lines) to avoid
+  # false positives from body text or appended gate checklist.
+  local fm
+  fm="$(awk '/^---$/{c++; next} c==1{print} c>=2{exit}' "$file")"
   local issues=()
-  grep -q '^title:[[:space:]]*""' "$file" && issues+=("title empty")
-  grep -q '^  type:[[:space:]]*""' "$file" && issues+=("question.type empty")
-  grep -qE '^  (overall|coverage|depth|specificity):[[:space:]]*0$' "$file" && issues+=("quality score still 0 — fill 0-10")
-  grep -q 'pending' "$file" && issues+=("'pending' values remain — replace with real data")
+  echo "$fm" | grep -q '^title:[[:space:]]*""' && issues+=("title empty")
+  echo "$fm" | grep -q '^  type:[[:space:]]*""' && issues+=("question.type empty")
+  echo "$fm" | grep -qE '^  (overall|coverage|depth|specificity):[[:space:]]*0$' && issues+=("quality score still 0 — fill 1-10")
+  echo "$fm" | grep -q 'pending' && issues+=("'pending' values remain in frontmatter — replace with real data")
+  echo "$fm" | grep -qE '^tags:[[:space:]]*\[\][[:space:]]*$' && issues+=("tags empty — add ≥1 object like [{name: \"github\"}]")
+  echo "$fm" | grep -qE '^topics:[[:space:]]*\[\][[:space:]]*$' && issues+=("topics empty — add ≥1 object like [{name: \"AI 工程化\"}]")
   if [ ${#issues[@]} -gt 0 ]; then
     echo "schema pre-check failed:" >&2
     printf '  - %s\n' "${issues[@]}" >&2
@@ -179,14 +221,37 @@ cmd_publish() {
   local next=$((max_n + 1))
   local target="$notes_dir/${next}-${slug}.md"
 
-  cp "$file" "$target"
+  # Strip gate checklist (everything from ARTICLE_GATE_CHECKLIST marker) and
+  # workflow-only frontmatter fields (template / gate_passed / quality_gate)
+  # before publishing to the site.
+  awk '
+    /^<!-- ARTICLE_GATE_CHECKLIST -->/ { exit }
+    /^template:[[:space:]]/ { next }
+    /^gate_passed:[[:space:]]/ { next }
+    /^quality_gate:[[:space:]]*$/ { skip = 1; next }
+    skip && /^[[:space:]]+/ { next }
+    { skip = 0; print }
+  ' "$file" > "$target"
   echo "published: $target"
   echo ""
-  echo "下一步（手动）:"
-  echo "  cd \"$repo\""
-  echo "  # 检查并补全 frontmatter (quality / analysis 等 pending 字段)"
-  echo "  git add src/content/notes/${next}-${slug}.md"
-  echo "  git commit -m \"add note: ${slug}\""
+  echo "━━ 下一步（手动，按顺序执行） ━━"
+  echo ""
+  echo "1. 本地 dry-run 构建，失败则回滚新文件："
+  echo "   cd \"$repo\""
+  echo "   npm run build"
+  echo "   # 若 build 失败: git rm src/content/notes/${next}-${slug}.md  → 回 draft 修补"
+  echo ""
+  echo "2. lint 死代码扫描："
+  echo "   npm run lint:unused"
+  echo ""
+  echo "3. 确认 diff 只含预期新文件："
+  echo "   git status"
+  echo "   git diff --stat"
+  echo ""
+  echo "4. commit + push（push 后 GitHub Actions 会自动部署 Pages）："
+  echo "   git add src/content/notes/${next}-${slug}.md"
+  echo "   git commit -m \"feat(notes): ${slug}\""
+  echo "   git push origin main"
 }
 
 main() {
