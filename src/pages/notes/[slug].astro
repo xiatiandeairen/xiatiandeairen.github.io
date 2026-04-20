@@ -92,16 +92,33 @@ const topicTotalCount = primaryTopic
   ? getAllNotes().filter((n: any) => n.topics?.some((t: any) => t.name === primaryTopic)).length
   : 0;
 
+const _siteUrl = 'https://xiatiandeairen.github.io';
+const _wordCount = note.content.replace(/\s+/g, '').length;
+const _keywords = note.tags.map((t: any) => t.name).join(', ');
+const _topic = note.topics?.[0]?.name;
+const _updatedAt = note.updatedAt || note.date;
+
 const articleJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Article',
   headline: note.title,
-  datePublished: note.date,
   description: note.content.slice(0, 160).replace(/\n/g, ' ').trim(),
-  author: { '@type': 'Person', name: '夏天的爱人', url: 'https://xiatiandeairen.github.io/about' },
-  url: `https://xiatiandeairen.github.io/notes/${note.slug}`,
-  // Per-slug OG image generation is v2; use og-default.svg as static fallback.
-  image: `https://xiatiandeairen.github.io/og-default.svg`,
+  datePublished: note.date,
+  dateModified: _updatedAt,
+  inLanguage: lang === 'en' ? 'en' : 'zh-CN',
+  wordCount: _wordCount,
+  keywords: _keywords,
+  ...(_topic ? { articleSection: _topic } : {}),
+  author: { '@type': 'Person', name: '夏天的爱人', url: `${_siteUrl}/about` },
+  publisher: {
+    '@type': 'Organization',
+    name: '夏天的爱人',
+    url: _siteUrl,
+    logo: { '@type': 'ImageObject', url: `${_siteUrl}/og-default.svg` },
+  },
+  url: `${_siteUrl}/notes/${note.slug}`,
+  image: `${_siteUrl}/og/${note.slug}.png`,
+  mainEntityOfPage: { '@type': 'WebPage', '@id': `${_siteUrl}/notes/${note.slug}` },
 };
 ---
 
