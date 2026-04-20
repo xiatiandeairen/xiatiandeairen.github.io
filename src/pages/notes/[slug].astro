@@ -545,20 +545,28 @@ const articleJsonLd = {
       function bookInColumns() {
         return document.documentElement.getAttribute('data-article-layout') === 'columns';
       }
+      function bookStep() {
+        // Each spread advances the container width + one column-gap so that
+        // the inter-column gap between spread N's last col and spread N+1's
+        // first col lands between pages (not clipped inside a spread).
+        if (!articleBody) return 0;
+        var W = articleBody.clientWidth;
+        var gap = parseFloat(getComputedStyle(articleBody).columnGap) || 0;
+        return W + gap;
+      }
       function bookUpdateMetrics() {
         if (!bookInColumns() || !articleBody) return;
-        var W = articleBody.clientWidth;
-        if (!W) return;
+        var step = bookStep();
+        if (!step) return;
         var total = articleBody.scrollWidth;
-        bookMaxSpread = Math.max(0, Math.ceil(total / W) - 1);
+        bookMaxSpread = Math.max(0, Math.ceil(total / step) - 1);
         if (bookSpread > bookMaxSpread) bookSpread = bookMaxSpread;
         bookApply();
       }
       function bookApply() {
         if (!articleBody) return;
-        var W = articleBody.clientWidth;
-        // Round to integer pixel to avoid sub-pixel column drift
-        articleBody.style.setProperty('--book-offset', Math.round(-bookSpread * W) + 'px');
+        var step = bookStep();
+        articleBody.style.setProperty('--book-offset', Math.round(-bookSpread * step) + 'px');
         var ind = document.getElementById('book-page-indicator');
         if (ind) ind.textContent = (bookSpread + 1) + ' / ' + (bookMaxSpread + 1);
         try { localStorage.setItem(bookPosKey, String(bookSpread)); } catch (e) {}
@@ -778,9 +786,8 @@ const articleJsonLd = {
               e.preventDefault();
               var ab = document.getElementById('article-body');
               if (ab && typeof bookSpread !== 'undefined') {
-                var W = ab.clientWidth;
-                if (W) {
-                  // Remove transform temporarily to measure heading's natural offsetLeft
+                var step = bookStep();
+                if (step) {
                   var prevTransform = ab.style.transform;
                   ab.style.transition = 'none';
                   ab.style.transform = 'translateX(0px)';
@@ -789,7 +796,7 @@ const articleJsonLd = {
                   ab.style.transition = '';
                   ab.style.transform = prevTransform;
                   void ab.offsetWidth;
-                  bookSpread = Math.max(0, Math.min(bookMaxSpread, Math.floor(headingLeft / W)));
+                  bookSpread = Math.max(0, Math.min(bookMaxSpread, Math.floor(headingLeft / step)));
                   bookApply();
                 }
               }
