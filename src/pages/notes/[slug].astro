@@ -670,7 +670,9 @@ const articleJsonLd = {
         // 1. Mode-menu close (Esc takes priority over mode exit)
         if (e.key === 'Escape') {
           if (modeMenu && !modeMenu.hidden) { modeMenuClose(); e.preventDefault(); return; }
-          if (current === 'book') { applyMode('default'); e.preventDefault(); return; }
+          if (typePanel && typePanel.classList.contains('open')) { typePanel.classList.remove('open'); typeToggle && typeToggle.setAttribute('aria-expanded', 'false'); e.preventDefault(); return; }
+          if (tocPanel && tocPanel.classList.contains('open')) { tocPanel.classList.remove('open'); e.preventDefault(); return; }
+          if (current === 'reading' || current === 'book') { applyMode('default'); e.preventDefault(); return; }
         }
 
         // 2. Mode toggle keys
