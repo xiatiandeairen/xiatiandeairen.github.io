@@ -5,12 +5,6 @@ export const SITE_CONFIG = {
   url: 'https://xiatiandeairen.github.io'
 };
 
-// Search-engine verification tokens — public (they live in the rendered HTML).
-// Add new provider tokens here; BaseLayout renders a meta tag for any non-empty value.
-export const SEO_VERIFICATION = {
-  google: 'ylFOZx_5CCV8npi4p7s-JHzdIk_J1KVNGjHUrq-8Oic',
-  bing: '',
-};
 
 export const PAGINATION = {
   perPage: 20

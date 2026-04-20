@@ -47,6 +47,11 @@ jobs:
           # GitHub Discussions at build time; without it, home hero cards
           # silently skip the "reader letters" block.
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Search-engine verification meta tags — BaseLayout renders the meta
+          # tag only when non-empty. Add the corresponding secret in
+          # repo Settings → Secrets → Actions after registering the site.
+          GOOGLE_SITE_VERIFICATION: ${{ secrets.GOOGLE_SITE_VERIFICATION }}
+          BING_SITE_VERIFICATION: ${{ secrets.BING_SITE_VERIFICATION }}
         run: |
           if [ -f pnpm-lock.yaml ]; then
             pnpm build
