@@ -52,6 +52,8 @@ jobs:
           # repo Settings → Secrets → Actions after registering the site.
           GOOGLE_SITE_VERIFICATION: ${{ secrets.GOOGLE_SITE_VERIFICATION }}
           BING_SITE_VERIFICATION: ${{ secrets.BING_SITE_VERIFICATION }}
+          # Cloudflare Web Analytics beacon token (public once rendered).
+          CF_ANALYTICS_TOKEN: ${{ secrets.CF_ANALYTICS_TOKEN }}
         run: |
           if [ -f pnpm-lock.yaml ]; then
             pnpm build

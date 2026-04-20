@@ -5,10 +5,6 @@ export const SITE_CONFIG = {
   url: 'https://xiatiandeairen.github.io'
 };
 
-// Cloudflare Web Analytics beacon — public token (lands in HTML on every
-// page). BaseLayout only injects the script in production builds, so `astro
-// dev` doesn't send beacons during local work.
-export const CF_ANALYTICS_TOKEN = 'REDACTED_CF_TOKEN';
 
 
 export const PAGINATION = {

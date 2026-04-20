@@ -1,7 +1,7 @@
 ---
 import '../styles/global.css';
 import type { SEOData } from '../utils/seo';
-import { SITE_CONFIG, CF_ANALYTICS_TOKEN } from '../utils/constants';
+import { SITE_CONFIG } from '../utils/constants';
 import { getLang, useT, switchLangPath, localePath, type Lang } from '../i18n';
 import Sidebar from '../components/Sidebar.astro';
 import ShortcutsHelp from '../components/ShortcutsHelp.astro';
@@ -80,8 +80,8 @@ const bingVerify = import.meta.env.BING_SITE_VERIFICATION || '';
 
     {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
 
-    {import.meta.env.PROD && CF_ANALYTICS_TOKEN && (
-      <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon={`{"token": "${CF_ANALYTICS_TOKEN}"}`}></script>
+    {import.meta.env.PROD && import.meta.env.CF_ANALYTICS_TOKEN && (
+      <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon={`{"token": "${import.meta.env.CF_ANALYTICS_TOKEN}"}`}></script>
     )}
 
     {/* Shared client runtime — loaded synchronously so inline IIFEs can use window.SiteRuntime */}
