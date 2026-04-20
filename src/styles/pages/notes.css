@@ -627,25 +627,34 @@
     */
     html[data-article-layout="columns"] {
       overflow: hidden;
-      background: color-mix(in srgb, var(--paper) 90%, #f5e5bf 10%);
+      /* desk — slightly dimmer than paper so the book floats on it */
+      background: color-mix(in srgb, var(--bg-subtle) 80%, #8a7959 20%);
     }
     html[data-article-layout="columns"] body {
       overflow: hidden;
       height: 100vh;
       background: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     html[data-article-layout="columns"][data-mode] .site-main {
-      max-width: none !important;
-      width: 100vw !important;
-      height: 100vh !important;
+      max-width: min(1200px, 94vw) !important;
+      width: 100% !important;
+      height: min(calc(100vh - var(--space-6) * 2), 860px) !important;
       min-height: 0 !important;
-      max-height: 100vh !important;
-      padding: var(--space-9) clamp(var(--space-8), 8vw, var(--space-11)) var(--space-8) !important;
+      max-height: calc(100vh - var(--space-6) * 2) !important;
+      padding: var(--space-7) clamp(var(--space-6), 5vw, var(--space-9)) var(--space-6) !important;
       overflow: hidden;
-      margin: 0 !important;
+      margin: 0 auto !important;
       display: flex;
       align-items: stretch;
-      background: transparent;
+      background: color-mix(in srgb, var(--paper) 92%, #f5e5bf 8%);
+      border: 1px solid color-mix(in srgb, var(--ink) 12%, transparent);
+      border-radius: 3px;
+      box-shadow:
+        0 20px 48px rgba(40, 32, 20, 0.22),
+        0 4px 12px rgba(40, 32, 20, 0.08);
     }
     html[data-article-layout="columns"] .article-header {
       display: none !important;
