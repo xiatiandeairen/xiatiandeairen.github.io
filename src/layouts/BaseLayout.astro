@@ -1,7 +1,7 @@
 ---
 import '../styles/global.css';
 import type { SEOData } from '../utils/seo';
-import { SITE_CONFIG } from '../utils/constants';
+import { SITE_CONFIG, SEO_VERIFICATION } from '../utils/constants';
 import { getLang, useT, switchLangPath, localePath, type Lang } from '../i18n';
 import Sidebar from '../components/Sidebar.astro';
 import ShortcutsHelp from '../components/ShortcutsHelp.astro';
@@ -38,11 +38,10 @@ const hasHreflang = MIRRORED_PATHS.has(matchPath);
 const zhHref = SITE_CONFIG.url + (matchPath === '/' ? '/' : matchPath);
 const enHref = SITE_CONFIG.url + '/en' + (matchPath === '/' ? '' : matchPath);
 
-// Search-engine verification — values come from build env so codes aren't
-// committed. Set in the GH Actions workflow (secrets.GOOGLE_SITE_VERIFICATION,
-// secrets.BING_SITE_VERIFICATION) once you register the site.
-const googleVerify = import.meta.env.GOOGLE_SITE_VERIFICATION || '';
-const bingVerify = import.meta.env.BING_SITE_VERIFICATION || '';
+// Search-engine verification — these tokens are public (they land in HTML),
+// so hardcode via SEO_VERIFICATION in constants.ts. Empty strings skip render.
+const googleVerify = SEO_VERIFICATION.google;
+const bingVerify = SEO_VERIFICATION.bing;
 ---
 
 <!doctype html>
