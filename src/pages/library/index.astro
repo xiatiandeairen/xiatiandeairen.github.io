@@ -1,0 +1,69 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollections } from '../../utils/library';
+import { generatePageMeta } from '../../utils/seo';
+import { getLang } from '../../i18n';
+
+const lang = getLang(Astro.url.pathname);
+const collections = getCollections();
+const title = lang === 'zh' ? '书库' : 'Library';
+const subtitle = lang === 'zh'
+  ? '成体系的学习专题 —— 每个合集是一门可以从头读到尾的课程。'
+  : 'Structured study collections — each one a course you can read end to end.';
+const seo = generatePageMeta({ title, description: subtitle, path: '/library' });
+---
+
+<BaseLayout title={title} seo={seo} lang={lang}>
+  <header class="library-header">
+    <h1 class="font-display text-h1 mb-1">{title}</h1>
+    <p class="font-sans text-small library-subtitle">{subtitle}</p>
+  </header>
+
+  {collections.length === 0 ? (
+    <p class="font-sans text-small library-empty">{lang === 'zh' ? '暂无内容。' : 'Nothing here yet.'}</p>
+  ) : (
+    <div class="library-grid">
+      {collections.map((c) => (
+        <a href={`/library/${c.slug}`} class="library-card">
+          <div class="library-card-kicker font-sans">
+            {lang === 'zh' ? `专题 · ${c.chapterCount} 章` : `Collection · ${c.chapterCount} chapters`}
+          </div>
+          <h2 class="library-card-title font-display">{c.title}</h2>
+          <p class="library-card-desc font-serif">{c.description}</p>
+          <span class="library-card-cta font-sans">{lang === 'zh' ? '进入合集 →' : 'Open →'}</span>
+        </a>
+      ))}
+    </div>
+  )}
+</BaseLayout>
+
+<style>
+  .library-header { margin-bottom: var(--space-6); }
+  .library-subtitle { color: var(--ink-muted); margin-top: 0.25rem; }
+  .library-empty { color: var(--ink-muted); }
+  .library-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--space-5);
+  }
+  .library-card {
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-5);
+    border: 1px solid var(--rule);
+    background: var(--bg-subtle);
+    text-decoration: none;
+    transition: border-color 0.15s, transform 0.15s;
+  }
+  .library-card:hover { border-color: var(--ink); transform: translateY(-2px); }
+  .library-card-kicker {
+    font-size: var(--font-caption);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin-bottom: 0.5rem;
+  }
+  .library-card-title { font-size: var(--font-h3); color: var(--ink); margin-bottom: 0.5rem; }
+  .library-card-desc { color: var(--ink-light); line-height: 1.6; font-size: var(--font-small); flex: 1; }
+  .library-card-cta { margin-top: var(--space-4); color: var(--ink); font-size: var(--font-small); }
+</style>

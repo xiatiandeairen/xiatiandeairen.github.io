@@ -1,0 +1,196 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { getLibraryChapters, getCollectionChapters, LIBRARY_COLLECTIONS } from '../../../utils/library';
+import { generatePageMeta } from '../../../utils/seo';
+import { addHeadingIds, extractToc } from '../../../utils/markdown';
+import { getLang } from '../../../i18n';
+import { marked } from 'marked';
+import '../../../styles/pages/notes.css';
+
+export async function getStaticPaths() {
+  const chapters = getLibraryChapters();
+  return chapters.map((ch) => {
+    const siblings = getCollectionChapters(ch.collection);
+    const idx = siblings.findIndex((s) => s.slug === ch.slug);
+    const htmlContent = addHeadingIds(marked.parse(ch.content) as string);
+    const toc = extractToc(ch.content);
+    return {
+      params: { collection: ch.collection, slug: ch.slug },
+      props: {
+        chapter: ch,
+        htmlContent,
+        toc,
+        prev: idx > 0 ? siblings[idx - 1] : null,
+        next: idx < siblings.length - 1 ? siblings[idx + 1] : null,
+        position: idx + 1,
+        total: siblings.length,
+      },
+    };
+  });
+}
+
+const { chapter, htmlContent, toc, prev, next, position, total } = Astro.props;
+const lang = getLang(Astro.url.pathname);
+const meta = LIBRARY_COLLECTIONS[chapter.collection];
+const seo = generatePageMeta({
+  title: chapter.title,
+  description: chapter.summary,
+  path: `/library/${chapter.collection}/${chapter.slug}`,
+});
+const readingMinutes = Math.max(1, Math.round(chapter.content.replace(/\s+/g, '').length / 300));
+---
+
+<BaseLayout title={chapter.title} seo={seo} lang={lang}>
+  <nav class="library-crumb font-sans" aria-label="breadcrumb">
+    <a href="/library">{lang === 'zh' ? '书库' : 'Library'}</a>
+    <span aria-hidden="true">/</span>
+    <a href={`/library/${chapter.collection}`}>{meta.title}</a>
+    <span aria-hidden="true">/</span>
+    <span>{lang === 'zh' ? `第 ${position} / ${total} 章` : `${position} / ${total}`}</span>
+  </nav>
+
+  <header class="article-header">
+    <div class="article-kicker">{meta.title}</div>
+    <h1 class="article-title font-display">{chapter.title}</h1>
+    <div class="article-dateline" aria-label="article meta">
+      {chapter.topics.length > 0 && (
+        <div class="dateline-tax">
+          {chapter.topics.map((topic) => (
+            <a href={`/topics/${encodeURIComponent(topic)}`} class="taxonomy-link taxonomy-link-primary font-sans">{topic}</a>
+          ))}
+        </div>
+      )}
+      <div class="dateline-meta">
+        <span>{lang === 'zh' ? `第 ${chapter.order} 章` : `Chapter ${chapter.order}`}</span>
+        <span class="dateline-meta-sep" aria-hidden="true"></span>
+        <span>{readingMinutes + ' min read'}</span>
+      </div>
+    </div>
+  </header>
+
+  <article id="article-body" class="prose prose-lg max-w-none
+    prose-headings:font-display prose-headings:text-ink prose-headings:font-bold
+    prose-h2:text-xl prose-h2:mt-10 prose-h2:mb-3
+    prose-h3:text-lg prose-h3:mt-8 prose-h3:mb-2
+    prose-p:text-ink-light prose-p:leading-relaxed prose-p:text-body
+    prose-strong:text-ink prose-strong:font-semibold
+    prose-a:text-ink prose-a:underline prose-a:decoration-rule prose-a:underline-offset-2 hover:prose-a:decoration-ink
+    prose-code:text-ink prose-code:bg-bg-subtle prose-code:font-mono prose-code:text-[0.875em]
+    prose-pre:bg-bg-subtle prose-pre:border prose-pre:border-rule-light
+    prose-blockquote:border-ink prose-blockquote:border-l-3 prose-blockquote:text-ink-light prose-blockquote:italic
+    prose-li:text-ink-light prose-li:leading-relaxed"
+  >
+    <div set:html={htmlContent} />
+  </article>
+
+  {toc.length > 0 && (
+    <div class="toc-float" id="toc-float">
+      <button class="toc-float-btn" id="toc-toggle" aria-label="目录">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="11" y2="18"/></svg>
+      </button>
+      <nav class="toc-panel" id="toc-panel">
+        <div class="section-label">{lang === 'zh' ? '目录' : 'Contents'}</div>
+        {toc.map((item) => (
+          <a href={`#${item.id}`} class:list={['toc-item', item.level === 3 && 'toc-sub']} data-id={item.id}>{item.text}</a>
+        ))}
+      </nav>
+    </div>
+  )}
+
+  <nav class="chapter-nav" aria-label={lang === 'zh' ? '章节导航' : 'Chapter navigation'}>
+    {prev ? (
+      <a href={`/library/${chapter.collection}/${prev.slug}`} class="chapter-nav-link">
+        <div class="cat-label">{lang === 'zh' ? `← 上一章 · 第 ${prev.order} 章` : `← Ch.${prev.order}`}</div>
+        <div class="chapter-nav-title font-serif">{prev.title}</div>
+      </a>
+    ) : <div />}
+    {next ? (
+      <a href={`/library/${chapter.collection}/${next.slug}`} class="chapter-nav-link chapter-nav-next">
+        <div class="cat-label">{lang === 'zh' ? `下一章 · 第 ${next.order} 章 →` : `Ch.${next.order} →`}</div>
+        <div class="chapter-nav-title font-serif">{next.title}</div>
+      </a>
+    ) : <div />}
+  </nav>
+
+  <a href={`/library/${chapter.collection}`} class="back-to-collection font-sans">
+    {lang === 'zh' ? `← 返回《${meta.title}》目录` : `← Back to ${meta.title}`}
+  </a>
+
+  <script is:inline>
+    (function () {
+      // TOC toggle + scroll-spy + code-copy. Slimmed from the notes detail page
+      // (no reading/book modes here). slugify in markdown.ts matches the ids set
+      // by addHeadingIds, so #anchor links resolve.
+      var tocToggle = document.getElementById('toc-toggle');
+      var tocPanel = document.getElementById('toc-panel');
+      if (tocToggle && tocPanel) {
+        tocToggle.addEventListener('click', function (e) { e.stopPropagation(); tocPanel.classList.toggle('open'); });
+        document.addEventListener('click', function (e) {
+          if (tocPanel.classList.contains('open') && !tocPanel.contains(e.target)) tocPanel.classList.remove('open');
+        });
+        tocPanel.querySelectorAll('a').forEach(function (a) {
+          a.addEventListener('click', function () { tocPanel.classList.remove('open'); });
+        });
+      }
+
+      var tocItems = document.querySelectorAll('.toc-item');
+      if (tocItems.length) {
+        var headings = [];
+        tocItems.forEach(function (item) {
+          var el = document.getElementById(item.getAttribute('data-id'));
+          if (el) headings.push({ el: el, item: item });
+        });
+        var current = null;
+        function updateToc() {
+          var y = window.scrollY + 100;
+          var active = headings[0];
+          for (var i = 0; i < headings.length; i++) {
+            if (headings[i].el.offsetTop <= y) active = headings[i];
+          }
+          if (active && active !== current) {
+            if (current) current.item.classList.remove('active');
+            active.item.classList.add('active');
+            current = active;
+          }
+        }
+        if (headings.length) { window.addEventListener('scroll', updateToc, { passive: true }); updateToc(); }
+      }
+
+      document.querySelectorAll('pre').forEach(function (pre) {
+        var code = pre.querySelector('code');
+        if (!code) return;
+        var wrapper = document.createElement('div');
+        wrapper.style.cssText = 'position:relative;';
+        pre.parentNode.insertBefore(wrapper, pre);
+        wrapper.appendChild(pre);
+        var btn = document.createElement('button');
+        btn.textContent = '复制';
+        btn.style.cssText = 'position:absolute;top:8px;right:8px;padding:3px 10px;font-family:Inter,sans-serif;font-size:11px;background:var(--rule-light);color:var(--ink-muted);border:1px solid var(--rule);border-radius:3px;cursor:pointer;opacity:0;transition:opacity 0.15s;z-index:1;';
+        wrapper.appendChild(btn);
+        wrapper.addEventListener('mouseenter', function () { btn.style.opacity = '1'; });
+        wrapper.addEventListener('mouseleave', function () { btn.style.opacity = '0'; });
+        btn.addEventListener('click', function () {
+          navigator.clipboard.writeText(code.textContent || '').then(function () {
+            btn.textContent = '已复制';
+            setTimeout(function () { btn.textContent = '复制'; }, 2000);
+          });
+        });
+      });
+    })();
+  </script>
+</BaseLayout>
+
+<style>
+  .library-crumb { font-size: var(--font-caption); color: var(--ink-muted); margin-bottom: var(--space-4); display: flex; gap: 0.5rem; flex-wrap: wrap; }
+  .library-crumb a { color: var(--ink-muted); text-decoration: none; }
+  .library-crumb a:hover { color: var(--ink); }
+
+  .chapter-nav { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-5); margin-top: var(--space-7); padding-top: var(--space-5); border-top: 1px solid var(--rule); }
+  .chapter-nav-link { text-decoration: none; }
+  .chapter-nav-next { text-align: right; }
+  .chapter-nav-title { font-size: var(--font-h3); color: var(--ink); transition: color 0.15s; }
+  .chapter-nav-link:hover .chapter-nav-title { color: var(--ink-hover); }
+
+  .back-to-collection { display: inline-block; margin-top: var(--space-6); color: var(--ink-muted); text-decoration: none; font-size: var(--font-small); }
+  .back-to-collection:hover { color: var(--ink); }
+</style>
