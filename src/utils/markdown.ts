@@ -26,7 +26,11 @@ export function extractToc(content: string): TocItem[] {
   for (const line of content.split('\n')) {
     const match = line.match(/^(#{2,3})\s+(.+)$/);
     if (match) {
-      const text = match[2].replace(/\*\*?|`[^`]+`/g, '').trim();
+      // Strip only the emphasis/code MARKERS, keeping inline-code text. This must
+      // mirror addHeadingIds (which strips <code> tags but keeps their text) or a
+      // heading containing inline code gets a different slug here than its id,
+      // breaking the TOC anchor.
+      const text = match[2].replace(/[*`]/g, '').trim();
       toc.push({ id: slugify(text), text, level: match[1].length });
     }
   }

@@ -1,6 +1,6 @@
 ---
 import BaseLayout from '../../../layouts/BaseLayout.astro';
-import { getCollections, getCollectionChapters, LIBRARY_COLLECTIONS } from '../../../utils/library';
+import { getCollections, getCollectionChapters, getCollectionGroups, LIBRARY_COLLECTIONS } from '../../../utils/library';
 import { generatePageMeta } from '../../../utils/seo';
 import { getLang } from '../../../i18n';
 
@@ -12,6 +12,8 @@ const { collection } = Astro.params;
 const lang = getLang(Astro.url.pathname);
 const meta = LIBRARY_COLLECTIONS[collection!];
 const chapters = getCollectionChapters(collection!);
+const groups = getCollectionGroups(collection!);
+const grouped = groups.length > 1 || groups[0]?.group !== null;
 const seo = generatePageMeta({ title: meta.title, description: meta.description, path: `/library/${collection}` });
 
 function readingMinutes(content: string): number {
@@ -30,27 +32,38 @@ const totalMinutes = chapters.reduce((sum, ch) => sum + readingMinutes(ch.conten
   <header class="collection-header">
     <div class="collection-kicker font-sans">
       {lang === 'zh'
-        ? `专题 · ${chapters.length} 章 · 约 ${totalMinutes} 分钟`
-        : `Collection · ${chapters.length} chapters · ~${totalMinutes} min`}
+        ? `专题 · ${grouped ? `${groups.length} 部 · ` : ''}${chapters.length} 章 · 约 ${totalMinutes} 分钟`
+        : `Collection · ${grouped ? `${groups.length} parts · ` : ''}${chapters.length} chapters · ~${totalMinutes} min`}
     </div>
     <h1 class="collection-title font-display">{meta.title}</h1>
     <p class="collection-desc font-serif">{meta.description}</p>
   </header>
 
-  <ol class="chapter-list">
-    {chapters.map((ch) => (
-      <li class="chapter-item">
-        <a href={`/library/${collection}/${ch.slug}`} class="chapter-link">
-          <span class="chapter-order font-sans">{String(ch.order).padStart(2, '0')}</span>
-          <span class="chapter-body">
-            <span class="chapter-title font-display">{ch.title}</span>
-            <span class="chapter-summary font-serif">{ch.summary}</span>
-          </span>
-          <span class="chapter-min font-sans">{readingMinutes(ch.content)}'</span>
-        </a>
-      </li>
-    ))}
-  </ol>
+  {groups.map((g, gi) => (
+    <section class="chapter-group">
+      {g.group && (
+        <header class="group-head">
+          <span class="group-order font-sans">{String(gi + 1).padStart(2, '0')}</span>
+          <h2 class="group-title font-display">{g.group}</h2>
+          <span class="group-count font-sans">{lang === 'zh' ? `${g.chapters.length} 章` : `${g.chapters.length} ch`}</span>
+        </header>
+      )}
+      <ol class="chapter-list">
+        {g.chapters.map((ch, ci) => (
+          <li class="chapter-item">
+            <a href={`/library/${collection}/${ch.slug}`} class="chapter-link">
+              <span class="chapter-order font-sans">{String(grouped ? ci + 1 : ch.order).padStart(2, '0')}</span>
+              <span class="chapter-body">
+                <span class="chapter-title font-display">{ch.title}</span>
+                <span class="chapter-summary font-serif">{ch.summary}</span>
+              </span>
+              <span class="chapter-min font-sans">{readingMinutes(ch.content)}'</span>
+            </a>
+          </li>
+        ))}
+      </ol>
+    </section>
+  ))}
 </BaseLayout>
 
 <style>
@@ -62,6 +75,19 @@ const totalMinutes = chapters.reduce((sum, ch) => sum + readingMinutes(ch.conten
   .collection-kicker { font-size: var(--font-caption); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-muted); margin-bottom: 0.5rem; }
   .collection-title { font-size: var(--font-h1); color: var(--ink); margin-bottom: 0.5rem; }
   .collection-desc { color: var(--ink-light); line-height: 1.7; max-width: 60ch; }
+
+  .chapter-group { margin-bottom: var(--space-6); }
+  .group-head {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-3);
+    margin: var(--space-5) 0 var(--space-2);
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--rule);
+  }
+  .group-order { color: var(--ink-ghost); font-variant-numeric: tabular-nums; font-size: var(--font-small); }
+  .group-title { font-size: var(--font-h3); color: var(--ink); }
+  .group-count { margin-left: auto; color: var(--ink-ghost); font-size: var(--font-caption); }
 
   /* Override base.css `ul, ol { max-width: 65ch }` — that readability cap is for
      prose lists; the chapter index is a full-width layout list. */

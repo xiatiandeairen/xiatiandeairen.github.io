@@ -45,6 +45,21 @@ export const LIBRARY_COLLECTIONS: Record<string, LibraryCollectionMeta> = {
     description: '从 LLM 的物理特性出发，走完 API 工程、Prompt、RAG、Agent、评测、部署到产品系统设计的完整应用工程链路。',
     order: 1,
   },
+  'tech-library': {
+    title: '技术深挖',
+    description: '推理引擎、数据库、编译器、操作系统内核到大模型与检索底座的系统级源码深读，每个领域自成一门小课。',
+    order: 2,
+  },
+  'ai-research-compass': {
+    title: 'AI 研究指南',
+    description: '从方向横向对比到 MLSys、强化学习、大模型算法、计算机视觉、自然语言处理各专家课程的系统学习路径。',
+    order: 3,
+  },
+  'indie-ai-fullstack': {
+    title: '独立开发全栈',
+    description: '从心法、出题力、产品设计、UI/UX 到全栈开发、分发增长、一人公司经营的完整独立开发课程。',
+    order: 4,
+  },
 };
 
 const libraryDir = join(process.cwd(), 'src/content/library');
@@ -113,6 +128,32 @@ export function getCollectionChapters(collection: string): LibraryChapter[] {
   return getLibraryChapters()
     .filter((ch) => ch.collection === collection)
     .sort((a, b) => a.order - b.order);
+}
+
+export interface ChapterGroup {
+  // null for flat collections (no subdirectories, e.g. ai-app-engineering).
+  group: string | null;
+  chapters: LibraryChapter[];
+}
+
+// Group a collection's chapters by their `group` field, preserving the global
+// `order` sequence both across groups and within each group. A flat collection
+// returns a single group with a null title (rendered without a group header).
+export function getCollectionGroups(collection: string): ChapterGroup[] {
+  const chapters = getCollectionChapters(collection);
+  const groups: ChapterGroup[] = [];
+  const indexByName = new Map<string, number>();
+  for (const ch of chapters) {
+    const key = ch.group ?? '';
+    let idx = indexByName.get(key);
+    if (idx === undefined) {
+      idx = groups.length;
+      indexByName.set(key, idx);
+      groups.push({ group: ch.group ?? null, chapters: [] });
+    }
+    groups[idx].chapters.push(ch);
+  }
+  return groups;
 }
 
 export interface CollectionSummary extends LibraryCollectionMeta {
