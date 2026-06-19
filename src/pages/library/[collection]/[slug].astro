@@ -50,7 +50,7 @@ const readingMinutes = Math.max(1, Math.round(chapter.content.replace(/\s+/g, ''
   </nav>
 
   <header class="article-header">
-    <div class="article-kicker">{meta.title}</div>
+    <div class="article-kicker">{chapter.group ? `${meta.title} · ${chapter.group}` : meta.title}</div>
     <h1 class="article-title font-display">{chapter.title}</h1>
     <div class="article-dateline" aria-label="article meta">
       {chapter.topics.length > 0 && (
