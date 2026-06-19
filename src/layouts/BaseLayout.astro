@@ -111,6 +111,9 @@ const bingVerify = import.meta.env.BING_SITE_VERIFICATION || '';
               <span class="masthead-tagline">{t('site.tagline')}</span>
               <span class="masthead-sep"></span>
               <nav class="masthead-nav" aria-label={lang === 'zh' ? '主导航' : 'Main navigation'}>
+                <a href="/library" class:list={[matchPath.startsWith('/library') && 'active']}>
+                  {t('nav.library')}
+                </a>
                 <a href="/topics" class:list={[matchPath.startsWith('/topics') && 'active']}>
                   {t('nav.topics')}
                 </a>

@@ -6,6 +6,7 @@ export default {
     builtWith: '基于 Astro 构建',
   },
   nav: {
+    library: '书库',
     topics: '主题',
     series: '系列',
     archive: '归档',
