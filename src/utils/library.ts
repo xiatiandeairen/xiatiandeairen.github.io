@@ -61,6 +61,11 @@ export const LIBRARY_COLLECTIONS: Record<string, LibraryCollectionMeta> = {
     description: '从零用 TypeScript 手写一个深度学习训练框架——标量/张量 autograd、层与激活、SGD/Adam、训练循环诊断、自注意力、Transformer block，最后训出一个会收敛的 nanoGPT——每章离线实测 loss 下降与梯度。',
     order: 3,
   },
+  'rl-posttrain': {
+    title: 'RL 与后训练',
+    description: '从零用 TypeScript 手写强化学习与大模型后训练——多臂老虎机、Gridworld、策略梯度、PPO、奖励模型、RLHF、DPO、GRPO、RL for reasoning——每章在玩具环境离线实测奖励/胜率曲线与 reward hacking。',
+    order: 4,
+  },
   // survey/课程系列，orders 10+。
   'ai-app-engineering': {
     title: 'AI 应用工程',
