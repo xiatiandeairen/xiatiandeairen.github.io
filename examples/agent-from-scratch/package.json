@@ -12,7 +12,18 @@
     "stage03": "tsx src/stage03-sandbox.ts",
     "stage04": "tsx src/stage04-permissions.ts",
     "stage05": "tsx src/stage05-context.ts",
-    "stage06": "tsx src/stage06-memory.ts"
+    "stage06": "tsx src/stage06-memory.ts",
+    "stage07": "tsx src/stage07-retrieval.ts",
+    "stage08": "tsx src/stage08-planning.ts",
+    "stage09": "tsx src/stage09-reflection.ts",
+    "stage10": "tsx src/stage10-subagents.ts",
+    "stage11": "tsx src/stage11-multiagent.ts",
+    "stage12": "tsx src/stage12-workflow.ts",
+    "stage13": "tsx src/stage13-eval.ts",
+    "stage14": "tsx src/stage14-tracing.ts",
+    "stage15": "tsx src/stage15-durable.ts",
+    "stage16": "tsx src/stage16-cost.ts",
+    "capstone": "tsx capstone/agent.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0"
