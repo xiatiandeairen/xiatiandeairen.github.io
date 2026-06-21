@@ -33,6 +33,21 @@ export interface LearningPathMeta {
 // (chromium/android/webrtc/linux/db/compiler) yet — depth over breadth.
 export const LEARNING_PATHS: LearningPathMeta[] = [
   {
+    id: 'agent-engineer-from-scratch',
+    title: 'Agent 工程师 · 从零构建',
+    audience: '面向就业 · 做 AI 原生应用 / Agent 平台',
+    goal: '不用框架，亲手把一个生产级 Agent 的循环、工具、沙箱、权限、上下文、记忆逐个写出来并跑通。',
+    steps: [
+      { collection: 'agent-engineering', slug: '00', why: '先建地图:Agent = 循环+工具+终止条件,以及六个器官怎么咬合' },
+      { collection: 'agent-engineering', slug: '01', why: '地基:40 行写出控制循环,看清停止条件与 O(T²) 成本' },
+      { collection: 'agent-engineering', slug: '02', why: '给循环装手:function calling 报文 + 从零手写 MCP' },
+      { collection: 'agent-engineering', slug: '03', why: '挡"能不能做":隔离不可信命令,沙箱实测拦截' },
+      { collection: 'agent-engineering', slug: '04', why: '挡"准不准做":权限三态 + 复现 lethal trifecta 注入外泄' },
+      { collection: 'agent-engineering', slug: '05', why: '还第 1 章的 O(T²) 债:压缩/卸载/KV 缓存把窗口当预算' },
+      { collection: 'agent-engineering', slug: '06', why: 'context 之外的长期记忆:分层召回、遗忘与记忆投毒' },
+    ],
+  },
+  {
     id: 'llm-inference-engineer',
     title: '大模型推理工程师',
     audience: '面向就业 · 进推理引擎 / infra 团队',
