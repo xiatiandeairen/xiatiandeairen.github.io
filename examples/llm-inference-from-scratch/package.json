@@ -1,0 +1,23 @@
+{
+  "name": "llm-inference-from-scratch",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "从零用 TypeScript 手写一个会算真实 tok/s 的 LLM 推理栈。纯算法、离线 CPU 可跑、无 LLM/API/网络依赖，每个 stage 实测 tok/s、TTFT、per-token latency、KV 内存(est.)。配套《LLM 推理引擎从零》书库合集。",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "stage01": "tsx src/stage01-forward.ts",
+    "stage02": "tsx src/stage02-kvcache.ts",
+    "stage03": "tsx src/stage03-sampling.ts",
+    "stage04": "tsx src/stage04-continuous-batch.ts",
+    "stage05": "tsx src/stage05-paged-kv.ts",
+    "stage06": "tsx src/stage06-speculative.ts",
+    "stage07": "tsx src/stage07-quantization.ts",
+    "stage08": "tsx src/stage08-benchmark.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.9.0"
+  }
+}
