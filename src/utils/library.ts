@@ -56,6 +56,11 @@ export const LIBRARY_COLLECTIONS: Record<string, LibraryCollectionMeta> = {
     description: '从零用 TypeScript 手写一个会算真实 tok/s 的推理栈——前向、KV 缓存、采样、连续批处理、分页 KV、投机解码、量化、基准测试——每章配可跑代码与实测数字，讲透为什么/何时坏/代价。',
     order: 2,
   },
+  'tiny-dl': {
+    title: '训练框架从零',
+    description: '从零用 TypeScript 手写一个深度学习训练框架——标量/张量 autograd、层与激活、SGD/Adam、训练循环诊断、自注意力、Transformer block，最后训出一个会收敛的 nanoGPT——每章离线实测 loss 下降与梯度。',
+    order: 3,
+  },
   // survey/课程系列，orders 10+。
   'ai-app-engineering': {
     title: 'AI 应用工程',

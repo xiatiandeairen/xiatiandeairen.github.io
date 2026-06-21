@@ -49,6 +49,22 @@ export const LEARNING_PATHS: LearningPathMeta[] = [
     ],
   },
   {
+    id: 'dl-framework-from-scratch',
+    title: '深度学习 / 算法工程师 · 从零构建训练框架',
+    audience: '面向就业 / 科研 · 算法、训练、后训练方向',
+    goal: '不用 PyTorch，亲手实现 autograd、层、优化器、自注意力与 Transformer，最后在玩具语料上训出一个会收敛的 nanoGPT。',
+    steps: [
+      { collection: 'tiny-dl', slug: '01', why: '地基:标量 autograd——一个会反向传播的数' },
+      { collection: 'tiny-dl', slug: '02', why: '把标量计算图升维到 n 维张量引擎' },
+      { collection: 'tiny-dl', slug: '03', why: '层与激活:Module/Linear 与非线性的梯度形状' },
+      { collection: 'tiny-dl', slug: '04', why: '优化器:从 SGD 到 Adam,谁在动参数' },
+      { collection: 'tiny-dl', slug: '05', why: '训练循环与诊断:loss 不降时怎么查' },
+      { collection: 'tiny-dl', slug: '06', why: '自注意力从零:手写一个能反向的 attention 头' },
+      { collection: 'tiny-dl', slug: '07', why: 'Transformer block:残差/LayerNorm/前馈装配' },
+      { collection: 'tiny-dl', slug: '08', why: 'nanoGPT 真训练:在玩具语料上看它收敛' },
+    ],
+  },
+  {
     id: 'llm-inference-engineer-from-scratch',
     title: 'LLM 推理工程师 · 从零构建',
     audience: '面向就业 · 进推理引擎 / infra 团队',
