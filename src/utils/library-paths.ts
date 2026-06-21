@@ -33,6 +33,22 @@ export interface LearningPathMeta {
 // (chromium/android/webrtc/linux/db/compiler) yet — depth over breadth.
 export const LEARNING_PATHS: LearningPathMeta[] = [
   {
+    id: 'vector-search-engineer-from-scratch',
+    title: '向量检索工程师 · 从零构建',
+    audience: '面向就业 · 做检索 / RAG 底座 / 向量库',
+    goal: '不用现成向量库，亲手实现倒排/BM25、HNSW、IVF-PQ、Hybrid+Rerank，并用合成数据实测 recall / QPS / 内存三角权衡。',
+    steps: [
+      { collection: 'vector-search', slug: '00', why: '先建地图:维度灾难 + 精确vs近似的 recall/速度/内存三角' },
+      { collection: 'vector-search', slug: '01', why: '关键词基线:倒排索引 + BM25,也是 Hybrid 的一半' },
+      { collection: 'vector-search', slug: '02', why: '向量与相似度:cos/dot/l2 + 维度灾难为何逼出近似' },
+      { collection: 'vector-search', slug: '03', why: '暴力 KNN:recall 上限/速度下限,后续近似法的对照基线' },
+      { collection: 'vector-search', slug: '04', why: 'HNSW 图索引:ef/M 旋钮,实测 recall↔QPS 权衡' },
+      { collection: 'vector-search', slug: '05', why: 'IVF + PQ 量化:用内存换召回,nprobe 权衡' },
+      { collection: 'vector-search', slug: '06', why: 'Hybrid 融合 + Rerank:关键词与语义两路互补' },
+      { collection: 'vector-search', slug: '07', why: '评测与生产化:recall@k/nDCG、分片、过滤、更新' },
+    ],
+  },
+  {
     id: 'agent-engineer-from-scratch',
     title: 'Agent 工程师 · 从零构建',
     audience: '面向就业 · 做 AI 原生应用 / Agent 平台',

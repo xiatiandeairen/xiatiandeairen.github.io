@@ -40,30 +40,37 @@ export interface LibraryCollectionMeta {
 // `collection` field matches one of these keys. Keep titles in sync with the
 // importer's COLLECTION_TOPIC map.
 export const LIBRARY_COLLECTIONS: Record<string, LibraryCollectionMeta> = {
+  // "从零做透" 系列（独立可跑代码 + 实测数字），排在最前。orders 0–9 预留。
   'agent-engineering': {
     title: 'Agent 工程',
     description: '从零用 TypeScript 拆解一个生产级 Agent 的七个器官——控制循环、工具与 MCP、执行沙箱、权限授权、上下文工程、记忆系统——每章配可跑代码与失败模式分析。',
     order: 0,
   },
+  'vector-search': {
+    title: '向量检索引擎',
+    description: '从零用 TypeScript 手写一个向量检索引擎——倒排/BM25、暴力 KNN、HNSW、IVF-PQ 量化、Hybrid + Rerank、分片与评测——每章用合成数据实测 recall / QPS / 内存。',
+    order: 1,
+  },
+  // survey/课程系列，orders 10+。
   'ai-app-engineering': {
     title: 'AI 应用工程',
     description: '从 LLM 的物理特性出发，走完 API 工程、Prompt、RAG、Agent、评测、部署到产品系统设计的完整应用工程链路。',
-    order: 1,
+    order: 10,
   },
   'tech-library': {
     title: '技术深挖',
     description: '推理引擎、数据库、编译器、操作系统内核到大模型与检索底座的系统级源码深读，每个领域自成一门小课。',
-    order: 2,
+    order: 11,
   },
   'ai-research-compass': {
     title: 'AI 研究指南',
     description: '从方向横向对比到 MLSys、强化学习、大模型算法、计算机视觉、自然语言处理各专家课程的系统学习路径。',
-    order: 3,
+    order: 12,
   },
   'indie-ai-fullstack': {
     title: '独立开发全栈',
     description: '从心法、出题力、产品设计、UI/UX 到全栈开发、分发增长、一人公司经营的完整独立开发课程。',
-    order: 4,
+    order: 13,
   },
 };
 
