@@ -1,0 +1,25 @@
+{
+  "name": "agent-from-scratch",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "从零用 TypeScript 拆解一个生产级 Agent 的核心能力。配套《Agent 工程》书库合集。",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "stage01": "tsx src/stage01-loop.ts",
+    "stage02:tools": "tsx src/stage02-tools.ts",
+    "stage02:mcp": "tsx src/stage02-mcp.ts",
+    "stage03": "tsx src/stage03-sandbox.ts",
+    "stage04": "tsx src/stage04-permissions.ts",
+    "stage05": "tsx src/stage05-context.ts",
+    "stage06": "tsx src/stage06-memory.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.9.0"
+  }
+}
