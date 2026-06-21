@@ -1,11 +1,13 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getCollections } from '../../utils/library';
+import { getLearningPaths } from '../../utils/library-paths';
 import { generatePageMeta } from '../../utils/seo';
 import { getLang } from '../../i18n';
 
 const lang = getLang(Astro.url.pathname);
 const collections = getCollections();
+const paths = getLearningPaths();
 const title = lang === 'zh' ? '书库' : 'Library';
 const subtitle = lang === 'zh'
   ? '成体系的学习专题 —— 每个合集是一门可以从头读到尾的课程。'
@@ -34,6 +36,30 @@ const seo = generatePageMeta({ title, description: subtitle, path: '/library' })
         </a>
       ))}
     </div>
+  )}
+
+  {paths.length > 0 && (
+    <section class="paths-promo">
+      <div class="paths-promo-head">
+        <h2 class="paths-promo-title font-display">{lang === 'zh' ? '按目标学 · 学习路径' : 'Learn by goal · Paths'}</h2>
+        <a href="/library/paths" class="paths-promo-cta font-sans">{lang === 'zh' ? '全部路径 →' : 'All paths →'}</a>
+      </div>
+      <p class="paths-promo-desc font-serif">
+        {lang === 'zh'
+          ? '不知道从哪读起?按就业方向重排的跨合集路线,挑一个角色按顺序读。'
+          : 'Not sure where to start? Cross-collection routes by role — pick one and read in order.'}
+      </p>
+      <ul class="paths-promo-list">
+        {paths.map((p) => (
+          <li>
+            <a href={`/library/paths#${p.id}`} class="paths-promo-item">
+              <span class="paths-promo-item-name font-display">{p.title}</span>
+              <span class="paths-promo-item-meta font-sans">{lang === 'zh' ? `${p.chapterCount} 章` : `${p.chapterCount} ch`}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
   )}
 </BaseLayout>
 
@@ -66,4 +92,17 @@ const seo = generatePageMeta({ title, description: subtitle, path: '/library' })
   .library-card-title { font-size: var(--font-h3); color: var(--ink); margin-bottom: 0.5rem; }
   .library-card-desc { color: var(--ink-light); line-height: 1.6; font-size: var(--font-small); flex: 1; }
   .library-card-cta { margin-top: var(--space-4); color: var(--ink); font-size: var(--font-small); }
+
+  .paths-promo { margin-top: var(--space-7); padding-top: var(--space-5); border-top: 2px solid var(--ink); }
+  .paths-promo-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); }
+  .paths-promo-title { font-size: var(--font-h3); color: var(--ink); }
+  .paths-promo-cta { font-size: var(--font-small); color: var(--ink); text-decoration: none; white-space: nowrap; }
+  .paths-promo-cta:hover { color: var(--ink-hover); }
+  .paths-promo-desc { color: var(--ink-muted); line-height: 1.6; font-size: var(--font-small); margin: 0.4rem 0 var(--space-4); max-width: 60ch; }
+  /* Override base.css `ul { max-width: 65ch }` — layout list, not prose. */
+  .paths-promo-list { list-style: none; margin: 0; padding: 0; max-width: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: var(--space-2); }
+  .paths-promo-item { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-2); padding: var(--space-3); border: 1px solid var(--rule); text-decoration: none; transition: border-color 0.15s; }
+  .paths-promo-item:hover { border-color: var(--ink); }
+  .paths-promo-item-name { font-size: var(--font-small); color: var(--ink); }
+  .paths-promo-item-meta { font-size: var(--font-caption); color: var(--ink-ghost); white-space: nowrap; }
 </style>

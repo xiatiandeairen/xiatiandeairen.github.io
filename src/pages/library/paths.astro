@@ -1,0 +1,111 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getLearningPaths } from '../../utils/library-paths';
+import { generatePageMeta } from '../../utils/seo';
+import { getLang } from '../../i18n';
+
+const lang = getLang(Astro.url.pathname);
+const paths = getLearningPaths();
+const title = lang === 'zh' ? '学习路径' : 'Learning Paths';
+const subtitle = lang === 'zh'
+  ? '按就业目标重排的跨合集路线 —— 想做哪个方向,就按顺序读这几章。'
+  : 'Goal-oriented routes across collections — pick a role and read these chapters in order.';
+const seo = generatePageMeta({ title, description: subtitle, path: '/library/paths' });
+---
+
+<BaseLayout title={title} seo={seo} lang={lang}>
+  <nav class="library-crumb font-sans" aria-label="breadcrumb">
+    <a href="/library">{lang === 'zh' ? '书库' : 'Library'}</a>
+    <span aria-hidden="true">/</span>
+    <span>{title}</span>
+  </nav>
+
+  <header class="paths-header">
+    <h1 class="paths-title font-display">{title}</h1>
+    <p class="paths-subtitle font-serif">{subtitle}</p>
+  </header>
+
+  <nav class="paths-toc font-sans" aria-label={lang === 'zh' ? '路径目录' : 'path index'}>
+    {paths.map((p) => (
+      <a href={`#${p.id}`} class="paths-toc-item">{p.title}</a>
+    ))}
+  </nav>
+
+  {paths.map((p) => (
+    <section class="path" id={p.id}>
+      <header class="path-head">
+        <div class="path-audience font-sans">{p.audience}</div>
+        <h2 class="path-name font-display">{p.title}</h2>
+        <p class="path-goal font-serif">{p.goal}</p>
+        <div class="path-meta font-sans">
+          {lang === 'zh'
+            ? `${p.chapterCount} 章 · 约 ${p.totalMinutes} 分钟`
+            : `${p.chapterCount} chapters · ~${p.totalMinutes} min`}
+        </div>
+      </header>
+
+      <ol class="path-steps">
+        {p.steps.map((s, si) => (
+          <li class="path-step">
+            <span class="step-num font-sans">{String(si + 1).padStart(2, '0')}</span>
+            <span class="step-body">
+              <a href={`/library/${s.collection}/${s.slug}`} class="step-link font-display">{s.chapter.title}</a>
+              <span class="step-why font-serif">{s.why}</span>
+              <span class="step-tags font-sans">
+                <span class="step-collection">{s.collectionTitle}</span>
+                <span class="step-min">{s.minutes}'</span>
+              </span>
+            </span>
+          </li>
+        ))}
+      </ol>
+    </section>
+  ))}
+</BaseLayout>
+
+<style>
+  .library-crumb { font-size: var(--font-caption); color: var(--ink-muted); margin-bottom: var(--space-4); display: flex; gap: 0.5rem; }
+  .library-crumb a { color: var(--ink-muted); text-decoration: none; }
+  .library-crumb a:hover { color: var(--ink); }
+
+  .paths-header { margin-bottom: var(--space-5); padding-bottom: var(--space-5); border-bottom: 2px solid var(--ink); }
+  .paths-title { font-size: var(--font-h1); color: var(--ink); margin-bottom: 0.5rem; }
+  .paths-subtitle { color: var(--ink-light); line-height: 1.7; max-width: 60ch; }
+
+  /* Quick jump list — chips, single row wrapping. */
+  .paths-toc { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-bottom: var(--space-6); }
+  .paths-toc-item {
+    font-size: var(--font-small);
+    color: var(--ink-light);
+    text-decoration: none;
+    border: 1px solid var(--rule);
+    padding: 0.3rem 0.7rem;
+  }
+  .paths-toc-item:hover { border-color: var(--ink); color: var(--ink); }
+
+  .path { margin-bottom: var(--space-7); scroll-margin-top: var(--space-5); }
+  .path-head { margin-bottom: var(--space-4); padding-bottom: var(--space-3); border-bottom: 1px solid var(--rule); }
+  .path-audience { font-size: var(--font-caption); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-muted); margin-bottom: 0.4rem; }
+  .path-name { font-size: var(--font-h2); color: var(--ink); margin-bottom: 0.5rem; }
+  .path-goal { color: var(--ink-light); line-height: 1.7; max-width: 60ch; margin-bottom: 0.5rem; }
+  .path-meta { font-size: var(--font-caption); color: var(--ink-ghost); font-variant-numeric: tabular-nums; }
+
+  /* Override base.css `ol { max-width: 65ch }` — this is a layout list, not prose. */
+  .path-steps { list-style: none; margin: 0; padding: 0; max-width: none; }
+  .path-step {
+    display: grid;
+    grid-template-columns: 2.5rem 1fr;
+    gap: var(--space-4);
+    align-items: baseline;
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid var(--rule-light);
+  }
+  .step-num { color: var(--ink-ghost); font-variant-numeric: tabular-nums; }
+  .step-body { display: flex; flex-direction: column; gap: 0.3rem; min-width: 0; }
+  .step-link { font-size: var(--font-h3); color: var(--ink); text-decoration: none; }
+  .step-link:hover { color: var(--ink-hover); }
+  .step-why { font-size: var(--font-small); color: var(--ink-muted); line-height: 1.6; }
+  .step-tags { display: flex; gap: var(--space-3); align-items: baseline; font-size: var(--font-caption); color: var(--ink-ghost); }
+  .step-collection { letter-spacing: 0.04em; }
+  .step-min { font-variant-numeric: tabular-nums; }
+</style>
