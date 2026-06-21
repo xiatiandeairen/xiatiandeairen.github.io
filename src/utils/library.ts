@@ -40,6 +40,11 @@ export interface LibraryCollectionMeta {
 // `collection` field matches one of these keys. Keep titles in sync with the
 // importer's COLLECTION_TOPIC map.
 export const LIBRARY_COLLECTIONS: Record<string, LibraryCollectionMeta> = {
+  'agent-engineering': {
+    title: 'Agent 工程',
+    description: '从零用 TypeScript 拆解一个生产级 Agent 的七个器官——控制循环、工具与 MCP、执行沙箱、权限授权、上下文工程、记忆系统——每章配可跑代码与失败模式分析。',
+    order: 0,
+  },
   'ai-app-engineering': {
     title: 'AI 应用工程',
     description: '从 LLM 的物理特性出发，走完 API 工程、Prompt、RAG、Agent、评测、部署到产品系统设计的完整应用工程链路。',
