@@ -1,0 +1,25 @@
+{
+  "name": "rl-posttrain-from-scratch",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "从零手写 RL 与后训练：PPO / GRPO / RLHF / DPO。纯算法、离线 CPU 可跑、无 LLM/API/网络依赖；种子 PRNG 驱动，run-to-run bit-for-bit 可复现。每个 stage 实测奖励/胜率/KL/regret/RM 准确率。配套《RL 与后训练从零》。",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "stage00": "tsx src/stage00-landscape.ts",
+    "stage01": "tsx src/stage01-bandit.ts",
+    "stage02": "tsx src/stage02-gridworld-value.ts",
+    "stage03": "tsx src/stage03-reinforce.ts",
+    "stage04": "tsx src/stage04-ppo.ts",
+    "stage05": "tsx src/stage05-reward-model.ts",
+    "stage06": "tsx src/stage06-rlhf.ts",
+    "stage07": "tsx src/stage07-dpo.ts",
+    "stage08": "tsx src/stage08-grpo.ts",
+    "stage09": "tsx src/stage09-rlvr-reasoning.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.9.0"
+  }
+}
