@@ -51,6 +51,11 @@ export const LIBRARY_COLLECTIONS: Record<string, LibraryCollectionMeta> = {
     description: '从零用 TypeScript 手写一个向量检索引擎——倒排/BM25、暴力 KNN、HNSW、IVF-PQ 量化、Hybrid + Rerank、分片与评测——每章用合成数据实测 recall / QPS / 内存。',
     order: 1,
   },
+  'llm-inference': {
+    title: 'LLM 推理引擎',
+    description: '从零用 TypeScript 手写一个会算真实 tok/s 的推理栈——前向、KV 缓存、采样、连续批处理、分页 KV、投机解码、量化、基准测试——每章配可跑代码与实测数字，讲透为什么/何时坏/代价。',
+    order: 2,
+  },
   // survey/课程系列，orders 10+。
   'ai-app-engineering': {
     title: 'AI 应用工程',

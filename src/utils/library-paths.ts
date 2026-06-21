@@ -49,6 +49,23 @@ export const LEARNING_PATHS: LearningPathMeta[] = [
     ],
   },
   {
+    id: 'llm-inference-engineer-from-scratch',
+    title: 'LLM 推理工程师 · 从零构建',
+    audience: '面向就业 · 进推理引擎 / infra 团队',
+    goal: '不用现成推理框架，亲手实现前向、KV 缓存、采样、连续批处理、PagedAttention、投机解码、量化，并用 toy 权重实测 tok/s、延迟与显存。',
+    steps: [
+      { collection: 'llm-inference', slug: '00', why: '先建地图:自回归 + prefill/decode 两阶段 + tok/s 的真相' },
+      { collection: 'llm-inference', slug: '01', why: 'tiny transformer 前向:token→logits,注意力 O(seq²) 的根' },
+      { collection: 'llm-inference', slug: '02', why: 'KV 缓存:把 decode 从 O(n²) 砍成 O(n),回报最大的一步' },
+      { collection: 'llm-inference', slug: '03', why: '采样:温度/top-k/top-p,decode 热路径上的取舍' },
+      { collection: 'llm-inference', slug: '04', why: '连续批处理:让 GPU 不空转,把吞吐榨干' },
+      { collection: 'llm-inference', slug: '05', why: 'PagedAttention:像 OS 管内存一样管 KV 缓存碎片' },
+      { collection: 'llm-inference', slug: '06', why: '投机解码:小模型抢跑、大模型一次验一串降延迟' },
+      { collection: 'llm-inference', slug: '07', why: '量化 int8/int4:用精度换显存与带宽' },
+      { collection: 'llm-inference', slug: '08', why: '全栈基准:所有优化同台,把推理账算到底 + 面试冲刺' },
+    ],
+  },
+  {
     id: 'agent-engineer-from-scratch',
     title: 'Agent 工程师 · 从零构建',
     audience: '面向就业 · 做 AI 原生应用 / Agent 平台',
