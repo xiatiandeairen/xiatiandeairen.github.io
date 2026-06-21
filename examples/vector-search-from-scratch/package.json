@@ -1,0 +1,22 @@
+{
+  "name": "vector-search-from-scratch",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "从零用 TypeScript 手写一个向量检索引擎。纯算法、离线可跑、无 LLM/API/网络依赖，每个 stage 实测 recall/QPS/内存。配套《向量检索引擎》书库合集。",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "stage01": "tsx src/stage01-bruteforce.ts",
+    "stage02": "tsx src/stage02-metrics-normalize.ts",
+    "stage03": "tsx src/stage03-ivf.ts",
+    "stage04": "tsx src/stage04-pq.ts",
+    "stage05": "tsx src/stage05-hnsw.ts",
+    "stage06": "tsx src/stage06-hybrid-filter.ts",
+    "stage07": "tsx src/stage07-benchmark.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.9.0"
+  }
+}
