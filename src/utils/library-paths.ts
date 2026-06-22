@@ -33,6 +33,27 @@ export interface LearningPathMeta {
 // (chromium/android/webrtc/linux/db/compiler) yet — depth over breadth.
 export const LEARNING_PATHS: LearningPathMeta[] = [
   {
+    id: 'math-for-builders',
+    title: '开发者的数学与物理 · 实用路径',
+    audience: '面向就业 / 生活 · 想把数学物理接到 CS 工作与日常决策',
+    goal: '按计算机实用性重排数学物理，每章配一个可跑 demo——从贝叶斯、PCA、反向传播到 FFT、MCMC、从晶体管搭加法器，把知识做出来。',
+    steps: [
+      { collection: 'math-for-builders', slug: '00', why: '全景:最高 ROI 的四块先学,计算机权重的取舍地图' },
+      { collection: 'math-for-builders', slug: '01', why: '概率与贝叶斯:决策、分类、不被基率谬误骗' },
+      { collection: 'math-for-builders', slug: '02', why: '统计与推断:A/B、p 值真义、辛普森悖论' },
+      { collection: 'math-for-builders', slug: '03', why: '线性代数:PCA/SVD/embedding,数据的语言' },
+      { collection: 'math-for-builders', slug: '04', why: '微积分与最优化:手推一次反向传播' },
+      { collection: 'math-for-builders', slug: '05', why: '离散数学与逻辑:算法骨架与复杂度直觉' },
+      { collection: 'math-for-builders', slug: '06', why: '数值方法:浮点坑与稳定算法' },
+      { collection: 'math-for-builders', slug: '07', why: '信息论:熵=压缩下界=ML 损失' },
+      { collection: 'math-for-builders', slug: '08', why: '数论与密码学:从零 RSA 与单向函数' },
+      { collection: 'math-for-builders', slug: '09', why: '计算理论:可判定性与 P/NP' },
+      { collection: 'math-for-builders', slug: '10', why: '傅里叶与信号:时域↔频域、FFT、采样定理' },
+      { collection: 'math-for-builders', slug: '11', why: '统计力学↔ML:MCMC、退火、伊辛相变' },
+      { collection: 'math-for-builders', slug: '12', why: '计算机为什么能算:晶体管→逻辑门→加法器' },
+    ],
+  },
+  {
     id: 'vector-search-engineer-from-scratch',
     title: '向量检索工程师 · 从零构建',
     audience: '面向就业 · 做检索 / RAG 底座 / 向量库',

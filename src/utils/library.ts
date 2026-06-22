@@ -66,6 +66,11 @@ export const LIBRARY_COLLECTIONS: Record<string, LibraryCollectionMeta> = {
     description: '从零用 TypeScript 手写强化学习与大模型后训练——多臂老虎机、Gridworld、策略梯度、PPO、奖励模型、RLHF、DPO、GRPO、RL for reasoning——每章在玩具环境离线实测奖励/胜率曲线与 reward hacking。',
     order: 4,
   },
+  'math-for-builders': {
+    title: '开发者的数学与物理',
+    description: '面向开发者、按计算机实用性挑选的数学与物理——概率统计、线代、最优化、离散逻辑、数值、信息论、密码学、计算理论、傅里叶、统计力学↔ML、从晶体管到逻辑门——每章一个可跑 demo，把知识「做出来」当精通判据。',
+    order: 5,
+  },
   // survey/课程系列，orders 10+。
   'ai-app-engineering': {
     title: 'AI 应用工程',
