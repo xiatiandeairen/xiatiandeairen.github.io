@@ -1,0 +1,23 @@
+{
+  "name": "peft-from-scratch",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "从零用 TypeScript 手写 LoRA / QLoRA / Adapter / Prefix-Tuning。纯算法、离线 CPU 可跑、种子确定可复现。配套书库《高效微调 PEFT 从零》。",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "stage01": "tsx src/stage01-base.ts",
+    "stage02": "tsx src/stage02-fullft.ts",
+    "stage03": "tsx src/stage03-lora.ts",
+    "stage04": "tsx src/stage04-rank.ts",
+    "stage05": "tsx src/stage05-adapter.ts",
+    "stage06": "tsx src/stage06-prefix.ts",
+    "stage07": "tsx src/stage07-qlora.ts",
+    "stage08": "tsx src/stage08-merge.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.9.0"
+  }
+}
