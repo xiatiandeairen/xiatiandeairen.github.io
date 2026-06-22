@@ -1,0 +1,22 @@
+{
+  "name": "distributed-from-scratch",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "从零用 TypeScript 手写分布式系统机制：故障、时间、复制与共识。纯算法、离线可跑、确定性可复现，无 LLM/API/网络依赖。每个 stage 在内存仿真上实测真实消息数 / 轮次 / 收敛性 / 不变量。配套《分布式系统从零》书库合集。",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "stage01": "tsx src/stage01-lamport-clock.ts",
+    "stage02": "tsx src/stage02-vector-clock.ts",
+    "stage03": "tsx src/stage03-rpc-failure-detector.ts",
+    "stage04": "tsx src/stage04-raft-election.ts",
+    "stage05": "tsx src/stage05-raft-log-replication.ts",
+    "stage06": "tsx src/stage06-cap-tradeoff.ts",
+    "stage07": "tsx src/stage07-crdt-convergence.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.9.0"
+  }
+}
