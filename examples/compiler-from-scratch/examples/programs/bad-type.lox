@@ -1,0 +1,11 @@
+// 坏样例: 故意制造类型错误,供第4章类型检查 demo「失败模式」。
+// 第1/2章能正常词法/语法分析(语法是合法的);第4章应报:
+//   - 第 4 行: 字符串 + 数字(类型不匹配)
+//   - 第 7 行: 把数字当条件(if 需要 bool)
+let name = "alice";
+let age = 30;
+let bad = name + age;   // error: cannot add string and number
+
+if (age) {              // error: condition must be bool, got number
+  print bad;
+}
