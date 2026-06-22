@@ -1,0 +1,23 @@
+{
+  "name": "interpretability-from-scratch",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "从零拆开一个玩具 Transformer 的内部电路：训练 → 注意力可视化 → 探针 → logit lens → activation patching → induction head → SAE → 完整定位流水线。纯算法、离线 CPU 可跑、确定性可复现。配套书《机制可解释性从零》。",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "stage01": "tsx src/stage01-train-toy.ts",
+    "stage02": "tsx src/stage02-attention-viz.ts",
+    "stage03": "tsx src/stage03-probing.ts",
+    "stage04": "tsx src/stage04-logit-lens.ts",
+    "stage05": "tsx src/stage05-activation-patching.ts",
+    "stage06": "tsx src/stage06-induction-head.ts",
+    "stage07": "tsx src/stage07-sae.ts",
+    "stage08": "tsx src/stage08-pipeline.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.9.0"
+  }
+}
