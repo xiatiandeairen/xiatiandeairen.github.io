@@ -1,0 +1,23 @@
+{
+  "name": "compiler-from-scratch",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "从零用 TypeScript 实现一个完整编译器：词法 → 语法 → 语义 → 类型 → IR → 优化 → VM → 代码生成。纯算法、离线、零运行时依赖。配套《编译器从零》书库合集。",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "stage01": "tsx src/stage01-lexer.ts",
+    "stage02": "tsx src/stage02-parser.ts",
+    "stage03": "tsx src/stage03-resolver.ts",
+    "stage04": "tsx src/stage04-typecheck.ts",
+    "stage05": "tsx src/stage05-ir.ts",
+    "stage06": "tsx src/stage06-optimize.ts",
+    "stage07": "tsx src/stage07-vm.ts",
+    "stage08": "tsx src/stage08-codegen.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.9.0"
+  }
+}

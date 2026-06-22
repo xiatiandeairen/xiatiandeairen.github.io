@@ -1,0 +1,15 @@
+// 闭包计数器: 检验「一等函数 + 词法闭包 + 捕获可变变量」。
+// 第3章 resolver 必须把内层对 count 的引用正确 resolve 到外层作用域(depth=1)。
+fn makeCounter() {
+  let count = 0;
+  fn next() {
+    count = count + 1;
+    return count;
+  }
+  return next;
+}
+
+let c = makeCounter();
+print c();  // 1
+print c();  // 2
+print c();  // 3
