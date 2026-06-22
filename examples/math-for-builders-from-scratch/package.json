@@ -1,0 +1,27 @@
+{
+  "name": "math-for-builders-from-scratch",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "从零用 TypeScript 拆解开发者真正用得上的数学与物理：贝叶斯、统计、线代、最优化、离散、数值、信息论、密码、可计算性、傅里叶、统计力学、硬件。纯算法、离线 CPU 可跑、确定性可复现。配套书库《开发者的数学与物理》。",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "stage01": "tsx src/stage01-bayes.ts",
+    "stage02": "tsx src/stage02-stats.ts",
+    "stage03": "tsx src/stage03-linalg.ts",
+    "stage04": "tsx src/stage04-optim.ts",
+    "stage05": "tsx src/stage05-discrete.ts",
+    "stage06": "tsx src/stage06-numerics.ts",
+    "stage07": "tsx src/stage07-infotheory.ts",
+    "stage08": "tsx src/stage08-crypto.ts",
+    "stage09": "tsx src/stage09-computability.ts",
+    "stage10": "tsx src/stage10-fourier.ts",
+    "stage11": "tsx src/stage11-statmech.ts",
+    "stage12": "tsx src/stage12-hardware.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.9.0"
+  }
+}
