@@ -54,6 +54,22 @@ export const LEARNING_PATHS: LearningPathMeta[] = [
     ],
   },
   {
+    id: 'distributed-engineer-from-scratch',
+    title: '分布式系统工程师 · 从零构建',
+    audience: '面向就业 · 后端 / 基础设施 / 分布式',
+    goal: '不用现成框架，在确定性网络仿真里亲手实现逻辑/向量时钟、故障检测、Raft 选主与日志复制、CAP 取舍与 CRDT。',
+    steps: [
+      { collection: 'distributed', slug: '00', why: '全景:故障、时间、复制、共识四块地基' },
+      { collection: 'distributed', slug: '01', why: '时间与因果:逻辑时钟,没有全局时钟怎么排序' },
+      { collection: 'distributed', slug: '02', why: '向量时钟:精确捕捉因果与并发' },
+      { collection: 'distributed', slug: '03', why: '故障检测与 RPC:超时、重试、误判' },
+      { collection: 'distributed', slug: '04', why: 'Raft 选主:任期、投票、脑裂避免' },
+      { collection: 'distributed', slug: '05', why: '日志复制:一致性、提交、崩溃恢复' },
+      { collection: 'distributed', slug: '06', why: 'CAP 与一致性模型:分区下的取舍' },
+      { collection: 'distributed', slug: '07', why: '最终一致与 CRDT:无协调的收敛' },
+    ],
+  },
+  {
     id: 'compiler-engineer-from-scratch',
     title: '编译器 / 语言工程师 · 从零构建',
     audience: '面向就业 · 语言 / 编译器 / 工具链 / 静态分析',
