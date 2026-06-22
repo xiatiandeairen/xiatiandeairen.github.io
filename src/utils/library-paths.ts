@@ -138,6 +138,22 @@ export const LEARNING_PATHS: LearningPathMeta[] = [
     ],
   },
   {
+    id: 'sequence-models-from-scratch',
+    title: '序列建模 · 从零构建 RNN 到 Mamba',
+    audience: '面向就业 / 前沿 · 序列建模、长上下文架构',
+    goal: '不用现成库,亲手实现 RNN、LSTM/GRU、注意力与状态空间模型(Mamba 思路),在长依赖任务上看清各架构的取舍与复杂度。',
+    steps: [
+      { collection: 'sequence-models', slug: '00', why: '全景:序列建模的演进与取舍' },
+      { collection: 'sequence-models', slug: '01', why: 'RNN 与时间展开:循环的本质' },
+      { collection: 'sequence-models', slug: '02', why: '梯度消失与爆炸:RNN 的硬伤' },
+      { collection: 'sequence-models', slug: '03', why: 'LSTM/GRU:门控如何解决长依赖' },
+      { collection: 'sequence-models', slug: '04', why: '训练序列模型的实战' },
+      { collection: 'sequence-models', slug: '05', why: '注意力简回顾:为何取代 RNN' },
+      { collection: 'sequence-models', slug: '06', why: '状态空间模型 SSM:线性复杂度' },
+      { collection: 'sequence-models', slug: '07', why: 'Mamba 思路:选择性扫描' },
+    ],
+  },
+  {
     id: 'vision-from-scratch',
     title: '计算机视觉工程师 · 从零构建 CNN',
     audience: '面向就业 · CV / 图像 / 多模态',
