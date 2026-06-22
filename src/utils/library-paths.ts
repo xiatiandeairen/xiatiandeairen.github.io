@@ -138,6 +138,23 @@ export const LEARNING_PATHS: LearningPathMeta[] = [
     ],
   },
   {
+    id: 'embeddings-from-scratch',
+    title: '表示学习 / Embedding · 从零构建',
+    audience: '面向就业 · 检索 / 推荐 / RAG 的上游',
+    goal: '不用现成库,亲手从 one-hot 走到 word2vec、负采样、对比学习 InfoNCE,真训出有语义的词向量并评估。',
+    steps: [
+      { collection: 'embeddings', slug: '00', why: '全景:为什么需要稠密表示' },
+      { collection: 'embeddings', slug: '01', why: 'one-hot 的死路:维度高、无语义' },
+      { collection: 'embeddings', slug: '02', why: '共现与 PMI:统计里藏着语义' },
+      { collection: 'embeddings', slug: '03', why: 'word2vec skip-gram:用上下文学向量' },
+      { collection: 'embeddings', slug: '04', why: '负采样:把 softmax 变成可训练' },
+      { collection: 'embeddings', slug: '05', why: '对比学习与 InfoNCE:拉近正例推开负例' },
+      { collection: 'embeddings', slug: '06', why: '温度与负样本:对比学习的关键旋钮' },
+      { collection: 'embeddings', slug: '07', why: '评估向量:最近邻与 king-man+woman' },
+      { collection: 'embeddings', slug: '08', why: '降维可视化:PCA/t-SNE 看表示结构' },
+    ],
+  },
+  {
     id: 'interpretability-from-scratch',
     title: '可解释性 / 对齐研究 · 从零构建',
     audience: '面向科研 / 前沿 · 对齐、安全、机制可解释性',
