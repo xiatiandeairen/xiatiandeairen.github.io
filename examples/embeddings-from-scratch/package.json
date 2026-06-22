@@ -1,0 +1,23 @@
+{
+  "name": "embeddings-from-scratch",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "从零用 TypeScript 手写表示学习与 Embedding。纯算法、离线 CPU 可跑、无 LLM/API/网络依赖；自带微型自动微分引擎，每个 stage 真训出 loss 下降并打印真实数字。配套《表示学习与 Embedding 从零》。",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "stage01": "tsx src/stage01-onehot.ts",
+    "stage02": "tsx src/stage02-cooccur-pmi.ts",
+    "stage03": "tsx src/stage03-skipgram.ts",
+    "stage04": "tsx src/stage04-negative-sampling.ts",
+    "stage05": "tsx src/stage05-infonce.ts",
+    "stage06": "tsx src/stage06-temperature-negatives.ts",
+    "stage07": "tsx src/stage07-eval-analogy.ts",
+    "stage08": "tsx src/stage08-pca-tsne.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.9.0"
+  }
+}
