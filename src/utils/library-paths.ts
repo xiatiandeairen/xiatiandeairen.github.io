@@ -54,6 +54,23 @@ export const LEARNING_PATHS: LearningPathMeta[] = [
     ],
   },
   {
+    id: 'database-engineer-from-scratch',
+    title: '数据库工程师 · 从零构建',
+    audience: '面向就业 · 后端 / 基础设施 / 数据库内核',
+    goal: '不用现成数据库，亲手实现存储页、缓冲池、B+树、LSM、WAL、MVCC、崩溃恢复与查询执行，看懂一条 SELECT 背后的全部零件。',
+    steps: [
+      { collection: 'database', slug: '00', why: '全景:一条 SELECT 背后要造哪 7 个子系统' },
+      { collection: 'database', slug: '01', why: '存储与页:把 ArrayBuffer 当磁盘,slotted page 塞变长行' },
+      { collection: 'database', slug: '02', why: '缓冲池:LRU/Clock、pin、脏页,内存不够谁先踢' },
+      { collection: 'database', slug: '03', why: 'B+树:扇出/分裂/高度,三层装十亿行' },
+      { collection: 'database', slug: '04', why: 'LSM 树:随机写变顺序写,写/读/空间放大三角' },
+      { collection: 'database', slug: '05', why: 'WAL:先写日志,掉电不丢已提交事务' },
+      { collection: 'database', slug: '06', why: '事务与 MVCC:快照、版本链、四种隔离级别异常' },
+      { collection: 'database', slug: '07', why: '崩溃恢复:ARIES 简化版 Analysis/Redo/Undo' },
+      { collection: 'database', slug: '08', why: '查询执行:SQL→解析→计划→火山模型算子' },
+    ],
+  },
+  {
     id: 'vector-search-engineer-from-scratch',
     title: '向量检索工程师 · 从零构建',
     audience: '面向就业 · 做检索 / RAG 底座 / 向量库',
