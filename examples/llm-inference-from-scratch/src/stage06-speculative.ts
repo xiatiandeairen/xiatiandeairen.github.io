@@ -171,6 +171,18 @@ function generateTargetOnly(
   return { tokens: out, targetForwards };
 }
 
+// Prompt-final target logits: the distribution over the FIRST generated token.
+// It depends only on the prompt, not on any sampling RNG, so for first-token
+// histograms it can be computed once and resampled — identical to calling
+// generateTargetOnly(..., nNew=1, seed) per draw, but without re-prefilling the
+// whole prompt each time. Used to keep the a2 equivalence test fast (chapter 06).
+function targetPromptFinalLogits(target: Model, promptIds: number[]): Float64Array {
+  const cache = newCache(target.cfg);
+  let last: Float64Array = new Float64Array(VOCAB_SIZE);
+  for (const id of promptIds) last = forwardStep(target, id, cache);
+  return last;
+}
+
 type SpecResult = {
   tokens: number[];
   // targetForwards: SERIAL per-position target evaluations this toy actually runs. Honest
@@ -508,11 +520,16 @@ function main(): void {
   const TEMP: DecodeMode = { kind: "sample", temperature: 1.0 };
   const N_RUNS = 4000;
   const klDraft = buildDraftModel(2, SEED_TARGET);
+  // Target-only first-token draws share one prompt prefill (resample the cached
+  // prompt-final logits); identical to generateTargetOnly(...,1,seed).tokens[0]
+  // but ~prompt-length fewer forwards. Speculative draws can't be cached this way
+  // (each round runs its own accept/resample), so they stay full generations.
+  const tgtFinalLogits = targetPromptFinalLogits(target, promptIds);
   const histTarget = new Array(VOCAB_SIZE).fill(0);
   const histSpec = new Array(VOCAB_SIZE).fill(0);
   for (let s = 0; s < N_RUNS; s++) {
     // distinct seeds per run -> independent samples of the FIRST generated token.
-    histTarget[generateTargetOnly(target, promptIds, 1, TEMP, 1000 + s).tokens[0]]++;
+    histTarget[pickToken(tgtFinalLogits, TEMP, mulberry32(1000 + s))]++;
     histSpec[generateSpeculative(target, klDraft, promptIds, 1, 4, TEMP, 5000 + s).tokens[0]]++;
   }
   const pTarget = histTarget.map((c) => c / N_RUNS);
@@ -522,7 +539,7 @@ function main(): void {
   // noise floor at this N). klSpecVsTarget should be the same order, not larger.
   const histTarget2 = new Array(VOCAB_SIZE).fill(0);
   for (let s = 0; s < N_RUNS; s++) {
-    histTarget2[generateTargetOnly(target, promptIds, 1, TEMP, 7000 + s).tokens[0]]++;
+    histTarget2[pickToken(tgtFinalLogits, TEMP, mulberry32(7000 + s))]++;
   }
   const pTarget2 = histTarget2.map((c) => c / N_RUNS);
   const klNoiseFloor = klDivergence(pTarget2, pTarget);
