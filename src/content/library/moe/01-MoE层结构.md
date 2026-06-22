@@ -19,7 +19,7 @@ updatedAt: "2026-06-21T08:00:00.000Z"
 
 在拆 FFN 之前,得先回答一个被大多数教程跳过的问题:**你凭什么相信你的反向传播是对的?** MoE 比普通网络更容易藏反向 bug——它有门控权重把梯度从专家引回路由器、有跨 token 的参数复用(同一个专家被一个 batch 里很多 token 反复调用),这些都是梯度累加(grad accumulation——多条路径的梯度相加)出错的高发区。如果引擎的某个算子反向写错了,你照样能看到 loss 下降,只是下降得「不对」,然后你会花三章去 debug 一个其实在第一章就埋下的 adjoint(伴随,反向传播里每个算子对应的梯度公式)错误。
 
-所以底座 `src/core/tensor.ts` 是一个极小的 reverse-mode autograd(反向模式自动微分,micrograd 风格但支持矩阵),它有一条贯穿全书的核心不变量:梯度必须 `+=` 累加,绝不 `=` 覆盖。为什么对 MoE 尤其致命:一个专家在一个 batch 里被多个 token 命中,它的参数梯度必须是**所有命中 token 的梯度之和**;如果反向用了 `=`,只有最后一个 token 的梯度被留下,专家就训不动。普通网络里这个 bug 也存在,但 MoE 的「一个专家服务多个 token」结构让它更隐蔽、更普遍。
+所以底座 `examples/moe-from-scratch/src/core/tensor.ts` 是一个极小的 reverse-mode autograd(反向模式自动微分,micrograd 风格但支持矩阵),它有一条贯穿全书的核心不变量:梯度必须 `+=` 累加,绝不 `=` 覆盖。为什么对 MoE 尤其致命:一个专家在一个 batch 里被多个 token 命中,它的参数梯度必须是**所有命中 token 的梯度之和**;如果反向用了 `=`,只有最后一个 token 的梯度被留下,专家就训不动。普通网络里这个 bug 也存在,但 MoE 的「一个专家服务多个 token」结构让它更隐蔽、更普遍。
 
 stage01 第一件事就是验证引擎,而且它验的不是抽象的算子,是**本章真要用的那段计算图**——一个 `Expert` 喂进 `crossEntropy`。看 `src/stage01-moe-layer.ts::proveEngine`:
 
@@ -43,11 +43,11 @@ function proveEngine(): number {
    含义: 下面所有训练数字建立在『梯度算对了』之上, 否则一切归零。
 ```
 
-`1.312e-10` 远低于通常 `1e-4` 的通过阈值,且不只是个 PASS——脚本结尾有一行硬断言 `if (!enginePass) throw`,引擎一旦回归就是响亮的崩溃而不是悄悄漂移。**这不是断言引擎对,是证明引擎对。** 注意被测的 `Expert` 是带 GELU(高斯误差线性单元,Transformer 标准激活)的 2 层 MLP,它的反向是 autograd 自动求的,没人手写 adjoint——这正是 `src/core/nn.ts` 顶部注释解释的设计:所有层都只是 tensor 算子的薄组合,「我们从不在这一层写自定义反向,所以 adjoint bug 没有第二个藏身处」。翻译成大白话:**专家不写自己的反向,bug 只可能藏在引擎一个地方,gradCheck 一次兜住全部。** 这是从零做 MoE 和「调 PyTorch」最大的认知差异——你得自己保证微分正确,而保证的方式是数值对拍,不是相信。
+`1.312e-10` 远低于通常 `1e-4` 的通过阈值,且不只是个 PASS——脚本结尾有一行硬断言 `if (!enginePass) throw`,引擎一旦回归就是响亮的崩溃而不是悄悄漂移。**这不是断言引擎对,是证明引擎对。** 注意被测的 `Expert` 是带 GELU(高斯误差线性单元,Transformer 标准激活)的 2 层 MLP,它的反向是 autograd 自动求的,没人手写 adjoint——这正是 `examples/moe-from-scratch/src/core/nn.ts` 顶部注释解释的设计:所有层都只是 tensor 算子的薄组合,「我们从不在这一层写自定义反向,所以 adjoint bug 没有第二个藏身处」。翻译成大白话:**专家不写自己的反向,bug 只可能藏在引擎一个地方,gradCheck 一次兜住全部。** 这是从零做 MoE 和「调 PyTorch」最大的认知差异——你得自己保证微分正确,而保证的方式是数值对拍,不是相信。
 
 ## 一个专家长什么样:就是个 2 层 MLP
 
-确认引擎可信后看「专家」本体。在 `src/core/nn.ts` 里,`Expert` 就是一个两层 MLP:
+确认引擎可信后看「专家」本体。在 `examples/moe-from-scratch/src/core/nn.ts` 里,`Expert` 就是一个两层 MLP:
 
 ```ts
 export class Expert implements Module {

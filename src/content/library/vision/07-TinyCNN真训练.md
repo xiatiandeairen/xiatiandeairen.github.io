@@ -75,7 +75,7 @@ function evalDataset(net: Module, ds: ImageDataset) {
 
 ## loss 曲线：形状比数字可迁移
 
-健康学习率（Adam，lr=0.003）训 12 个 epoch，144 步，真实墙钟 **1316ms**（约 9.14ms/步）。ASCII loss 曲线：
+健康学习率（Adam，lr=0.003）训 12 个 epoch，144 步，单线程 CPU 上几秒内跑完（脚本用 `performance.now()` 打印当次真实墙钟，逐次会有抖动，不是固定值）。ASCII loss 曲线：
 
 ```
 *                                                         1.5779 (max)

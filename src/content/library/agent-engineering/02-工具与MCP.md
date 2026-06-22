@@ -509,4 +509,4 @@ const POISON_SIGNALS = [
 - **MCP 把这套契约搬到进程外**——JSON-RPC 2.0 over stdio,三步握手,stdout 专属协议、stderr 专属日志。
 - **而进程外的代价是新攻击面**——工具描述是不可信输入、原样进 context,tool poisoning 让一个大家当文档的字段变成注入指令的通道。
 
-最后这一点不是收尾,是开篇:工具给了 agent 手,但手能碰什么、碰错了谁负责——**权限**——是下一章的事。tool poisoning + sampling 的 confused-deputy + 能读外部数据又能对外通信的工具组合,正好凑齐下一章要讲的 lethal trifecta(致命三件套)。这一章你已经摸到它的第一条边了。
+最后这一点不是收尾,是开篇:工具给了 agent 手,但手能碰什么、碰错了谁负责,是接下来安全边界两章的事——下一章(第 3 章)用沙箱物理钉死「能碰什么」,再下一章(第 4 章)用权限层管「准不准碰」。tool poisoning + sampling 的 confused-deputy + 能读外部数据又能对外通信的工具组合,正好凑齐第 4 章要讲的 lethal trifecta(致命三件套)。这一章你已经摸到它的第一条边了。

@@ -11,7 +11,7 @@ createdAt: "2026-06-21T08:00:00.000Z"
 updatedAt: "2026-06-21T08:00:00.000Z"
 ---
 
-前六章我们在原始数据空间(2D swiss roll)上把 DDPM 从头跑通了:第 01 章往数据里加噪、第 02 章学反向去噪、第 03 章把它认成 score、第 04 章训练 ε-预测网络、第 05 章换采样器、第 06 章加 guidance。整条链路有一个从没被质疑的前提——**diffusion 直接在你要生成的那个空间里跑**。2D 数据,denoiser 就吃 2D;真要换成 512×512×3 的图,这个 denoiser 每一步就要在 786432 维上做一次完整前向。Stable Diffusion 的第一条工程决策就是把这个前提推翻:**不在像素上扩散**。它先用一个自编码器(autoencoder,把数据压缩再还原的网络)把 512×512 压成 64×64 的 latent,在这个小 64 倍的空间里跑 diffusion,采样完再解码回像素。
+前六章我们在原始 2D 数据空间(双月、混合高斯,本章换成 swiss roll)上把 DDPM 从头跑通了:第 01 章往数据里加噪、第 02 章学反向去噪、第 03 章把它认成 score、第 04 章训练 ε-预测网络、第 05 章换采样器、第 06 章加 guidance。整条链路有一个从没被质疑的前提——**diffusion 直接在你要生成的那个空间里跑**。2D 数据,denoiser 就吃 2D;真要换成 512×512×3 的图,这个 denoiser 每一步就要在 786432 维上做一次完整前向。Stable Diffusion 的第一条工程决策就是把这个前提推翻:**不在像素上扩散**。它先用一个自编码器(autoencoder,把数据压缩再还原的网络)把 512×512 压成 64×64 的 latent,在这个小 64 倍的空间里跑 diffusion,采样完再解码回像素。
 
 这一章用本书的 toy 把这个决策做最小复刻,代码在 `examples/diffusion-from-scratch/src/stage07-latent.ts`。它复用了 `core/nn.ts` 的 `MLP` / `SinusoidalEmbedding`、`core/schedule.ts` 的 cosine schedule、`core/optim.ts` 的 Adam——和前几章是同一套零件,只是把 diffusion 搬进了一个降维后的空间。下面所有数字都来自 `npx tsx src/stage07-latent.ts` 在 seed 1337 下的真实运行,确定性的(参数量、维度、Chamfer 距离)我直接引用,toy 性质导致的乐观偏差我会单独标。
 
