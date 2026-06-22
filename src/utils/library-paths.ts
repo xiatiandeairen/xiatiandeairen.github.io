@@ -138,6 +138,22 @@ export const LEARNING_PATHS: LearningPathMeta[] = [
     ],
   },
   {
+    id: 'moe-from-scratch',
+    title: '混合专家 MoE · 从零构建',
+    audience: '面向就业 / 前沿 · 大模型扩容、稀疏架构',
+    goal: '不用现成库,亲手实现 MoE 层、top-k 路由、负载均衡、容量因子,看清现代大模型怎么用稀疏激活省算力、以及专家坍塌怎么发生。',
+    steps: [
+      { collection: 'moe', slug: '00', why: '全景:稀疏激活为何省算力' },
+      { collection: 'moe', slug: '01', why: 'MoE 层结构:专家 + 门控' },
+      { collection: 'moe', slug: '02', why: 'top-k 路由:只激活少数专家' },
+      { collection: 'moe', slug: '03', why: '路由不可微:怎么训门控' },
+      { collection: 'moe', slug: '04', why: '负载均衡损失:别让专家旱涝不均' },
+      { collection: 'moe', slug: '05', why: '容量因子与 token drop' },
+      { collection: 'moe', slug: '06', why: '专家坍塌:最典型的失败模式' },
+      { collection: 'moe', slug: '07', why: '整合:稀疏 vs dense 的激活 FLOPs' },
+    ],
+  },
+  {
     id: 'sequence-models-from-scratch',
     title: '序列建模 · 从零构建 RNN 到 Mamba',
     audience: '面向就业 / 前沿 · 序列建模、长上下文架构',

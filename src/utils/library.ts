@@ -117,6 +117,11 @@ export const LIBRARY_COLLECTIONS: Record<string, LibraryCollectionMeta> = {
     description: '从零用 TypeScript 手写序列模型演进——RNN 与时间展开、梯度消失/爆炸、LSTM/GRU 门控、注意力简回顾、状态空间模型 SSM、Mamba 选择性扫描——在 toy 长依赖任务上实测门控解决长依赖、O(n) vs O(n²) 复杂度对比。',
     order: 9.85,
   },
+  'moe': {
+    title: '混合专家 MoE',
+    description: '从零用 TypeScript 手写混合专家——MoE 层结构、top-k 路由、路由不可微的处理、负载均衡损失、容量因子与 token drop、专家坍塌、稀疏 vs dense 激活 FLOPs——在 toy 任务上实测路由分布、负载均衡与坍塌失败模式。',
+    order: 9.9,
+  },
   // survey/课程系列，orders 10+。
   'ai-app-engineering': {
     title: 'AI 应用工程',
