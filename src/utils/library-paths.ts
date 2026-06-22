@@ -138,6 +138,22 @@ export const LEARNING_PATHS: LearningPathMeta[] = [
     ],
   },
   {
+    id: 'diffusion-from-scratch',
+    title: '生成模型 / 扩散工程师 · 从零构建',
+    audience: '面向就业 / 前沿 · genAI、图像/视频/音频生成',
+    goal: '不用现成库，在 2D toy 数据上亲手实现扩散模型的加噪、去噪、score matching、DDPM/DDIM 采样与 classifier-free guidance。',
+    steps: [
+      { collection: 'diffusion', slug: '00', why: '全景:VAE/GAN/flow/diffusion 生成模型对比' },
+      { collection: 'diffusion', slug: '01', why: '前向加噪:马尔可夫扩散过程' },
+      { collection: 'diffusion', slug: '02', why: '反向去噪:从噪声一步步还原' },
+      { collection: 'diffusion', slug: '03', why: 'Score matching:学数据分布的梯度' },
+      { collection: 'diffusion', slug: '04', why: 'DDPM 训练:去噪目标与噪声预测' },
+      { collection: 'diffusion', slug: '05', why: '采样器:DDPM vs DDIM 的步数权衡' },
+      { collection: 'diffusion', slug: '06', why: 'Classifier-free guidance:条件生成' },
+      { collection: 'diffusion', slug: '07', why: 'Latent diffusion:在隐空间里扩散' },
+    ],
+  },
+  {
     id: 'dl-framework-from-scratch',
     title: '深度学习 / 算法工程师 · 从零构建训练框架',
     audience: '面向就业 / 科研 · 算法、训练、后训练方向',
