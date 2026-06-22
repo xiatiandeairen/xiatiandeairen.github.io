@@ -71,6 +71,11 @@ export const LIBRARY_COLLECTIONS: Record<string, LibraryCollectionMeta> = {
     description: '面向开发者、按计算机实用性挑选的数学与物理——概率统计、线代、最优化、离散逻辑、数值、信息论、密码学、计算理论、傅里叶、统计力学↔ML、从晶体管到逻辑门——每章一个可跑 demo，把知识「做出来」当精通判据。',
     order: 5,
   },
+  'database': {
+    title: '数据库引擎',
+    description: '从零用 TypeScript 手写一个数据库引擎——slotted page 存储、缓冲池、B+树、LSM 树、WAL、事务与 MVCC、崩溃恢复、查询执行——用内存模拟磁盘，离线实测吞吐、写放大、隔离级别下的并发异常与崩溃恢复。',
+    order: 6,
+  },
   // survey/课程系列，orders 10+。
   'ai-app-engineering': {
     title: 'AI 应用工程',
