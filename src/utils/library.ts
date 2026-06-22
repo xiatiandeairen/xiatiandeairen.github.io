@@ -86,6 +86,11 @@ export const LIBRARY_COLLECTIONS: Record<string, LibraryCollectionMeta> = {
     description: '从零用 TypeScript 手写分布式系统核心——逻辑/向量时钟、RPC 与故障检测、Raft 选主与日志复制、CAP 与一致性模型、最终一致与 CRDT——用确定性内存网络仿真(可注入延迟/丢包/分区)，离线实测选主、日志一致与分区下的取舍。',
     order: 8,
   },
+  'diffusion': {
+    title: '扩散与生成模型',
+    description: '从零用 TypeScript 手写扩散生成模型——前向加噪、反向去噪、score matching、DDPM 训练、DDPM/DDIM 采样、classifier-free guidance、latent diffusion——在 2D toy 数据上真训练，从噪声采样还原目标分布。',
+    order: 9,
+  },
   // survey/课程系列，orders 10+。
   'ai-app-engineering': {
     title: 'AI 应用工程',
