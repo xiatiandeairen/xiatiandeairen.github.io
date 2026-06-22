@@ -112,6 +112,11 @@ export const LIBRARY_COLLECTIONS: Record<string, LibraryCollectionMeta> = {
     description: '从零用 TypeScript 手写卷积神经网络——卷积与互相关、池化、卷积反向传播、感受野、BatchNorm、残差连接、在合成小图上真训练的 tiny CNN、过拟合与数据增强——每章离线实测准确率、梯度检查与加深时的收敛对比。',
     order: 9.8,
   },
+  'sequence-models': {
+    title: '序列模型 RNN→Mamba',
+    description: '从零用 TypeScript 手写序列模型演进——RNN 与时间展开、梯度消失/爆炸、LSTM/GRU 门控、注意力简回顾、状态空间模型 SSM、Mamba 选择性扫描——在 toy 长依赖任务上实测门控解决长依赖、O(n) vs O(n²) 复杂度对比。',
+    order: 9.85,
+  },
   // survey/课程系列，orders 10+。
   'ai-app-engineering': {
     title: 'AI 应用工程',
