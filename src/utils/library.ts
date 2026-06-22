@@ -97,6 +97,11 @@ export const LIBRARY_COLLECTIONS: Record<string, LibraryCollectionMeta> = {
     description: '从零用 TypeScript 手写参数高效微调——全量微调的成本墙、LoRA 低秩增量、rank 容量权衡、Adapter 瓶颈层、Prefix/Prompt 软提示、QLoRA 量化基座、合并与多适配器切换——每章在玩具任务上真训练，实测可训练参数占比、ΔW 低秩性与合并等价误差。',
     order: 9.5,
   },
+  'interpretability': {
+    title: '机制可解释性',
+    description: '从零用 TypeScript 拆解一个玩具 Transformer 的内部电路——注意力可视化、线性探针、logit lens、activation patching、复现 induction head、稀疏自编码器 SAE——在同一个可训练模型上做真实因果实验，定位「哪个组件负责什么」。',
+    order: 9.6,
+  },
   // survey/课程系列，orders 10+。
   'ai-app-engineering': {
     title: 'AI 应用工程',

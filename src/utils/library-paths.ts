@@ -138,6 +138,23 @@ export const LEARNING_PATHS: LearningPathMeta[] = [
     ],
   },
   {
+    id: 'interpretability-from-scratch',
+    title: '可解释性 / 对齐研究 · 从零构建',
+    audience: '面向科研 / 前沿 · 对齐、安全、机制可解释性',
+    goal: '在一个自己训练的玩具 Transformer 上,亲手做注意力可视化、探针、activation patching、复现 induction head、训 SAE,把「黑箱」拆成可定位的电路。',
+    steps: [
+      { collection: 'interpretability', slug: '00', why: '全景:机制可解释性要回答什么' },
+      { collection: 'interpretability', slug: '01', why: '造研究对象:训一个可复现的玩具 Transformer' },
+      { collection: 'interpretability', slug: '02', why: '注意力可视化:看每个头在关注什么' },
+      { collection: 'interpretability', slug: '03', why: '线性探针:激活里编码了哪些信息' },
+      { collection: 'interpretability', slug: '04', why: 'Logit Lens:中间层在"想"什么' },
+      { collection: 'interpretability', slug: '05', why: 'Activation Patching:因果定位关键组件' },
+      { collection: 'interpretability', slug: '06', why: '复现 Induction Head:上下文学习的电路' },
+      { collection: 'interpretability', slug: '07', why: '稀疏自编码器 SAE:拆解叠加特征' },
+      { collection: 'interpretability', slug: '08', why: '合流与诚实:可解释性的边界与开放问题' },
+    ],
+  },
+  {
     id: 'peft-from-scratch',
     title: '微调工程师 · 从零构建 PEFT',
     audience: '面向就业 · 应用 NN / LLM 微调',
