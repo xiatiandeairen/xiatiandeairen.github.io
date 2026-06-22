@@ -1,0 +1,22 @@
+{
+  "name": "moe-from-scratch",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "从零用 TypeScript 拆透混合专家 MoE：路由、Top-k、不可导门控、负载均衡损失、容量丢弃、专家坍塌。纯算法、离线 CPU 可跑、确定性可复现。配套书库《混合专家 MoE 从零做透》。",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "stage01": "tsx src/stage01-moe-layer.ts",
+    "stage02": "tsx src/stage02-topk-routing.ts",
+    "stage03": "tsx src/stage03-nondifferentiable-routing.ts",
+    "stage04": "tsx src/stage04-load-balance-loss.ts",
+    "stage05": "tsx src/stage05-capacity-drop.ts",
+    "stage06": "tsx src/stage06-expert-collapse.ts",
+    "stage07": "tsx src/stage07-moe-capstone.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.9.0"
+  }
+}
