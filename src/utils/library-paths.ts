@@ -138,6 +138,23 @@ export const LEARNING_PATHS: LearningPathMeta[] = [
     ],
   },
   {
+    id: 'vision-from-scratch',
+    title: '计算机视觉工程师 · 从零构建 CNN',
+    audience: '面向就业 · CV / 图像 / 多模态',
+    goal: '不用现成框架,亲手实现卷积、池化、卷积反向传播、BatchNorm、残差,在合成小图上真训一个会收敛的 tiny CNN。',
+    steps: [
+      { collection: 'vision', slug: '00', why: '全景:CNN 与视觉的归纳偏置' },
+      { collection: 'vision', slug: '01', why: '卷积与互相关:权重共享与局部性' },
+      { collection: 'vision', slug: '02', why: '池化与下采样' },
+      { collection: 'vision', slug: '03', why: '卷积的反向传播(手推+梯度检查)' },
+      { collection: 'vision', slug: '04', why: '感受野:深度如何放大视野' },
+      { collection: 'vision', slug: '05', why: 'BatchNorm:稳定训练' },
+      { collection: 'vision', slug: '06', why: '残差连接:为什么能更深' },
+      { collection: 'vision', slug: '07', why: 'Tiny CNN 真训练:在合成图上收敛' },
+      { collection: 'vision', slug: '08', why: '过拟合与数据增强' },
+    ],
+  },
+  {
     id: 'embeddings-from-scratch',
     title: '表示学习 / Embedding · 从零构建',
     audience: '面向就业 · 检索 / 推荐 / RAG 的上游',
