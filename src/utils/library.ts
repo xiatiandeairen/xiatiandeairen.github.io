@@ -81,6 +81,11 @@ export const LIBRARY_COLLECTIONS: Record<string, LibraryCollectionMeta> = {
     description: '从零用 TypeScript 手写一个编译器/解释器——词法、语法(递归下降+Pratt)、语义、类型检查、中间表示、基本优化、字节码虚拟机、代码生成——实现一门小语言并真能跑程序，实测解析速度与优化前后指令数。',
     order: 7,
   },
+  'distributed': {
+    title: '分布式系统',
+    description: '从零用 TypeScript 手写分布式系统核心——逻辑/向量时钟、RPC 与故障检测、Raft 选主与日志复制、CAP 与一致性模型、最终一致与 CRDT——用确定性内存网络仿真(可注入延迟/丢包/分区)，离线实测选主、日志一致与分区下的取舍。',
+    order: 8,
+  },
   // survey/课程系列，orders 10+。
   'ai-app-engineering': {
     title: 'AI 应用工程',
