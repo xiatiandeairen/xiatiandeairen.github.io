@@ -251,6 +251,6 @@ The SAFE sampler avoids this by cropping context to the last blockSize tokens:
 
 这个取舍很关键:**用速度换正确性的可验证性**。每条梯度路径都是前几章数值检查过的二维 core op,代价是 O(batch) 的 JS 循环。生产系统反过来——为了速度把这些 op 融成定制 kernel,代价是正确性更难验证(所以才有 FlashAttention 的 reference 实现专门用来对数值)。你这版的价值不在快,在于**每一步都可信、可读、可改**。
 
-这意味着什么?**你现在手里有一个完整的、可改的科研 baseline**。想试个新的位置编码?改 `posEmb`。想验证一个新优化器?换掉 `AdamW`。想看某个 attention 变体在小数据上的收敛形状?改 `MultiHeadSelfAttention.forwardSeq`。所有这些实验,你都能在 CPU 上几十秒跑完一轮(真实计时:`wall-clock: 56.3s for 220 steps`,约 256 ms/step,机器相关,看比例不看绝对值),拿"能不能过拟合小语料"当快速冒烟测试,确认你的改动没有悄悄打断梯度流。
+这意味着什么?**你现在手里有一个完整的、可改的科研 baseline**。想试个新的位置编码?改 `posEmb`。想验证一个新优化器?换掉 `AdamW`。想看某个 attention 变体在小数据上的收敛形状?改 `MultiHeadSelfAttention.forwardSeq`。所有这些实验,你都能在 CPU 上几十秒跑完一轮(真实计时:`wall-clock: 40.9s for 220 steps`,约 186 ms/step,机器相关,看比例不看绝对值),拿"能不能过拟合小语料"当快速冒烟测试,确认你的改动没有悄悄打断梯度流。
 
 把整本书的弧线连起来:第一章手写标量 autograd 的那个加法节点的 adjoint,到这一章,正在驱动一个会背莎士比亚片段的 transformer 收敛。中间没有任何一处是黑盒——你验证过每一环。这就是这本书想给你的,也是它作为"AI 批量生成的 survey 稿"的反面所在:**survey 告诉你 GPT 是什么,这本书让你拥有一个你能拆开、能改、能验证、能继续往上做研究的 GPT。** 至于接下来怎么让它跑得快、怎么部署、怎么量化压缩——那是姊妹篇 llm-inference 的事;你已经把"它为什么能学"这件事,从骨头里弄明白了。

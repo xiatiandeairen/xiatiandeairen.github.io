@@ -95,7 +95,7 @@ step(xt: Tensor, state: Tensor[]): Tensor[] {
   const n = this.inToN.forward(xt).add(this.hToN.forward(r.mul(hPrev))).tanh();
   const ones = Tensor.ones([hPrev.shape[0], H]);
   const h = ones.sub(u).mul(n).add(u.mul(hPrev)); // h = (1-u)*n + u*h_prev，漏积分更新
-  return [h, c];
+  return [h]; // GRU 只有单一状态 h，不像 LSTM 还有独立 cell state c
 }
 ```
 

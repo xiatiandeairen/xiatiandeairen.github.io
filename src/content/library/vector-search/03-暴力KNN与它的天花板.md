@@ -33,7 +33,7 @@ function bruteForceTopK(
 }
 ```
 
-这就是全部。`l2dist` 是第 2 章那四个原语之一(`src/core/vec.ts`),在最内层每个向量调一次。注意 `a.dist - b.dist || a.idx - b.idx` 这个 tie-break(平局判定):距离相等时小 index 优先。这不是随手写的——它跟 ground truth 生成器 `computeGroundTruth`(`src/core/dataset.ts`)用的**完全同一个**平局规则:
+这就是全部。`l2dist` 是第 2 章那三个度量原语之一(`src/core/vec.ts` 里的 dot / cosine / l2),在最内层每个向量调一次。注意 `a.dist - b.dist || a.idx - b.idx` 这个 tie-break(平局判定):距离相等时小 index 优先。这不是随手写的——它跟 ground truth 生成器 `computeGroundTruth`(`src/core/dataset.ts`)用的**完全同一个**平局规则:
 
 ```typescript
 scored.sort((x, y) => (y.s - x.s) || (x.idx - y.idx));

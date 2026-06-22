@@ -17,7 +17,7 @@ updatedAt: "2026-06-21T08:00:00.000Z"
 
 第 0 章说过 agent 和 workflow 的区别只有一句话：**谁决定下一步**。Workflow 是你把控制流写死在代码里，模型只在每一格填内容；agent 是把控制流交给模型，下一步、做几步、何时停都由它运行时决定。第 1 章把那把「控制流之刀」摆出来当全书取舍。前面十一章我们一直在磨 agent 那一侧——循环、工具、沙箱、权限、上下文、记忆、子 agent、多 agent。这一章回到刀的另一侧，把 workflow 自己实现一遍，因为「写死控制流」听起来简单到不值得讲,但真要在规模下不把机器跑挂、不被 API 限流封号、出错时还能定位到是哪条 case，需要的工程量比想象的多。
 
-配套代码 `examples/agent-from-scratch/src/stage12-workflow.ts`,**整份不含一行 LLM 调用**——这是故意的。叶子任务用 `setTimeout` 假装成「一次 agent 循环」（`src/stage12-workflow.ts:174-190`），因为这一章要讲的是任务**之间**的编排,不是任务**内部**算什么。跑它直接 `npx tsx src/stage12-workflow.ts`(本 stage 还没进 `package.json` 的 npm script 列表,用 tsx 直跑),下面引用的所有数字都是这份文件真实跑出来的 wall-clock,不是我估的。
+配套代码 `examples/agent-from-scratch/src/stage12-workflow.ts`,**整份不含一行 LLM 调用**——这是故意的。叶子任务用 `setTimeout` 假装成「一次 agent 循环」（`src/stage12-workflow.ts:174-190`），因为这一章要讲的是任务**之间**的编排,不是任务**内部**算什么。跑它直接 `npm run stage12`(或 `npx tsx src/stage12-workflow.ts`),下面引用的所有数字都是这份文件真实跑出来的 wall-clock,不是我估的——wall-clock 会随机器和负载有几毫秒抖动,引用值取自一次真实运行,你跑出来的数量级一致即可。
 
 ## 「确定性」到底确定什么
 
