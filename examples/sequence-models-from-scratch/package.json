@@ -1,0 +1,22 @@
+{
+  "name": "sequence-models-from-scratch",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "从零用 TypeScript 拆解序列模型：从 RNN 的长依赖困境，经 LSTM/GRU、attention，到 SSM/Mamba 的 O(n) 标度。纯算法、离线 CPU 可跑、确定性可复现。配套书库《序列模型从零：RNN 到 Mamba》。",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "stage01": "tsx src/stage01-rnn.ts",
+    "stage02": "tsx src/stage02-vanishing-grad.ts",
+    "stage03": "tsx src/stage03-lstm-gru.ts",
+    "stage04": "tsx src/stage04-char-lm.ts",
+    "stage05": "tsx src/stage05-attention.ts",
+    "stage06": "tsx src/stage06-ssm.ts",
+    "stage07": "tsx src/stage07-mamba.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.9.0"
+  }
+}
