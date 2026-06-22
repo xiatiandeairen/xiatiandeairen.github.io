@@ -91,6 +91,12 @@ export const LIBRARY_COLLECTIONS: Record<string, LibraryCollectionMeta> = {
     description: '从零用 TypeScript 手写扩散生成模型——前向加噪、反向去噪、score matching、DDPM 训练、DDPM/DDIM 采样、classifier-free guidance、latent diffusion——在 2D toy 数据上真训练，从噪声采样还原目标分布。',
     order: 9,
   },
+  // order 9.5 保持 PEFT 归入"从零做透"系列（排在 diffusion 之后、survey 系列之前），无需重排既有 0–13。
+  'peft': {
+    title: '高效微调 PEFT 从零',
+    description: '从零用 TypeScript 手写参数高效微调——全量微调的成本墙、LoRA 低秩增量、rank 容量权衡、Adapter 瓶颈层、Prefix/Prompt 软提示、QLoRA 量化基座、合并与多适配器切换——每章在玩具任务上真训练，实测可训练参数占比、ΔW 低秩性与合并等价误差。',
+    order: 9.5,
+  },
   // survey/课程系列，orders 10+。
   'ai-app-engineering': {
     title: 'AI 应用工程',
