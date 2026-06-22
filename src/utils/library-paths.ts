@@ -138,6 +138,23 @@ export const LEARNING_PATHS: LearningPathMeta[] = [
     ],
   },
   {
+    id: 'peft-from-scratch',
+    title: '微调工程师 · 从零构建 PEFT',
+    audience: '面向就业 · 应用 NN / LLM 微调',
+    goal: '不用现成库，在 toy 基座上亲手实现 LoRA / Adapter / Prefix / QLoRA，实测可训练参数占比、显存与收敛对比全量微调。',
+    steps: [
+      { collection: 'peft', slug: '00', why: '全景:PEFT 为何是 LLM 工程师第一刚需' },
+      { collection: 'peft', slug: '01', why: '基座:先训一个能被微调的 toy Transformer' },
+      { collection: 'peft', slug: '02', why: '全量微调 vs 冻结:成本墙与灾难性遗忘' },
+      { collection: 'peft', slug: '03', why: 'LoRA:ΔW=BA 低秩分解的数学与实现' },
+      { collection: 'peft', slug: '04', why: '秩 r 的选择:有效秩与过参数化' },
+      { collection: 'peft', slug: '05', why: 'Adapter:层间瓶颈模块的另一条路' },
+      { collection: 'peft', slug: '06', why: 'Prefix/Prompt tuning:连续向量当软提示' },
+      { collection: 'peft', slug: '07', why: 'QLoRA:量化冻结基座 + 高精度 LoRA' },
+      { collection: 'peft', slug: '08', why: '合并与交付:LoRA 折回权重、多适配器切换' },
+    ],
+  },
+  {
     id: 'diffusion-from-scratch',
     title: '生成模型 / 扩散工程师 · 从零构建',
     audience: '面向就业 / 前沿 · genAI、图像/视频/音频生成',
