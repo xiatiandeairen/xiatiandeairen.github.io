@@ -1,0 +1,23 @@
+{
+  "name": "vision-from-scratch",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "从零用 TypeScript 拆解卷积神经网络：从 conv2d 到能跑的 tiny-CNN。纯算法、离线 CPU 可跑、确定性可复现。配套书库《计算机视觉从零：手写卷积神经网络》。",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "stage01": "tsx src/stage01-convolution.ts",
+    "stage02": "tsx src/stage02-pooling.ts",
+    "stage03": "tsx src/stage03-conv-backward.ts",
+    "stage04": "tsx src/stage04-receptive-field.ts",
+    "stage05": "tsx src/stage05-batchnorm.ts",
+    "stage06": "tsx src/stage06-residual.ts",
+    "stage07": "tsx src/stage07-tiny-cnn.ts",
+    "stage08": "tsx src/stage08-augmentation.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.9.0"
+  }
+}
