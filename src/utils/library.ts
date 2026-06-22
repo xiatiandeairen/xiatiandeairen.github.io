@@ -102,6 +102,11 @@ export const LIBRARY_COLLECTIONS: Record<string, LibraryCollectionMeta> = {
     description: '从零用 TypeScript 拆解一个玩具 Transformer 的内部电路——注意力可视化、线性探针、logit lens、activation patching、复现 induction head、稀疏自编码器 SAE——在同一个可训练模型上做真实因果实验，定位「哪个组件负责什么」。',
     order: 9.6,
   },
+  'embeddings': {
+    title: '表示学习与 Embedding 从零',
+    description: '从零用 TypeScript 手写表示学习与 embedding——one-hot 的维度灾难、共现/PMI、skip-gram + 负采样、对比学习 InfoNCE、温度与负样本、类比题评估、PCA/t-SNE 可视化——每章一个可独立运行的 stage，真训出可见的语义结构。是向量检索引擎的上游：embedding 怎么被训出来，这本书负责。',
+    order: 9.7,
+  },
   // survey/课程系列，orders 10+。
   'ai-app-engineering': {
     title: 'AI 应用工程',
