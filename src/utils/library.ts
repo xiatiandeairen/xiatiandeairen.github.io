@@ -107,6 +107,11 @@ export const LIBRARY_COLLECTIONS: Record<string, LibraryCollectionMeta> = {
     description: '从零用 TypeScript 手写表示学习与 embedding——one-hot 的维度灾难、共现/PMI、skip-gram + 负采样、对比学习 InfoNCE、温度与负样本、类比题评估、PCA/t-SNE 可视化——每章一个可独立运行的 stage，真训出可见的语义结构。是向量检索引擎的上游：embedding 怎么被训出来，这本书负责。',
     order: 9.7,
   },
+  'vision': {
+    title: '计算机视觉',
+    description: '从零用 TypeScript 手写卷积神经网络——卷积与互相关、池化、卷积反向传播、感受野、BatchNorm、残差连接、在合成小图上真训练的 tiny CNN、过拟合与数据增强——每章离线实测准确率、梯度检查与加深时的收敛对比。',
+    order: 9.8,
+  },
   // survey/课程系列，orders 10+。
   'ai-app-engineering': {
     title: 'AI 应用工程',
