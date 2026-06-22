@@ -76,6 +76,11 @@ export const LIBRARY_COLLECTIONS: Record<string, LibraryCollectionMeta> = {
     description: '从零用 TypeScript 手写一个数据库引擎——slotted page 存储、缓冲池、B+树、LSM 树、WAL、事务与 MVCC、崩溃恢复、查询执行——用内存模拟磁盘，离线实测吞吐、写放大、隔离级别下的并发异常与崩溃恢复。',
     order: 6,
   },
+  'compiler': {
+    title: '编译器',
+    description: '从零用 TypeScript 手写一个编译器/解释器——词法、语法(递归下降+Pratt)、语义、类型检查、中间表示、基本优化、字节码虚拟机、代码生成——实现一门小语言并真能跑程序，实测解析速度与优化前后指令数。',
+    order: 7,
+  },
   // survey/课程系列，orders 10+。
   'ai-app-engineering': {
     title: 'AI 应用工程',
