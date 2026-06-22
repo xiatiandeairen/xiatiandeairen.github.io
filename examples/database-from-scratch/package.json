@@ -1,0 +1,23 @@
+{
+  "name": "database-from-scratch",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "从零用 TypeScript 手写一个存储引擎 / 数据库内核。纯算法、离线可跑、无 LLM/API/网络依赖，每个 stage 实测真实 IO 次数 / 吞吐 / 恢复正确性。配套《数据库引擎从零》书库合集。",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "stage01": "tsx src/stage01-slotted-page.ts",
+    "stage02": "tsx src/stage02-buffer-pool.ts",
+    "stage03": "tsx src/stage03-bplus-tree.ts",
+    "stage04": "tsx src/stage04-lsm-tree.ts",
+    "stage05": "tsx src/stage05-wal.ts",
+    "stage06": "tsx src/stage06-mvcc.ts",
+    "stage07": "tsx src/stage07-recovery.ts",
+    "stage08": "tsx src/stage08-query-executor.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.9.0"
+  }
+}
