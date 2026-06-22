@@ -54,6 +54,23 @@ export const LEARNING_PATHS: LearningPathMeta[] = [
     ],
   },
   {
+    id: 'compiler-engineer-from-scratch',
+    title: '编译器 / 语言工程师 · 从零构建',
+    audience: '面向就业 · 语言 / 编译器 / 工具链 / 静态分析',
+    goal: '不用现成解析器/VM，亲手实现词法、语法、类型检查、IR、优化、字节码虚拟机与代码生成，造一门能跑的小语言。',
+    steps: [
+      { collection: 'compiler', slug: '00', why: '全景:源码到执行要造哪些零件' },
+      { collection: 'compiler', slug: '01', why: '词法分析:字符流切成 token' },
+      { collection: 'compiler', slug: '02', why: '语法分析:递归下降 + Pratt 表达式 → AST' },
+      { collection: 'compiler', slug: '03', why: '语义分析:作用域、名字解析、绑定' },
+      { collection: 'compiler', slug: '04', why: '类型检查:静态抓错' },
+      { collection: 'compiler', slug: '05', why: '中间表示 IR:为优化与代码生成铺路' },
+      { collection: 'compiler', slug: '06', why: '基本优化:常量折叠、死代码消除' },
+      { collection: 'compiler', slug: '07', why: '字节码虚拟机:让程序真跑起来' },
+      { collection: 'compiler', slug: '08', why: '代码生成 + 就业冲刺' },
+    ],
+  },
+  {
     id: 'database-engineer-from-scratch',
     title: '数据库工程师 · 从零构建',
     audience: '面向就业 · 后端 / 基础设施 / 数据库内核',
