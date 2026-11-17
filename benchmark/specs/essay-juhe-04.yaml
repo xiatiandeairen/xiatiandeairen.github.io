@@ -1,0 +1,11 @@
+id: essay-juhe-04
+title: "TODO: 信息聚合 #04 的题目"
+group: 信息聚合
+expected_length: 2500-4000
+anchor_refs:
+  - ruanyifeng/TODO-anchor-1
+  - ruanyifeng/TODO-anchor-2
+prompt_for_skill: |
+  TODO: 博主填入完整 brief。
+  该题材代表: 阮一峰的"科技爱好者周刊"风格 — 信息密度 + 观点克制。
+author_rating_target: high

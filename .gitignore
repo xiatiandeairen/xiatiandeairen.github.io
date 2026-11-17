@@ -32,6 +32,9 @@ public/og/
 # Sprint (temporary session data)
 .sprint/
 
+# Content-quality benchmark runs (contain generated articles + judge outputs)
+benchmark/runs/
+
 # Design archive preview (populated by scripts/view-design.sh, never committed)
 src/pages/preview/
 .playwright-mcp/
@@ -40,3 +43,6 @@ src/pages/preview/
 /*.png
 .claude/
 .mcp.json
+.playwright-mcp/
+home-v*.png
+book-*.png

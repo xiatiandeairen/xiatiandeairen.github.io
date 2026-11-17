@@ -1,0 +1,11 @@
+id: essay-gongcheng-03
+title: "TODO: 工程深度 #03 的题目"
+group: 工程深度
+expected_length: 2500-4000
+anchor_refs:
+  - yunfeng/TODO-anchor-1
+  - yunfeng/TODO-anchor-2
+prompt_for_skill: |
+  TODO: 博主填入完整 brief。
+  该题材代表: 云风风格 — 系统级问题拆解 + 实战经验。
+author_rating_target: high

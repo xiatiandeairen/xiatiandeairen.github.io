@@ -1,0 +1,12 @@
+id: essay-sixian-04
+title: "TODO: 思辨随笔 #04 的题目"
+group: 思辨随笔
+expected_length: 2500-4000
+anchor_refs:
+  - wangyin/TODO-anchor-1
+  - self/TODO-anchor-1
+prompt_for_skill: |
+  TODO: 博主填入完整 brief。
+  需包含: 题材、角度、禁忌、目标读者、必须回答的核心问题。
+  参考锚点文章: (见 anchor_refs)
+author_rating_target: high

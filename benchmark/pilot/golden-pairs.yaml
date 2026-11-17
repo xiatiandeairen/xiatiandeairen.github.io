@@ -1,0 +1,43 @@
+# 4 对 golden pairs — Pilot 校准评审器用。
+#
+# 规则：
+# - 每对来自同一作者（阮/王/云/博主本人），A = 该作者"好"的代表作，B = 该作者"一般水位"的文章
+# - expected_winner 必须是 A；Pilot 会检查 ≥3/4 判对
+# - "判对"定义：3 judge 聚合结果为 A
+# - 文件路径为相对 benchmark/ 目录
+#
+# 当前为 stub：文件路径占位，博主需在填入真实语料后把 path_a/path_b 指向实际 .md
+
+pairs:
+  - id: pair-ruanyifeng-01
+    author: 阮一峰
+    rationale: 用"科技爱好者周刊"里的精选期 vs 早期信息密度较低的期
+    path_a: corpus/ruanyifeng/TODO-high-rated.md
+    path_b: corpus/ruanyifeng/TODO-low-rated.md
+    expected_winner: A
+
+  - id: pair-wangyin-01
+    author: 王垠
+    rationale: 类型系统/语言设计深度文 vs 短评/吐槽文
+    path_a: corpus/wangyin/TODO-high-rated.md
+    path_b: corpus/wangyin/TODO-low-rated.md
+    expected_winner: A
+
+  - id: pair-yunfeng-01
+    author: 云风
+    rationale: 系统级问题拆解长文 vs 日常 changelog 式短文
+    path_a: corpus/yunfeng/TODO-high-rated.md
+    path_b: corpus/yunfeng/TODO-low-rated.md
+    expected_winner: A
+
+  - id: pair-self-01
+    author: 博主本人
+    rationale: 博主认可的代表作 vs 博主本人觉得一般水位的旧文
+    path_a: corpus/self/TODO-high-rated.md
+    path_b: corpus/self/TODO-low-rated.md
+    expected_winner: A
+
+# Pilot 通过阈值（硬规则，不得调低）
+thresholds:
+  min_correct_pairs: 3              # ≥3/4 对判对
+  min_position_consistency: 0.70    # 位置交换后两次结论一致率 ≥70%

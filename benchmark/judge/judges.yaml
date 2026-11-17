@@ -1,0 +1,54 @@
+# Ensemble Judge 配置
+#
+# 硬约束：judge 不得是 Claude 家族（skill 跑在 Claude，避 self-enhancement bias）。
+# API key 从环境变量读取，不写入文件。
+
+judges:
+  - id: gpt-4o
+    role: primary
+    provider: openai
+    model: gpt-4o-2024-11-20
+    endpoint: https://api.openai.com/v1/chat/completions
+    api_key_env: OPENAI_API_KEY
+    temperature: 0.2
+    max_tokens: 800
+    timeout_s: 60
+    cost_cap_usd: 0.05          # 单次判决成本上限，超了算失败
+
+  - id: gemini-2-pro
+    role: secondary
+    provider: google
+    model: gemini-2.5-pro
+    endpoint: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent
+    api_key_env: GEMINI_API_KEY
+    temperature: 0.2
+    max_tokens: 800
+    timeout_s: 60
+    cost_cap_usd: 0.05
+
+  - id: deepseek-v3
+    role: chinese-native
+    provider: deepseek
+    model: deepseek-chat
+    endpoint: https://api.deepseek.com/v1/chat/completions
+    api_key_env: DEEPSEEK_API_KEY
+    temperature: 0.2
+    max_tokens: 800
+    timeout_s: 60
+    cost_cap_usd: 0.02
+
+# 聚合规则：3 judge 各自输出 {A | B | tie}，多数决（≥2 一致才算胜），三方全不一致 → tie，不计入 Elo 更新。
+aggregation:
+  rule: majority_with_tie_on_split
+  min_agree: 2
+
+# 位置随机化：每对跑 2 次，第二次 A/B 交换位置；两次结果不一致 → 降权（0.5 倍更新），记录到 report 的 disagreement 段。
+position_randomization:
+  enabled: true
+  swap_replicate: true
+
+# 重试与失败处理
+retries:
+  max_attempts: 3
+  backoff_s: 5
+  on_persistent_failure: skip_pair_and_log
